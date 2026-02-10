@@ -25,7 +25,7 @@ const ProfileSchema = new mongoose.Schema({
   ],
 
   education: [
-    {
+    {project
       institution: String,
       university: String,
       degree: String,

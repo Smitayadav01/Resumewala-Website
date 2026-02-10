@@ -13,7 +13,6 @@ import {
   EyeOff,
 } from 'lucide-react';
 
-/* ---------------- TYPES ---------------- */
 interface ProfileProps {
   onNavigate: (page: string) => void;
   resumeData?: any;
@@ -22,11 +21,13 @@ interface ProfileProps {
 type SectionKey = 'personal' | 'experience' | 'education' | 'skills';
 
 /* ---------------- MAIN ---------------- */
-export default function Profile({ resumeData }: ProfileProps) {
+export default function Profile({ resumeData, onNavigate }: ProfileProps) {
   const [activeSection, setActiveSection] = useState<SectionKey | null>('personal');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [profileVisible, setProfileVisible] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showFinalPopup, setShowFinalPopup] = useState(false);
+
 
   /* PERSONAL */
   const [personalInfo, setPersonalInfo] = useState({
@@ -125,6 +126,12 @@ export default function Profile({ resumeData }: ProfileProps) {
     (education.length ? 25 : 0) +
     (skills.length ? 25 : 0);
 
+    useEffect(() => {
+  if (completion === 100) {
+    setShowFinalPopup(true);
+  }
+}, [completion]);
+
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-3 gap-8">
@@ -133,34 +140,81 @@ export default function Profile({ resumeData }: ProfileProps) {
         <div className="lg:col-span-2 space-y-6">
 
           {/* HEADER */}
-          <div className="bg-white border rounded-xl p-6 flex justify-between items-center">
-            <div className="flex gap-4">
-              <div className="h-14 w-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold">
-                {personalInfo.fullName?.charAt(0) || 'U'}
-              </div>
-              <div>
-                <h1 className="font-semibold">{personalInfo.fullName || 'Your Name'}</h1>
-                <p className="text-sm text-gray-600">{personalInfo.email}</p>
-                <p className="text-sm text-gray-600">{personalInfo.mobile}</p>
-              </div>
-            </div>
+<div className="bg-white border rounded-xl p-6">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-            <button
-              onClick={() => setProfileVisible(!profileVisible)}
-              className="flex items-center gap-2 text-sm font-medium"
-            >
-              {profileVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-              {profileVisible ? 'Visible to recruiters' : 'Hidden'}
-            </button>
-          </div>
+    {/* LEFT : AVATAR + INFO */}
+    <div className="flex items-center gap-4">
+      {/* Avatar */}
+      <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow">
+        {personalInfo.fullName?.charAt(0)?.toUpperCase() || 'U'}
+      </div>
+
+      {/* Name & Details */}
+      <div className="flex flex-col justify-center">
+        <h1 className="text-xl font-semibold leading-tight text-gray-900">
+          {personalInfo.fullName || 'Your Name'}
+        </h1>
+
+        <div className="flex flex-col sm:flex-row sm:gap-4 text-sm text-gray-600 mt-1">
+          <span>{personalInfo.email || 'your@email.com'}</span>
+          <span>{personalInfo.mobile || '+91 XXXXXXXX'}</span>
+        </div>
+      </div>
+    </div>
+
+    {/* RIGHT : VISIBILITY */}
+    <button
+      onClick={() => setProfileVisible(!profileVisible)}
+      className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition self-start sm:self-center"
+    >
+      {profileVisible ? (
+        <>
+          <Eye className="h-4 w-4" />
+          <span>Visible to recruiters</span>
+        </>
+      ) : (
+        <>
+          <EyeOff className="h-4 w-4" />
+          <span>Profile hidden</span>
+        </>
+      )}
+    </button>
+
+  </div>
+</div>
+
 
           {/* PERSONAL */}
-          <Accordion title="Personal Information" icon={<User />} open={activeSection === 'personal'} onToggle={() => toggleSection('personal')}>
+          <Accordion title="Basic Information" icon={<User />} open={activeSection === 'personal'} onToggle={() => toggleSection('personal')}>
             <Grid>
               <Input label="Full Name" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Email" value={personalInfo.email} onChange={(e:any)=>setPersonalInfo({...personalInfo, email:e.target.value})} />
-              <Input label="Mobile" value={personalInfo.mobile} onChange={(e:any)=>setPersonalInfo({...personalInfo, mobile:e.target.value})} />
-              <Input label="Address" full value={personalInfo.address} onChange={(e:any)=>setPersonalInfo({...personalInfo, address:e.target.value})} />
+              <Input label="Gender" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input
+          label="DOB"
+          type="date"
+          value={newExp.startDate}
+          onChange={(e: any) =>
+            setNewExp({ ...newExp, startDate: e.target.value })
+          }
+        />
+              <Input label="Age" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="City" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Email" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Current Status" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Total Experience" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Current Job Title" full value={personalInfo.email} onChange={(e:any)=>setPersonalInfo({...personalInfo, email:e.target.value})} />
+              <Input label="Company Name" value={personalInfo.mobile} onChange={(e:any)=>setPersonalInfo({...personalInfo, mobile:e.target.value})} />
+              <Input label="Industry" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Designation" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Current CTC" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Location" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Prefferd location" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Employment Type" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Work mode" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Highest Qualification" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="College/University" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
+              <Input label="Year of Passing" value={personalInfo.address} onChange={(e:any)=>setPersonalInfo({...personalInfo, address:e.target.value})} />
             </Grid>
             <SaveBtn onClick={() => saveSection('personal', personalInfo)} />
           </Accordion>
@@ -368,12 +422,49 @@ export default function Profile({ resumeData }: ProfileProps) {
 </Accordion>
 
           {/* SKILLS */}
-          <Accordion title="Skills" icon={<Briefcase />} open={activeSection === 'skills'} onToggle={() => toggleSection('skills')}>
-            <div className="flex gap-3">
-              <input value={newSkill} onChange={(e)=>setNewSkill(e.target.value)} className="border rounded-lg px-4 py-2 flex-1" />
-              <SaveBtn onClick={addSkill} />
-            </div>
-          </Accordion>
+<Accordion
+  title="Skills"
+  icon={<Briefcase />}
+  open={activeSection === 'skills'}
+  onToggle={() => toggleSection('skills')}
+>
+  {/* ADD SKILL */}
+  <div className="flex gap-3 mb-4">
+    <input
+      value={newSkill}
+      onChange={(e) => setNewSkill(e.target.value)}
+      placeholder="Add a skill (e.g. React, Java)"
+      className="border rounded-lg px-4 py-2 flex-1"
+    />
+    <SaveBtn onClick={addSkill} />
+  </div>
+
+  {/* SHOW SKILLS */}
+  {skills.length > 0 ? (
+    <div className="flex flex-wrap gap-3">
+      {skills.map((skill, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full border"
+        >
+          <span className="text-sm font-medium">{skill}</span>
+
+          <Trash2
+            className="h-4 w-4 cursor-pointer text-red-500"
+            onClick={async () => {
+              const updated = skills.filter((_, i) => i !== index);
+              setSkills(updated);
+              await saveSection('skills', updated);
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-sm text-gray-500">No skills added yet</p>
+  )}
+</Accordion>
+
         </div>
 
         {/* RIGHT */}
@@ -404,6 +495,34 @@ export default function Profile({ resumeData }: ProfileProps) {
           </div>
         </div>
       )}
+
+      {showFinalPopup && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-xl">
+      <CheckCircle className="text-green-600 h-14 w-14 mx-auto mb-4" />
+
+      <h2 className="text-xl font-semibold mb-2">
+        Profile Updated Successfully 🎉
+      </h2>
+
+      <p className="text-gray-600 mb-6">
+        Your profile is now complete. You can now browse and apply for jobs.
+      </p>
+
+      <button
+        onClick={() => {
+          setShowFinalPopup(false);
+          onNavigate('jobs');
+        }}
+        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+      >
+        Browse Jobs
+      </button>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }

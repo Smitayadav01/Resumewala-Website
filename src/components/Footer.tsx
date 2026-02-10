@@ -20,10 +20,10 @@ const Footer = () => {
   ];
 
   const footerLinks = [
-    { name: 'Home', href: '/' },
+    { name: 'Home', href: '/home' },
     { name: 'About Us', href: '/about' },
     { name: 'Employers', href: '/employers' },
-    { name: 'Browse Jobs', href: '/browse' },
+    { name: 'Browse Jobs', href: '/jobs' },
     { name: 'Contact', href: '/contact' },
     { name: 'Privacy Policy', href: '/privacy' },
     { name: 'Terms & Conditions', href: '/terms' },
