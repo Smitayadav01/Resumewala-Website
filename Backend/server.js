@@ -1,13 +1,16 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-
-mongoose.connect("mongodb://localhost:27017/resumewala");
+import express from "express";
+import connectDB from "./config/db.js";
+import userRouter from './routes/userRouter.js'
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-app.use("/api/profile", require("./routes/profile"));
+app.use(express.json());
+connectDB()
+
+app.get('/',(req,res)=>{
+    return res.send("Hellow woerld")
+})
+
+app.use("/api/auth", userRouter);
 
 app.listen(5000, () => console.log("Server running on 5000"));

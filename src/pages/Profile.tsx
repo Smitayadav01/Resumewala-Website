@@ -18,6 +18,30 @@ interface ProfileProps {
   resumeData?: any;
 }
 
+interface PersonalInfo {
+  fullName: string;
+  gender: string;
+  dob: string;
+  age: string;
+  city: string;
+  email: string;
+  currentStatus: string;
+  totalExperience: string;
+  currentJobTitle: string;
+  companyName: string;
+  industry: string;
+  designation: string;
+  currentCTC: string;
+  location: string;
+  preferredLocation: string;
+  employmentType: string;
+  workMode: string;
+  highestQualification: string;
+  college: string;
+  yearOfPassing: string;
+}
+
+
 type SectionKey = 'personal' | 'experience' | 'education' | 'skills';
 
 /* ---------------- MAIN ---------------- */
@@ -30,12 +54,29 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
 
 
   /* PERSONAL */
-  const [personalInfo, setPersonalInfo] = useState({
-    fullName: '',
-    email: '',
-    mobile: '',
-    address: '',
-  });
+  
+const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
+  fullName: '',
+  gender: '',
+  dob: '',
+  age: '',
+  city: '',
+  email: '',
+  currentStatus: '',
+  totalExperience: '',
+  currentJobTitle: '',
+  companyName: '',
+  industry: '',
+  designation: '',
+  currentCTC: '',
+  location: '',
+  preferredLocation: '',
+  employmentType: '',
+  workMode: '',
+  highestQualification: '',
+  college: '',
+  yearOfPassing: '',
+});
 
   /* EXPERIENCE */
   const [experiences, setExperiences] = useState<any[]>([]);
@@ -158,7 +199,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
 
         <div className="flex flex-col sm:flex-row sm:gap-4 text-sm text-gray-600 mt-1">
           <span>{personalInfo.email || 'your@email.com'}</span>
-          <span>{personalInfo.mobile || '+91 XXXXXXXX'}</span>
+          {/* <span>{personalInfo.mobile || '+91 XXXXXXXX'}</span> */}
         </div>
       </div>
     </div>
@@ -188,34 +229,193 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
           {/* PERSONAL */}
           <Accordion title="Basic Information" icon={<User />} open={activeSection === 'personal'} onToggle={() => toggleSection('personal')}>
             <Grid>
-              <Input label="Full Name" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Gender" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input
-          label="DOB"
-          type="date"
-          value={newExp.startDate}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, startDate: e.target.value })
-          }
-        />
-              <Input label="Age" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="City" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Email" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Current Status" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Total Experience" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Current Job Title" full value={personalInfo.email} onChange={(e:any)=>setPersonalInfo({...personalInfo, email:e.target.value})} />
-              <Input label="Company Name" value={personalInfo.mobile} onChange={(e:any)=>setPersonalInfo({...personalInfo, mobile:e.target.value})} />
-              <Input label="Industry" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Designation" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Current CTC" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Location" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Prefferd location" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Employment Type" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Work mode" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Highest Qualification" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="College/University" value={personalInfo.fullName} onChange={(e:any)=>setPersonalInfo({...personalInfo, fullName:e.target.value})} />
-              <Input label="Year of Passing" value={personalInfo.address} onChange={(e:any)=>setPersonalInfo({...personalInfo, address:e.target.value})} />
-            </Grid>
+              
+<Input
+  label="Full Name"
+  value={personalInfo.fullName}
+  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+    setPersonalInfo({ ...personalInfo, fullName: e.target.value })
+  }
+/>
+
+<Input
+  label="Gender"
+  value={personalInfo.gender}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, gender: e.target.value })
+  }
+/>
+
+<Input
+  label="Date of Birth"
+  type="date"
+  value={personalInfo.dob}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, dob: e.target.value })
+  }
+/>
+
+<Input
+  label="Age"
+  value={personalInfo.age}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, age: e.target.value })
+  }
+/>
+
+<Input
+  label="City"
+  value={personalInfo.city}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, city: e.target.value })
+  }
+/>
+
+<Input
+  label="Email"
+  type="email"
+  value={personalInfo.email}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, email: e.target.value })
+  }
+/>
+
+<Input
+  label="Current Status"
+  type="select"
+  value={personalInfo.currentStatus}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, currentStatus: e.target.value })
+  }
+  options={[
+    { label: 'Select Current Status', value: '' },
+    { label: 'Fresher', value: 'Fresher' },
+    { label: 'Employed', value: 'Employed' },
+    { label: 'Unemployed', value: 'Unemployed' },
+  ]}
+/>
+
+
+<Input
+  label="Total Experience"
+  value={personalInfo.totalExperience}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, totalExperience: e.target.value })
+  }
+/>
+
+<Input
+  label="Current Job Title"
+  value={personalInfo.currentJobTitle}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, currentJobTitle: e.target.value })
+  }
+/>
+
+<Input
+  label="Company Name"
+  value={personalInfo.companyName}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, companyName: e.target.value })
+  }
+/>
+
+<Input
+  label="Industry"
+  value={personalInfo.industry}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, industry: e.target.value })
+  }
+/>
+
+<Input
+  label="Designation"
+  value={personalInfo.designation}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, designation: e.target.value })
+  }
+/>
+
+<Input
+  label="Current CTC"
+  value={personalInfo.currentCTC}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, currentCTC: e.target.value })
+  }
+/>
+
+<Input
+  label="Current Location"
+  value={personalInfo.location}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, location: e.target.value })
+  }
+/>
+
+<Input
+  label="Preferred Location"
+  value={personalInfo.preferredLocation}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, preferredLocation: e.target.value })
+  }
+/>
+
+<Input
+  label="Employment Type"
+  type="select"
+  value={personalInfo.employmentType}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, employmentType: e.target.value })
+  }
+  options={[
+    { label: 'Select Employment Type', value: '' },
+    { label: 'Full-time', value: 'Full-time' },
+    { label: 'Part-time', value: 'Part-time' },
+    { label: 'Contract', value: 'Contract' },
+  ]}
+/>
+
+<Input
+  label="Work Mode"
+  type="select"
+  value={personalInfo.workMode}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, workMode: e.target.value })
+  }
+  options={[
+    { label: 'Select Work Mode', value: '' },
+    { label: 'On-site', value: 'On-site' },
+    { label: 'Hybrid', value: 'Hybrid' },
+    { label: 'Remote', value: 'Remote' },
+  ]}
+/>
+
+
+<Input
+  label="Highest Qualification"
+  value={personalInfo.highestQualification}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, highestQualification: e.target.value })
+  }
+/>
+
+<Input
+  label="College / University"
+  value={personalInfo.college}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, college: e.target.value })
+  }
+/>
+
+<Input
+  label="Year of Passing"
+  value={personalInfo.yearOfPassing}
+  onChange={(e) =>
+    setPersonalInfo({ ...personalInfo, yearOfPassing: e.target.value })
+  }
+/>
+
+              </Grid>
             <SaveBtn onClick={() => saveSection('personal', personalInfo)} />
           </Accordion>
 
@@ -539,12 +739,31 @@ const Accordion = ({ title, icon, open, onToggle, children }: any) => (
 );
 
 const Grid = ({ children }: any) => <div className="grid md:grid-cols-2 gap-5">{children}</div>;
-const Input = ({ label, full, ...props }: any) => (
+const Input = ({ label, type = 'text', options = [], full, ...props }: any) => (
   <div className={full ? 'md:col-span-2' : ''}>
     <label className="text-sm font-medium">{label}</label>
-    <input {...props} className="w-full mt-1 border rounded-lg px-4 py-2" />
+
+    {type === 'select' ? (
+      <select
+        {...props}
+        className="w-full mt-1 border rounded-lg px-4 py-2 bg-white"
+      >
+        {options.map((opt: any) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    ) : (
+      <input
+        type={type}
+        {...props}
+        className="w-full mt-1 border rounded-lg px-4 py-2"
+      />
+    )}
   </div>
 );
+
 const Card = ({ children }: any) => <div className="border rounded-lg p-4 mb-4">{children}</div>;
 const AddBtn = ({ onClick }: any) => <button onClick={onClick} className="text-blue-600 mt-3 flex gap-1"><Plus /> Add</button>;
 const SaveBtn = ({ onClick }: any) => <button onClick={onClick} className="bg-blue-600 text-white px-6 py-2 rounded-lg flex gap-2 mt-4"><Save /> Save</button>;
