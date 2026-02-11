@@ -1,6 +1,7 @@
 import express from "express";
 import connectDB from "./config/db.js";
 import userRouter from './routes/userRouter.js'
+import profileRouter from "./routes/profile.js"
 
 const app = express();
 
@@ -12,5 +13,6 @@ app.get('/',(req,res)=>{
 })
 
 app.use("/api/auth", userRouter);
+app.use("/api/profile",profileRouter)
 
 app.listen(5000, () => console.log("Server running on 5000"));

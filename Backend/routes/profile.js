@@ -1,27 +1,15 @@
-const express = require("express");
-const router = express.Router();
-const Profile = require("../models/Profile");
+import upload from "../middlewares/uploadMiddleware.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
+import uploadResume from "../controllers/profileController.js";
+import { Router } from "express";
 
-// Save section-wise
-router.put("/:userId/:section", async (req, res) => {
-  const { userId, section } = req.params;
+const router = Router();
 
-  const update = {};
-  update[section] = req.body;
+router.post(
+  "/upload-resume",
+  authMiddleware,
+  upload.single("resume"),
+  uploadResume
+);
 
-  const profile = await Profile.findOneAndUpdate(
-    { userId },
-    { $set: update },
-    { new: true, upsert: true }
-  );
-
-  res.json(profile);
-});
-
-// Get profile
-router.get("/:userId", async (req, res) => {
-  const profile = await Profile.findOne({ userId: req.params.userId });
-  res.json(profile);
-});
-
-module.exports = router;
+export default router;
