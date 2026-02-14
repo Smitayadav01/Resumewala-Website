@@ -11,8 +11,8 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
-import Login from './pages/Login';
-import Register from './pages/Register';
+// import Login from './pages/Login';
+// import Register from './pages/Register';
 
 // ✅ NEW IMPORTS
 import Terms from './pages/Terms';
@@ -102,19 +102,11 @@ function AppContent() {
       </div>
 
       {/* FOOTER */}
-      <Footer />
+      {location.pathname !== '/' && <Footer />}
 
     </div>
-<<<<<<< HEAD
 
-    {/* FOOTER */}
-{location.pathname !== '/' && <Footer />}
-
-  </div>
 );
-=======
-  );
->>>>>>> f59bc788aba248814dd5c37d0baadc9bcf3c306c
 
 }
 
