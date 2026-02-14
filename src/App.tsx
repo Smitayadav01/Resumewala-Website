@@ -55,6 +55,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <Navbar currentPage="landing" isLoggedIn={isLoggedIn} isAdmin={isAdmin} />
 
       {/* MAIN CONTENT */}
       <div className="flex-1">

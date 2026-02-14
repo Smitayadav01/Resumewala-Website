@@ -12,7 +12,9 @@ interface NavbarProps {
 
 export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { logout } = useAuth();
+
+  const { logout, isAuthenticated } = useAuth();
+  const authenticated = isAuthenticated();
   const navigate = useNavigate();
   const handleLogout = () => {
     setMobileOpen(false);
@@ -42,7 +44,7 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
-            {isLoggedIn ? (
+            {authenticated ? (
               <>
                 <NavBtn label="Home" page="home" />
                 {/* <NavBtn label="About Us" page="about" />
