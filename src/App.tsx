@@ -71,13 +71,13 @@ function AppContent() {
 
           <Route path="/upload" element={<Upload />} />
 
-          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/jobs" element={authenticated ? <Jobs /> : <Navigate to="/" replace />} />
 
           <Route path="/about" element={<About />} />
 
           <Route path="/contact" element={<Contact />} />
 
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={authenticated ? <Profile /> : <Navigate to="/" replace />} />
 
           <Route
             path="/admin"

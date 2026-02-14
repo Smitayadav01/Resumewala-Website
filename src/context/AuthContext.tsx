@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import AuthApi from "../services/AuthApi";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
     token: string | null;
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const isAuthenticated = () => {
         return localStorage.getItem("token") !== null;
     }
+    const navigate = useNavigate();
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
@@ -42,6 +44,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(response.user);
                 localStorage.setItem("token", response.token);
                 localStorage.setItem("user", JSON.stringify(response.user));
+                navigate("/home");
+            }
+            if (response.success && response.user.role === "admin") {
+                navigate("/admin");
             }
             return response;
         } finally {
@@ -51,16 +57,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const register = async (email: string, fullName: string, mobileNumber: string, password: string) => {
         setLoading(true);
-        console.log(email, fullName, mobileNumber, password);
         try {
             const response = await AuthApi.register(email, fullName, mobileNumber, password);
-            console.log(response);
             if (response.success) {
                 setToken(response.token);
                 setUser(response.user);
                 localStorage.setItem("token", response.token);
                 localStorage.setItem("user", JSON.stringify(response.user));
             }
+
             return response;
         } finally {
             setLoading(false);
@@ -72,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        navigate("/");
     };
 
     return (

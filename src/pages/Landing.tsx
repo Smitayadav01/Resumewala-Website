@@ -45,9 +45,6 @@ export default function Landing() {
     e.preventDefault();
     try {
       const res = await login(loginData.email, loginData.password);
-      if (res.success) {
-        navigate('/home');
-      }
     } catch (error) {
       console.error('Login failed:', error);
     }

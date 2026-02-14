@@ -1,13 +1,12 @@
 import { Briefcase, Target, Users, Zap, Heart, CheckCircle, Lightbulb, Globe, ArrowRight } from 'lucide-react';
 
-interface AboutProps {
-  onNavigate: (page: string) => void;
-}
+import { useNavigate } from 'react-router-dom';
 
-export default function About({ onNavigate }: AboutProps) {
+export default function About() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-white">
-      
+
 
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-teal-50 py-10 md:py-2">
         <div className="absolute inset-0 overflow-hidden">
@@ -50,7 +49,7 @@ export default function About({ onNavigate }: AboutProps) {
               </p>
               <div className="pt-4">
                 <button
-                  onClick={() => onNavigate('register')}
+                  onClick={() => navigate('/')}
                   className="group bg-blue-500 text-white px-8 py-4 rounded-xl hover:bg-blue-600 transition-all font-semibold text-lg flex items-center"
                 >
                   Join Our Community
@@ -311,8 +310,8 @@ export default function About({ onNavigate }: AboutProps) {
         </div>
       </section>
 
-      
-     
+
+
     </div>
   );
 }
