@@ -1,126 +1,145 @@
-// utils/parser.js
+/* ---------------- TEXT HELPERS ---------------- */
 
-/* ---------------- SECTION HELPERS ---------------- */
-const cleanText = (text) => text.replace(/[^a-zA-Z0-9\s\-]/g, "").trim();
-const normalizeText = (text) =>
+const cleanText = (text = "") =>
+  text.replace(/[^\w\s.,\-()/]/g, "").trim();
+
+const normalizeText = (text = "") =>
   text
     .replace(/\r/g, "")
     .replace(/\n{2,}/g, "\n")
     .trim();
 
-const getSection = (text, headers) => {
-  const lines = text.split("\n");
+/* Normalize headers like "W O R K  E X P" → "work exp" */
+const normalizeHeader = (line = "") =>
+  line.replace(/\s+/g, "").toLowerCase();
 
-  const startIndex = lines.findIndex(line =>
-    headers.some(h => line.toLowerCase().includes(h))
-  );
-
-  if (startIndex === -1) return "";
-
-  const sectionLines = [];
-  for (let i = startIndex + 1; i < lines.length; i++) {
-    if (lines[i].toUpperCase() === lines[i] && lines[i].length < 40) break;
-    sectionLines.push(lines[i]);
-  }
-
-  return sectionLines.join("\n").trim();
+const SECTION_HEADERS = {
+  experience: ["experience", "workexperience", "internship"],
+  education: ["education", "academic"],
+  skills: ["skills", "technicalskills"],
+  projects: ["projects"],
 };
 
-/* ---------------- SKILLS ---------------- */
+const getSection = (text, keys) => {
+  const lines = text.split("\n");
+
+  let start = -1;
+  let end = lines.length;
+
+  for (let i = 0; i < lines.length; i++) {
+    const normalized = normalizeHeader(lines[i]);
+    if (keys.some(k => normalized.includes(k))) {
+      start = i + 1;
+      break;
+    }
+  }
+
+  if (start === -1) return "";
+
+  for (let i = start; i < lines.length; i++) {
+    const normalized = normalizeHeader(lines[i]);
+    if (
+      Object.values(SECTION_HEADERS)
+        .flat()
+        .some(h => normalized === h)
+    ) {
+      end = i;
+      break;
+    }
+  }
+
+  return lines.slice(start, end).join("\n").trim();
+};
 
 const SKILLS_DB = [
   "javascript", "typescript", "react", "node", "express", "mongodb",
-  "java", "sql", "aws", "docker", "nextjs", "postgresql",
-  "websocket", "jwt", "git", "chartjs"
+  "postgresql", "mysql", "prisma", "docker", "aws", "git",
+  "jwt", "websocket", "chartjs", "nextjs", "tailwind",
+  "rust", "solidity", "blockchain"
 ];
 
 export const extractSkills = (text) => {
   const lower = text.toLowerCase();
-  return [...new Set(
-    SKILLS_DB.filter(skill => lower.includes(skill))
-  )];
+  const found = new Set();
+
+  SKILLS_DB.forEach(skill => {
+    const regex = new RegExp(`\\b${skill}\\b`, "i");
+    if (regex.test(lower)) found.add(skill);
+  });
+
+  return [...found];
 };
 
-/* ---------------- EDUCATION ---------------- */
-const DATE_REGEX = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)?\s*(19|20)\d{2}\s*[–-]\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)?\s*(19|20)\d{2}/i;
+const DATE_RANGE =
+  /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)?\s*\d{4}\s*(–|-)\s*(Present|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)?\s*\d{4})/i;
 
 export const extractEducation = (text) => {
-  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const section = getSection(text, SECTION_HEADERS.education);
+  if (!section) return [];
+
+  const lines = section.split("\n").filter(Boolean);
   const education = [];
 
   for (let i = 0; i < lines.length; i++) {
-    if (/college|engineering/i.test(lines[i])) {
-      const institutionLine = lines[i];
-      const degreeLine = lines[i + 1] || "";
-
-      const dateMatch = institutionLine.match(DATE_REGEX);
-      const [startDate, endDate] = dateMatch
-        ? dateMatch[0].split(/[–-]/).map(s => s.trim())
-        : ["", ""];
+    if (/university|college|institute|school/i.test(lines[i])) {
+      const institution = cleanText(lines[i]);
+      const degree = cleanText(lines[i + 1] || "");
+      const dateMatch =
+        (lines[i] + " " + lines[i + 1]).match(DATE_RANGE) || [];
 
       education.push({
-        institution: cleanText(institutionLine),
-        degree: cleanText(degreeLine.split("-")[0]),
-        grade: degreeLine.includes("-")
-          ? cleanText(degreeLine.split("-")[1])
-          : "",
-        startDate,
-        endDate
+        institution,
+        degree,
+        startDate: dateMatch[0]?.split(/–|-/)[0]?.trim() || "",
+        endDate: dateMatch[0]?.split(/–|-/)[1]?.trim() || ""
       });
 
-      i += 1; // 🔥 skip next line (prevents duplicates)
+      i += 1;
     }
   }
 
   return education;
 };
 
-
-/* ---------------- EXPERIENCE (INTERNSHIP INCLUDED) ---------------- */
-
 export const extractExperience = (text) => {
-  const cleaned = normalizeText(text);
+  const section = getSection(text, SECTION_HEADERS.experience);
+  if (!section) return [];
 
-  const expSection = getSection(cleaned, [
-    "experience",
-    "work experience",
-    "internship",
-    "professional experience"
-  ]);
-
-  if (!expSection) return [];
-
-  const lines = expSection.split("\n").filter(Boolean);
+  const lines = section.split("\n").filter(Boolean);
   const experience = [];
 
   for (let i = 0; i < lines.length; i++) {
-    // Company + date line
-    if (/(19|20)\d{2}\s*[–-]\s*(19|20)\d{2}/.test(lines[i])) {
-      const company = lines[i].replace(/\d{4}.*/, "").trim();
+    const dateMatch = lines[i].match(DATE_RANGE);
 
-      const dateMatch = lines[i].match(/(19|20)\d{2}\s*[–-]\s*(19|20)\d{2}/);
-      const [startDate, endDate] = dateMatch
-        ? dateMatch[0].split(/[–-]/).map(s => s.trim())
-        : ["", ""];
-
-      const position = lines[i + 1] || "";
+    if (dateMatch) {
+      const header = cleanText(lines[i].replace(dateMatch[0], ""));
+      const position = cleanText(lines[i + 1] || "");
 
       const description = [];
       let j = i + 2;
 
-      while (lines[j]?.startsWith("•")) {
-        description.push(lines[j].replace("•", "").trim());
+      while (
+        lines[j] &&
+        !lines[j].match(DATE_RANGE) &&
+        !Object.values(SECTION_HEADERS).flat().some(h =>
+          normalizeHeader(lines[j]).includes(h)
+        )
+      ) {
+        description.push(
+          cleanText(lines[j].replace(/^[-•*]/, ""))
+        );
         j++;
       }
 
       experience.push({
-        company,
+        company: header,
         position,
-        startDate,
-        endDate,
-        employmentType: "Internship",
+        startDate: dateMatch[0].split(/–|-/)[0].trim(),
+        endDate: dateMatch[0].split(/–|-/)[1].trim(),
         description: description.join(" ")
       });
+
+      i = j - 1;
     }
   }
 

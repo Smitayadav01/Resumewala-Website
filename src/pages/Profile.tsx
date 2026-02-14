@@ -13,6 +13,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { useProfile } from '../context/ProfileContext';
+import { toast } from "sonner";
 
 interface ProfileProps {
   onNavigate: (page: string) => void;
@@ -123,14 +124,32 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
     resumeData.education && setEducation(resumeData.education);
     resumeData.skills && setSkills(resumeData.skills);
   }, [resumeData]);
+
   useEffect(() => {
-    if (profile) {
-      setPersonalInfo(profile.personalInfo || {});
-      setExperiences(profile.experiences || []);
-      setEducation(profile.education || []);
-      setSkills(profile.skills || []);
+    if (!profile) return;
+
+    if (profile.personal) {
+      setPersonalInfo(prev => ({ ...prev, ...profile.personal }));
+    }
+
+    if (Array.isArray(profile.experience)) {
+      setExperiences(profile.experience);
+    }
+
+    if (Array.isArray(profile.education)) {
+      setEducation(profile.education);
+    }
+
+    if (Array.isArray(profile.skills)) {
+      setSkills(profile.skills);
+    }
+
+    if (typeof profile.profileVisible === "boolean") {
+      setProfileVisible(profile.profileVisible);
     }
   }, [profile]);
+
+
   useEffect(() => {
     console.log(profile)
   }, [profile])
@@ -139,15 +158,28 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
     setActiveSection(activeSection === key ? null : key);
 
   const saveSection = async (section: SectionKey, data: any) => {
-    await fetch(`http://localhost:5000/api/profile/USER123/${section}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    const token = localStorage.getItem("token");
+
+    const payload: any = {};
+    payload[section] = data;
+
+    const res = await fetch("http://localhost:5000/api/profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
     });
 
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
+    if (!res.ok) {
+      toast.error("Failed to save section");
+      return;
+    }
+
+    toast.success("Section saved successfully");
   };
+
 
   /* ---------------- ADDERS (FIXED) ---------------- */
   const addExperience = async () => {
@@ -256,7 +288,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Gender"
                 value={personalInfo.gender}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, gender: e.target.value })
                 }
               />
@@ -265,7 +297,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
                 label="Date of Birth"
                 type="date"
                 value={personalInfo.dob}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, dob: e.target.value })
                 }
               />
@@ -273,7 +305,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Age"
                 value={personalInfo.age}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, age: e.target.value })
                 }
               />
@@ -281,7 +313,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="City"
                 value={personalInfo.city}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, city: e.target.value })
                 }
               />
@@ -299,7 +331,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
                 label="Current Status"
                 type="select"
                 value={personalInfo.currentStatus}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, currentStatus: e.target.value })
                 }
                 options={[
@@ -314,7 +346,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Total Experience"
                 value={personalInfo.totalExperience}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, totalExperience: e.target.value })
                 }
               />
@@ -322,7 +354,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Current Job Title"
                 value={personalInfo.currentJobTitle}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, currentJobTitle: e.target.value })
                 }
               />
@@ -330,7 +362,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Company Name"
                 value={personalInfo.companyName}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, companyName: e.target.value })
                 }
               />
@@ -338,7 +370,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Industry"
                 value={personalInfo.industry}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, industry: e.target.value })
                 }
               />
@@ -346,7 +378,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Designation"
                 value={personalInfo.designation}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, designation: e.target.value })
                 }
               />
@@ -354,7 +386,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Current CTC"
                 value={personalInfo.currentCTC}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, currentCTC: e.target.value })
                 }
               />
@@ -409,7 +441,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Highest Qualification"
                 value={personalInfo.highestQualification}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, highestQualification: e.target.value })
                 }
               />
@@ -417,7 +449,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="College / University"
                 value={personalInfo.college}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, college: e.target.value })
                 }
               />
@@ -425,7 +457,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
               <Input
                 label="Year of Passing"
                 value={personalInfo.yearOfPassing}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPersonalInfo({ ...personalInfo, yearOfPassing: e.target.value })
                 }
               />

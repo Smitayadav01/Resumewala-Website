@@ -5,6 +5,7 @@ import upload from '../assets/upload.png';
 import { uploadResume } from '../services/profileApi';
 import { useProfile } from '../context/ProfileContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "sonner";
 
 interface HomeProps {
   onNavigate: (page: string) => void;
@@ -23,7 +24,7 @@ export default function Home({ onNavigate }: HomeProps) {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload a PDF file');
+      toast.error("Please upload a PDF file");
       return;
     }
 
@@ -31,26 +32,30 @@ export default function Home({ onNavigate }: HomeProps) {
       // Prepare form data
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Please login to upload resume");
+        toast.error("Please login to upload resume");
         return;
       }
       // Send to backend API
       const res = await uploadResume(file, token)
       console.log(res);
 
-      if (!res.ok) throw new Error('Failed to parse resume');
+      if (!res.ok) {
+        toast.error("Failed to parse resume");
+        return;
+      }
 
       const data = await res.json();
       console.log('Parsed resume data:', data);
 
       // Navigate to Profile page and pass parsed data
       setProfile(data.profile);
+      toast.success("Resume uploaded successfully");
       navigate('/profile');
 
 
     } catch (err) {
       console.error(err);
-      alert('Error uploading resume. Please try again.');
+      toast.error("Error uploading resume. Please try again.");
     } finally {
       setUploading(false);
     }

@@ -11,8 +11,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
-import Login from './pages/Login';
-import Register from './pages/Register';
+
 
 // ✅ NEW IMPORTS
 import Terms from './pages/Terms';
