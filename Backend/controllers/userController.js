@@ -47,7 +47,8 @@ export const Register = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        mobileNumber: user.mobileNumber
+        mobileNumber: user.mobileNumber,
+        role: user.role
       }
     });
 
@@ -64,7 +65,7 @@ export const Login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email  || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: "Email or mobile number and password are required"
@@ -73,7 +74,7 @@ export const Login = async (req, res) => {
 
     // 2️⃣ Find user (email OR mobile)
     const user = await User.findOne({
-        email 
+      email
     });
 
     if (!user) {
@@ -92,14 +93,14 @@ export const Login = async (req, res) => {
       });
     }
 
-   
+
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-   return res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
@@ -107,7 +108,8 @@ export const Login = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        mobileNumber: user.mobileNumber
+        mobileNumber: user.mobileNumber,
+        role: user.role
       }
     });
 

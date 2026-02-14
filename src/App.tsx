@@ -17,6 +17,7 @@ import Register from './pages/Register';
 // ✅ NEW IMPORTS
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import { useAuth } from './context/AuthContext';
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -25,11 +26,10 @@ function AppContent() {
   const location = useLocation();
 
 
-  const handleLogin = (adminStatus: boolean) => {
-    setIsLoggedIn(true);
-    setIsAdmin(adminStatus);
-    navigate(adminStatus ? '/admin' : '/home');
-  };
+  const { isAuthenticated } = useAuth();
+
+  const authenticated = isAuthenticated();
+
 
   const handleNavigate = (page: string) => {
     const routes: Record<string, string> = {
@@ -56,123 +56,72 @@ function AppContent() {
   };
 
   return (
-  <div className="min-h-screen flex flex-col bg-white">
-    
-    {/* MAIN CONTENT */}
-    <div className="flex-1">
-      <Routes>
-        <Route path="/" element={<Landing onLogin={handleLogin} onNavigate={handleNavigate} />} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/register" element={<Register onNavigate={handleNavigate} />} />
+    <div className="min-h-screen flex flex-col bg-white">
 
-        <Route
-          path="/home"
-          element={
-            isLoggedIn ? (
-              <>
-                <Navbar currentPage="home" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-                <Home onNavigate={handleNavigate} />
-              </>
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
+      {/* MAIN CONTENT */}
+      <div className="flex-1">
+        <Routes>
+          <Route path="/" element={<Landing />} />
 
-        <Route
-          path="/upload"
-          element={
-            isLoggedIn ? (
-              <>
-                <Navbar currentPage="upload" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-                <Upload />
-              </>
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
+          <Route
+            path="/home"
+            element={
+              authenticated ? <Home onNavigate={handleNavigate} /> : <Navigate to="/" replace />
+            }
+          />
 
-        <Route
-          path="/jobs"
-          element={
-            isLoggedIn ? (
-              <>
-                <Navbar currentPage="jobs" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-                <Jobs onNavigate={handleNavigate} isLoggedIn={isLoggedIn} />
-              </>
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
 
-        <Route
-          path="/profile"
-          element={
-            isLoggedIn ? (
-              <>
-                <Navbar currentPage="profile" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-                <Profile onNavigate={handleNavigate} />
-              </>
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
+          <Route path="/upload" element={<Upload />} />
 
-        <Route
-          path="/about"
-          element={
-            <>
-              <Navbar currentPage="about" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-              <About />
-            </>
-          }
-        />
+          <Route path="/jobs" element={authenticated ? <Jobs /> : <Navigate to="/" replace />} />
 
-        <Route
-          path="/contact"
-          element={
-            <>
-              <Navbar currentPage="contact" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-              <Contact />
-            </>
-          }
-        />
+          <Route path="/about" element={<About />} />
 
-        <Route
-          path="/admin"
-          element={
-            isAdmin ? (
-              <>
-                <Navbar currentPage="admin" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-                <Admin />
-              </>
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        {/* ✅ LEGAL PAGES (NO LOGIN REQUIRED) */}
+          <Route path="/contact" element={<Contact />} />
+
+          <Route path="/profile" element={authenticated ? <Profile /> : <Navigate to="/" replace />} />
+
+          <Route
+            path="/admin"
+            element={
+              isAdmin ? (
+                <>
+                  <Navbar currentPage="admin" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
+                  <Admin />
+                </>
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          {/* ✅ LEGAL PAGES (NO LOGIN REQUIRED) */}
           <Route path="/terms" element={<Terms />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
-      </Routes>
+        </Routes>
+      </div>
+
+      {/* FOOTER */}
+      <Footer />
+
     </div>
+<<<<<<< HEAD
 
     {/* FOOTER */}
 {location.pathname !== '/' && <Footer />}
 
   </div>
 );
+=======
+  );
+>>>>>>> f59bc788aba248814dd5c37d0baadc9bcf3c306c
 
 }
 
 export default function App() {
   return (
-   
-      <AppContent />
-    
+
+    <AppContent />
+
   );
 }
