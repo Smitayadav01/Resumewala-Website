@@ -156,13 +156,13 @@ function AppContent() {
         />
         {/* ✅ LEGAL PAGES (NO LOGIN REQUIRED) */}
           <Route path="/terms" element={<Terms />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
       </Routes>
     </div>
 
     {/* FOOTER */}
-   {location.pathname !== '/' && <Footer />}
-
+{location.pathname !== '/' && <Footer />}
 
   </div>
 );
