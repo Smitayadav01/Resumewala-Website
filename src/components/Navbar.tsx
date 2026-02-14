@@ -1,25 +1,28 @@
 import { Briefcase, User, LogOut, Menu, X } from 'lucide-react';
 import logo from '../assets/logo.png';
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
   currentPage: string;
-  onNavigate: (page: string) => void;
   isLoggedIn: boolean;
   isAdmin: boolean;
 }
 
-export default function Navbar({ currentPage, onNavigate, isLoggedIn, isAdmin }: NavbarProps) {
+export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const handleLogout = () => {
     setMobileOpen(false);
-    onNavigate('landing');
+    logout();
+    navigate('/');
   };
 
   const go = (page: string) => {
     setMobileOpen(false);
-    onNavigate(page);
+    navigate(page);
   };
 
   return (
@@ -51,9 +54,8 @@ export default function Navbar({ currentPage, onNavigate, isLoggedIn, isAdmin }:
                 ) : (
                   <button
                     onClick={() => go('profile')}
-                    className={`flex items-center space-x-2 nav-btn ${
-                      currentPage === 'profile' ? 'text-blue-500' : ''
-                    }`}
+                    className={`flex items-center space-x-2 nav-btn ${currentPage === 'profile' ? 'text-blue-500' : ''
+                      }`}
                   >
                     <User className="h-5 w-5" />
                     <span>My Profile</span>
@@ -129,9 +131,8 @@ export default function Navbar({ currentPage, onNavigate, isLoggedIn, isAdmin }:
     return (
       <button
         onClick={() => go(page)}
-        className={`nav-btn ${
-          currentPage === page ? 'text-blue-500' : ''
-        }`}
+        className={`nav-btn ${currentPage === page ? 'text-blue-500' : ''
+          }`}
       >
         {label}
       </button>

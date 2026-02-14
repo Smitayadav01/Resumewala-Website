@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { Mail, Lock, User, Phone, Briefcase, Upload, Zap, Target } from 'lucide-react';
 import head from '../assets/logo.png';
 import landingImg from '../assets/landing.png';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 
-interface LandingProps {
-  onLogin: (isAdmin: boolean) => void;
-  onNavigate: (page: string) => void;
-}
 
-export default function Landing({ onLogin, onNavigate }: LandingProps) {
+
+
+export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
@@ -18,10 +19,11 @@ export default function Landing({ onLogin, onNavigate }: LandingProps) {
   const [signupData, setSignupData] = useState({
     fullName: '',
     email: '',
-    mobile: '',
+    mobileNumber: '',
     password: '',
-    confirmPassword: '',
   });
+
+  const navigate = useNavigate();
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({
@@ -30,6 +32,8 @@ export default function Landing({ onLogin, onNavigate }: LandingProps) {
     });
   };
 
+  const { login, register } = useAuth();
+
   const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSignupData({
       ...signupData,
@@ -37,42 +41,51 @@ export default function Landing({ onLogin, onNavigate }: LandingProps) {
     });
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (loginData.email === 'admin@resumewala.com' && loginData.password === 'admin123') {
-      onLogin(true);
-      onNavigate('admin');
-    } else {
-      onLogin(false);
-      onNavigate('home');
+    try {
+      const res = await login(loginData.email, loginData.password);
+      if (res.success) {
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
     }
   };
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+
+  ;
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (signupData.password !== signupData.confirmPassword) {
+    if (signupData.password !== confirmPassword) {
       alert('Passwords do not match');
       return;
+    }
+    try {
+      const res = await register(signupData.email, signupData.fullName, signupData.mobileNumber, signupData.password);
+      if (res.success) {
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Registration failed:', error);
     }
     alert('Registration successful! Please login.');
     setIsLogin(true);
     setSignupData({
       fullName: '',
       email: '',
-      mobile: '',
+      mobileNumber: '',
       password: '',
-      confirmPassword: '',
     });
+    setConfirmPassword('');
   };
 
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50">
       <div className="grid lg:grid-cols-2 min-h-screen gap-0">
-        <div className=" flex flex-col items-start px-4 sm:px-8 py-2 lg:min-h-screen relative overflow-hidden bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-500
-">
-         
-         <div className="relative z-10 text-center w-full max-w-md mx-auto py-10">
+        <div className=" flex flex-col items-start px-4 sm:px-8 py-2 lg:min-h-screen relative overflow-hidden bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-500">
+          <div className="relative z-10 text-center w-full max-w-md mx-auto py-10">
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 leading-tight">
               Upload Your Resume Once<br /> Get Discovered by Employers.
             </h1>
@@ -82,38 +95,38 @@ export default function Landing({ onLogin, onNavigate }: LandingProps) {
             </p>
 
             <div className="flex justify-center">
-  <img
-    src={landingImg}
-    alt="Landing Illustration"
-    className="max-w-full sm:max-w-md lg:max-w-lg rounded-2xl shadow-2xl"
-  />
-</div>
+              <img
+                src={landingImg}
+                alt="Landing Illustration"
+                className="max-w-full sm:max-w-md lg:max-w-lg rounded-2xl shadow-2xl"
+              />
+            </div>
 
           </div>
- 
+
         </div>
 
         <div className=" relative flex flex-col justify-center px-4 sm:px-8 py-12 lg:py-0">
           <img
-  src={head}
-  alt="Resumewala Logo"
-  className="absolute top-6 left-6 h-16 sm:h-24 w-auto cursor-pointer"
-  onClick={() => onNavigate('landing')}
-/>
+            src={head}
+            alt="Resumewala Logo"
+            className="absolute top-6 left-6 h-16 sm:h-24 w-auto cursor-pointer"
+            onClick={() => navigate('/')}
+          />
 
           <div className="w-full max-w-md mx-auto mt-20">
-            
+
             {/* <div className="lg:hidden text-center mb-8">
               <Briefcase className="h-12 w-12 text-blue-500 mx-auto mb-4" />
               <h1 className="text-3xl font-bold text-gray-800 mb-2">Resumewala</h1>
               <p className="text-gray-600">Upload Resume. Get Opportunities.</p>
 
             </div> */}
-            
+
 
             {isLogin ? (
               <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-200">
-             <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Back</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Back</h2>
                 <p className="text-gray-600 text-center mb-8">Login to your account</p>
 
                 <form onSubmit={handleLoginSubmit} className="space-y-6">
@@ -151,11 +164,8 @@ export default function Landing({ onLogin, onNavigate }: LandingProps) {
 
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 
-text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl 
-hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all"
-
-                    >
+                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all"
+                  >
                     Login
                   </button>
                 </form>
@@ -165,8 +175,7 @@ hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all"
                     Don't have an account?{' '}
                     <button
                       onClick={() => setIsLogin(false)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 
-bg-clip-text text-transparent font-semibold hover:opacity-90"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-semibold hover:opacity-90"
 
                     >
                       Sign Up
@@ -218,8 +227,8 @@ bg-clip-text text-transparent font-semibold hover:opacity-90"
                       <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <input
                         type="tel"
-                        name="mobile"
-                        value={signupData.mobile}
+                        name="mobileNumber"
+                        value={signupData.mobileNumber}
                         onChange={handleSignupChange}
                         required
                         pattern="[0-9]{10}"
@@ -253,8 +262,8 @@ bg-clip-text text-transparent font-semibold hover:opacity-90"
                       <input
                         type="password"
                         name="confirmPassword"
-                        value={signupData.confirmPassword}
-                        onChange={handleSignupChange}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                         minLength={6}
                         className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -265,9 +274,7 @@ bg-clip-text text-transparent font-semibold hover:opacity-90"
 
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 
-text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl 
-hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all"
+                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all"
                   >
                     Create Account
                   </button>
@@ -278,8 +285,7 @@ hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all"
                     Already have an account?{' '}
                     <button
                       onClick={() => setIsLogin(true)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 
-bg-clip-text text-transparent font-semibold hover:opacity-90"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-semibold hover:opacity-90"
 
                     >
                       Login

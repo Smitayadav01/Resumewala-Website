@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface LoginProps {
   onNavigate: (page: string) => void;
@@ -19,15 +20,15 @@ export default function Login({ onNavigate, onLogin }: LoginProps) {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const { login } = useAuth();
 
-    if (formData.email === 'admin@resumewala.com' && formData.password === 'admin123') {
-      onLogin(true);
-      onNavigate('admin');
-    } else {
-      onLogin(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await login(formData.email, formData.password);
       onNavigate('profile');
+    } catch (error) {
+      console.error('Login failed:', error);
     }
   };
 

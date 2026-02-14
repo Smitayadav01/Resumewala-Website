@@ -47,7 +47,7 @@ const mockJobs: Job[] = [
   },
 ];
 
-export default function Jobs({ onNavigate, isLoggedIn }: JobsProps) {
+export default function Jobs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
@@ -58,62 +58,57 @@ export default function Jobs({ onNavigate, isLoggedIn }: JobsProps) {
   );
 
   const handleApply = (job: Job) => {
-    if (!isLoggedIn) {
-      alert('Please login or register to apply for jobs');
-      onNavigate('login');
-    } else {
-      alert(`Applied to ${job.title} at ${job.company}`);
-    }
+
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
 
-      {/* LEFT CONTENT */}
-      <div>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-5">
-          Find Jobs That Match <br className="hidden sm:block" />
-          Your Skills
-        </h1>
+            {/* LEFT CONTENT */}
+            <div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-5">
+                Find Jobs That Match <br className="hidden sm:block" />
+                Your Skills
+              </h1>
 
-        <p className="text-blue-100 text-base sm:text-lg mb-8 max-w-xl">
-          Explore verified jobs from top companies. Build your profile once and apply instantly.
-        </p>
+              <p className="text-blue-100 text-base sm:text-lg mb-8 max-w-xl">
+                Explore verified jobs from top companies. Build your profile once and apply instantly.
+              </p>
 
-        {/* SEARCH BAR */}
-        <div className="bg-white rounded-xl shadow-lg p-2 flex items-center gap-2 max-w-xl">
-          <Search className="h-5 w-5 text-gray-400 ml-2" />
+              {/* SEARCH BAR */}
+              <div className="bg-white rounded-xl shadow-lg p-2 flex items-center gap-2 max-w-xl">
+                <Search className="h-5 w-5 text-gray-400 ml-2" />
 
-          <input
-            type="text"
-            placeholder="Job title, company, or location"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-2 py-3 text-gray-800 outline-none text-sm sm:text-base"
-          />
+                <input
+                  type="text"
+                  placeholder="Job title, company, or location"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 px-2 py-3 text-gray-800 outline-none text-sm sm:text-base"
+                />
 
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition">
-            Search
-          </button>
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition">
+                  Search
+                </button>
+              </div>
+            </div>
+
+            {/* RIGHT IMAGE */}
+            <div className="hidden md:flex justify-center">
+              <img
+                src={browse}
+                alt="Browse Jobs"
+                className="max-h-64 lg:max-h-72 w-auto object-contain"
+              />
+            </div>
+
+          </div>
         </div>
       </div>
-
-      {/* RIGHT IMAGE */}
-      <div className="hidden md:flex justify-center">
-        <img
-          src={browse}
-          alt="Browse Jobs"
-          className="max-h-64 lg:max-h-72 w-auto object-contain"
-        />
-      </div>
-
-    </div>
-  </div>
-</div>
 
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
