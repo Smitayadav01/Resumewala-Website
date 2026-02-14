@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate,useLocation } from 'react-router-dom';
 import { useState } from 'react';
 
 import Navbar from './components/Navbar';
@@ -22,6 +22,8 @@ function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   const handleLogin = (adminStatus: boolean) => {
     setIsLoggedIn(true);
@@ -159,7 +161,8 @@ function AppContent() {
     </div>
 
     {/* FOOTER */}
-    <Footer />
+   {location.pathname !== '/' && <Footer />}
+
 
   </div>
 );

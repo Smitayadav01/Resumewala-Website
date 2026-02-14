@@ -110,8 +110,40 @@ const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
   });
 
   /* SKILLS */
-  const [skills, setSkills] = useState<string[]>([]);
-  const [newSkill, setNewSkill] = useState('');
+const [skills, setSkills] = useState<string[]>([]);
+const [newSkill, setNewSkill] = useState('');
+
+/* ----------- AGE AUTO CALCULATION ----------- */
+
+const calculateAge = (dob: string) => {
+  if (!dob) return '';
+
+  const birthDate = new Date(dob);
+  const today = new Date();
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age.toString();
+};
+
+useEffect(() => {
+  if (personalInfo.dob) {
+    const age = calculateAge(personalInfo.dob);
+    setPersonalInfo((prev) => ({
+      ...prev,
+      age,
+    }));
+  }
+}, [personalInfo.dob]);
+
 
   /* ---------------- AUTO FILL ---------------- */
   useEffect(() => {
@@ -172,6 +204,9 @@ const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     setShowFinalPopup(true);
   }
 }, [completion]);
+
+
+
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
@@ -250,18 +285,25 @@ const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
   label="Date of Birth"
   type="date"
   value={personalInfo.dob}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, dob: e.target.value })
-  }
+  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+    const dob = e.target.value;
+    const age = calculateAge(dob);
+
+    setPersonalInfo(prev => ({
+      ...prev,
+      dob,
+      age
+    }));
+  }}
 />
+
 
 <Input
   label="Age"
   value={personalInfo.age}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, age: e.target.value })
-  }
+  readOnly
 />
+
 
 <Input
   label="City"

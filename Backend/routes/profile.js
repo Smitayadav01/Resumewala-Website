@@ -1,6 +1,7 @@
 import upload from "../middlewares/uploadMiddleware.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
-import uploadResume from "../controllers/profileController.js";
+import { uploadResume, getProfile, EditProfile } 
+from "../controllers/profileController.js";
 import { Router } from "express";
 
 const router = Router();
