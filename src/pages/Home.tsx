@@ -1,7 +1,10 @@
 import { Briefcase, Upload, CheckCircle, ArrowRight, FilePlus, Zap, Shield, BarChart3 } from 'lucide-react';
 import head from '../assets/lady.png';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import upload from '../assets/upload.png';
+import { uploadResume } from '../services/profileApi';
+import { useProfile } from '../context/ProfileContext';
+import { useNavigate } from 'react-router-dom';
 
 interface HomeProps {
   onNavigate: (page: string) => void;
@@ -9,45 +12,49 @@ interface HomeProps {
 
 export default function Home({ onNavigate }: HomeProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const { setProfile } = useProfile();
+  const navigate = useNavigate();
+  const handleFileSelect = async (file: File) => {
+    if (!file || uploading) return;
 
-const handleFileSelect = async (file: File) => {
-  if (!file) return;
+    const allowedTypes = [
+      'application/pdf'
+    ];
 
-  const allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  ];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please upload a PDF file');
+      return;
+    }
 
-  if (!allowedTypes.includes(file.type)) {
-    alert('Please upload a PDF or Word file');
-    return;
-  }
+    try {
+      // Prepare form data
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to upload resume");
+        return;
+      }
+      // Send to backend API
+      const res = await uploadResume(file, token)
+      console.log(res);
 
-  try {
-    // Prepare form data
-    const formData = new FormData();
-    formData.append('resume', file);
+      if (!res.ok) throw new Error('Failed to parse resume');
 
-    // Send to backend API
-    const res = await fetch('http://localhost:5000/api/parse-resume', {
-      method: 'POST',
-      body: formData,
-    });
+      const data = await res.json();
+      console.log('Parsed resume data:', data);
 
-    if (!res.ok) throw new Error('Failed to parse resume');
+      // Navigate to Profile page and pass parsed data
+      setProfile(data.profile);
+      navigate('/profile');
 
-    const data = await res.json();
-    console.log('Parsed resume data:', data);
 
-    // Navigate to Profile page and pass parsed data
-    onNavigate('profile', data);
-
-  } catch (err) {
-    console.error(err);
-    alert('Error uploading resume. Please try again.');
-  }
-};
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading resume. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
 
   return (
@@ -56,73 +63,55 @@ const handleFileSelect = async (file: File) => {
       <section className="relative overflow-hidden bg-white pt-0 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
-            
-            <div className="space-y-5 mt-0">
-               <div
-  onClick={() => fileInputRef.current?.click()}
-  onDragOver={(e) => e.preventDefault()}
-  onDrop={(e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    handleFileSelect(file);
-  }}
-  className="group p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
->
-  <input
-    ref={fileInputRef}
-    type="file"
-    accept=".pdf,.doc,.docx"
-    className="hidden"
-    onChange={(e) => {
-      const file = e.target.files?.[0];
-      if (file) handleFileSelect(file);
-    }}
-  />
 
-  <div className="text-center">
-    <div className="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
-      <Upload className="h-7 w-7 text-blue-600" />
-    </div>
-    <p className="text-lg font-bold text-gray-900 mb-2">
-      Upload Resume
-    </p>
-    <p className="text-gray-600 mb-3">or click to browse</p>
-    <p className="text-sm text-gray-500">
-      PDF or Word format • Auto-fills your profile
-    </p>
-  </div>
-</div>
+            <div className="space-y-5 mt-0">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const file = e.dataTransfer.files[0];
+                  handleFileSelect(file);
+                }}
+                className="group p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileSelect(file);
+                  }}
+                />
+
+                <div className="text-center">
+                  <div className="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Upload className="h-7 w-7 text-blue-600" />
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 mb-2">
+                    Upload Resume
+                  </p>
+                  <p className="text-gray-600 mb-3">or click to browse</p>
+                  <p className="text-sm text-gray-500">
+                    PDF format • Auto-fills your profile
+                  </p>
+                </div>
+              </div>
 
               <div>
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
                   Upload Your Resume,{' '}
                   <span className="bg-gradient-to-r from-indigo-600 via-blue-500 to-sky-400 bg-clip-text text-transparent font-bold">
-  Get Discovered
-</span>
+                    Get Discovered
+                  </span>
 
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
                   Free for job seekers · Suitable for freshers & experienced professionals
                 </p>
               </div>
-
-             
-
-              {/* <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={() => onNavigate('upload')}
-                  className="group flex-1 bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-all font-semibold text-lg shadow-lg hover:shadow-xl flex items-center justify-center"
-                >
-                  <Upload className="mr-2 h-5 w-5" />
-                  Upload Now
-                </button>
-                <button
-                  onClick={() => onNavigate('register')}
-                  className="flex-1 bg-gray-100 text-gray-900 border-2 border-gray-200 px-8 py-4 rounded-xl hover:bg-gray-50 transition-all font-semibold text-lg"
-                >
-                  Create Account
-                </button>
-              </div> */}
 
               <div className="flex gap-6 pt-4">
                 <div className="flex items-start space-x-2">
@@ -141,10 +130,10 @@ const handleFileSelect = async (file: File) => {
             </div>
 
             <div className="flex justify-center lg:justify-end">
-  <img
-    src={head}
-    alt="Resume upload illustration"
-   className="
+              <img
+                src={head}
+                alt="Resume upload illustration"
+                className="
   w-full 
   max-w-sm 
   lg:max-w-md
@@ -156,9 +145,9 @@ const handleFileSelect = async (file: File) => {
   hover:scale-95
 "
 
-    onClick={() => onNavigate('landing')}
-  />
-</div>
+                onClick={() => onNavigate('landing')}
+              />
+            </div>
 
 
           </div>
@@ -210,66 +199,7 @@ const handleFileSelect = async (file: File) => {
         </div>
       </section>
 
-      {/* <section id="how-it-works" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Simple 3-Step Process
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Get started in minutes
-            </p>
-          </div>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            <div className="hidden md:block absolute top-16 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
-
-            <div className="relative">
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all border border-gray-100">
-                <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                  1
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">Create Account</h3>
-                <p className="text-gray-600 text-center leading-relaxed text-sm">
-                  Register with your email and mobile number. Quick verification and you're in.
-                </p>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all border border-blue-200 ring-2 ring-blue-100">
-                <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                  2
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">Upload Resume</h3>
-                <p className="text-gray-600 text-center leading-relaxed text-sm">
-                  Upload your resume in PDF or Word format. We auto-fill your profile details.
-                </p>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => onNavigate('upload')}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
-                  >
-                    Upload Now
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all border border-gray-100">
-                <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                  3
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">Get Discovered</h3>
-                <p className="text-gray-600 text-center leading-relaxed text-sm">
-                  Employers find you. Receive interview calls and manage applications in your dashboard.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section> */}
 
       <section id="benefits" className="py-20 bg-gradient-to-br from-teal-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -290,7 +220,7 @@ const handleFileSelect = async (file: File) => {
                   <div>
                     <h4 className="font-bold text-gray-900 mb-1">Automatic Profile Creation</h4>
                     <p className="text-gray-600 text-sm">Your profile is created automatically using details from your resume. No long forms to fill.
-</p>
+                    </p>
                   </div>
                 </div>
 
@@ -331,26 +261,8 @@ const handleFileSelect = async (file: File) => {
         </div>
       </section>
 
-      {/* <section className="py-20 bg-blue-600">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Ready to Get Discovered?
-          </h2>
-          <p className="text-xl text-teal-100 mb-10 max-w-2xl mx-auto">
-            Upload your resume now and start receiving interview calls from verified employers
-          </p>
-          <button
-            onClick={() => onNavigate('upload')}
-            className="group bg-white text-blue-600 px-10 py-4 rounded-xl hover:bg-gray-50 transition-all font-bold text-lg shadow-xl hover:shadow-2xl inline-flex items-center"
-          >
-            <Upload className="mr-2 h-5 w-5" />
-            Upload Your Resume
-            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-      </section> */}
 
-      
+
     </div>
   );
 }

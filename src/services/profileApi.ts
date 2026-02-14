@@ -1,11 +1,12 @@
-export const saveProfileSection = async (
-  section: string,
-  data: any
-) => {
-  // later replace with real backend
-  return fetch(`/api/profile/${section}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+export const uploadResume = async (file: File, token: string) => {
+  const formData = new FormData();
+  formData.append("resume", file);
+
+  return fetch("http://localhost:5000/api/profile/upload-resume", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
   });
 };

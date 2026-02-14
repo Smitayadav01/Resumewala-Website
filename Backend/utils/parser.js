@@ -1,7 +1,7 @@
 // utils/parser.js
 
 /* ---------------- SECTION HELPERS ---------------- */
-
+const cleanText = (text) => text.replace(/[^a-zA-Z0-9\s\-]/g, "").trim();
 const normalizeText = (text) =>
   text
     .replace(/\r/g, "")
@@ -42,45 +42,39 @@ export const extractSkills = (text) => {
 };
 
 /* ---------------- EDUCATION ---------------- */
+const DATE_REGEX = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)?\s*(19|20)\d{2}\s*[–-]\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)?\s*(19|20)\d{2}/i;
 
 export const extractEducation = (text) => {
-  const cleaned = normalizeText(text);
-
-  const eduSection = getSection(cleaned, ["education"]);
-
-  if (!eduSection) return [];
-
-  const lines = eduSection.split("\n").filter(Boolean);
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
   const education = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    if (/college|engineering/i.test(lines[i])) {
+      const institutionLine = lines[i];
+      const degreeLine = lines[i + 1] || "";
 
-    // Institution line
-    if (/college|engineering|university/i.test(line)) {
-      const institution = line.replace(/\s+\d{4}.*/, "").trim();
-
-      const dateMatch = line.match(/(19|20)\d{2}\s*[–-]\s*(19|20)\d{2}/);
+      const dateMatch = institutionLine.match(DATE_REGEX);
       const [startDate, endDate] = dateMatch
         ? dateMatch[0].split(/[–-]/).map(s => s.trim())
         : ["", ""];
 
-      const degreeLine = lines[i + 1] || "";
-
       education.push({
-        institution,
-        degree: degreeLine.split("-")[0]?.trim(),
+        institution: cleanText(institutionLine),
+        degree: cleanText(degreeLine.split("-")[0]),
         grade: degreeLine.includes("-")
-          ? degreeLine.split("-")[1]?.trim()
+          ? cleanText(degreeLine.split("-")[1])
           : "",
         startDate,
         endDate
       });
+
+      i += 1; // 🔥 skip next line (prevents duplicates)
     }
   }
 
   return education;
 };
+
 
 /* ---------------- EXPERIENCE (INTERNSHIP INCLUDED) ---------------- */
 
