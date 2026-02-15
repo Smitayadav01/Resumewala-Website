@@ -121,6 +121,34 @@ export default function Admin() {
     fetchCandidates();
   }, []);
 
+  const downloadResume = async (id: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/admin/download-resume/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to download resume");
+      }
+
+      const blob = new Blob([data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "resume.pdf";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message);
+    }
+  };
+
 
 
   const handleSubmitJob = (e: React.FormEvent) => {
@@ -289,7 +317,7 @@ export default function Admin() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <button className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium">
+                              <button onClick={() => downloadResume(candidate.id)} className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium">
                                 <Download className="h-4 w-4" />
                                 <span>Download</span>
                               </button>
