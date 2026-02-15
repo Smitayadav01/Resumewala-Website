@@ -4,11 +4,22 @@ import userRouter from './routes/userRouter.js'
 import profileRouter from "./routes/profile.js"
 import adminRouter from "./routes/admin.js"
 import cors from "cors";
+import jobRoutes from "./routes/job.js";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 const app = express();
 
+// Fix __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 app.use(express.json());
 app.use(cors());
+
+
+app.use('/uploads', express.static(join(__dirname, 'uploads')));
+
 connectDB()
 
 app.get('/', (req, res) => {
@@ -16,7 +27,8 @@ app.get('/', (req, res) => {
 })
 
 app.use("/api/auth", userRouter);
-app.use("/api/profile", profileRouter)
-app.use("/api/admin", adminRouter)
+app.use("/api/profile", profileRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/jobs", jobRoutes);
 
 app.listen(5000, () => console.log("Server running on 5000"));

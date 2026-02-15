@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -48,6 +50,8 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+
+      <ToastContainer position="top-right" autoClose={3000} />
      {location.pathname !== "/" && (
   <Navbar
     currentPage={location.pathname}

@@ -12,24 +12,9 @@ interface Candidate {
   resumeUrl: string;
 }
 
-const mockJobs: Job[] = [
-  {
-    id: '1',
-    title: 'Senior Frontend Developer',
-    company: 'Tech Solutions Inc.',
-    location: 'Mumbai, Maharashtra',
-    experience: '3-5 years',
-    description: 'We are looking for an experienced Frontend Developer to join our team.',
-    requirements: ['React', 'TypeScript', 'Tailwind CSS'],
-    salary: '₹8-12 LPA',
-    jobType: 'Full-time',
-    postedDate: '2024-01-15',
-  },
-];
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState<'jobs' | 'candidates'>('jobs');
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [showJobModal, setShowJobModal] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
@@ -52,6 +37,22 @@ export default function Admin() {
       [e.target.name]: e.target.value,
     });
   };
+
+  const [jobs, setJobs] = useState<Job[]>([]);
+const fetchJobs = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/jobs");
+    const data = await res.json();
+    setJobs(data.jobs);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+useEffect(() => {
+  fetchJobs();
+}, []);
+
 
   const openJobModal = (job?: Job) => {
     if (job) {
@@ -161,36 +162,67 @@ export default function Admin() {
 
 
 
-  const handleSubmitJob = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitJob = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const newJob: Job = {
-      id: editingJob ? editingJob.id : Date.now().toString(),
-      title: formData.title,
-      company: formData.company,
-      location: formData.location,
-      experience: formData.experience,
-      description: formData.description,
-      requirements: formData.requirements.split(',').map(r => r.trim()),
-      salary: formData.salary,
-      jobType: formData.jobType,
-      postedDate: editingJob ? editingJob.postedDate : new Date().toISOString().split('T')[0],
-    };
+  try {
+    const res = await fetch("http://localhost:5000/api/jobs", {
+      method: editingJob ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: formData.title,
+        company: formData.company,
+        location: formData.location,
+        experience: formData.experience,
+        description: formData.description,
+        requirements: formData.requirements.split(',').map(r => r.trim()),
+        salary: formData.salary,
+        jobType: formData.jobType,
+      }),
+    });
 
-    if (editingJob) {
-      setJobs(jobs.map(j => j.id === editingJob.id ? newJob : j));
-    } else {
-      setJobs([...jobs, newJob]);
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to save job");
     }
+
+    toast.success("Job saved successfully");
 
     setShowJobModal(false);
-  };
 
-  const deleteJob = (id: string) => {
-    if (confirm('Are you sure you want to delete this job?')) {
-      setJobs(jobs.filter(j => j.id !== id));
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+};
+
+
+  const deleteJob = async (_id: string) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this job?");
+  if (!confirmDelete) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/jobs/${_id}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete job");
     }
-  };
+
+    toast.success("Job deleted successfully");
+
+    fetchJobs(); // 🔥 refresh list after delete
+
+  } catch (error: any) {
+    toast.error(error.message);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -243,7 +275,7 @@ export default function Admin() {
                 <div className="space-y-4">
                   {jobs.map((job) => (
                     <div
-                      key={job.id}
+                      key={job._id}
                       className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow"
                     >
                       <div className="flex justify-between items-start">
@@ -270,7 +302,7 @@ export default function Admin() {
                             <Edit className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => deleteJob(job.id)}
+                            onClick={() => deleteJob(job._id)}
                             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="h-5 w-5" />

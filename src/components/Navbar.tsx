@@ -17,10 +17,11 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   const authenticated = isAuthenticated();
   const navigate = useNavigate();
   const handleLogout = () => {
-    setMobileOpen(false);
-    logout();
-    navigate('/');
-  };
+  setMobileOpen(false);
+  logout();
+  navigate('/'); // always go to landing page
+};
+
 
   const go = (page: string) => {
     setMobileOpen(false);
@@ -36,11 +37,12 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
           {/* Logo */}
           <div
-            className="flex items-center cursor-pointer"
-            onClick={() => go(isLoggedIn ? 'home' : 'landing')}
-          >
-            <img src={logo} alt="Logo" className="h-24 w-auto" />
-          </div>
+  className="flex items-center cursor-pointer"
+  onClick={() => go(authenticated ? '/home' : '/')}
+>
+  <img src={logo} alt="Logo" className="h-24 w-auto" />
+</div>
+
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
@@ -65,12 +67,17 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
                 )}
 
                 <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 nav-btn hover:text-red-500"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Logout</span>
-                </button>
+  onClick={() => {
+    setMobileOpen(false);
+    logout();
+    navigate('/'); // always landing
+  }}
+  className="flex items-center space-x-2 nav-btn hover:text-red-500"
+>
+  <LogOut className="h-5 w-5" />
+  <span>Logout</span>
+</button>
+
               </>
             ) : (
               <>

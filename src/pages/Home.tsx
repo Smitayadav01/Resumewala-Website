@@ -6,6 +6,8 @@ import { uploadResume } from '../services/profileApi';
 import { useProfile } from '../context/ProfileContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
+import demoVideo from '../assets/demo.mp4';
+
 
 interface HomeProps {
   onNavigate: (page: string) => void;
@@ -16,6 +18,7 @@ export default function Home({ onNavigate }: HomeProps) {
   const [uploading, setUploading] = useState(false);
   const { setProfile } = useProfile();
   const navigate = useNavigate();
+  const [showVideo, setShowVideo] = useState(false);
   const handleFileSelect = async (file: File) => {
     if (!file || uploading) return;
 
@@ -133,26 +136,39 @@ export default function Home({ onNavigate }: HomeProps) {
                 </div>
               </div>
             </div>
+<div className="flex justify-center lg:justify-end">
+  <div className="relative w-full max-w-sm lg:max-w-md">
 
-            <div className="flex justify-center lg:justify-end">
-              <img
-                src={head}
-                alt="Resume upload illustration"
-                className="
-  w-full 
-  max-w-sm 
-  lg:max-w-md
-  h-auto
-  object-contain
-  cursor-pointer
-  transition-transform
-  duration-300
-  hover:scale-95
-"
+    {/* Girl Image */}
+    <img
+      src={head}
+      alt="Resume upload illustration"
+      className="w-full h-auto object-contain rounded-2xl"
+    />
 
-                onClick={() => onNavigate('landing')}
-              />
-            </div>
+    {/* Play Button (Centered on Image) */}
+    <button
+      onClick={() => setShowVideo(true)}
+      className="absolute inset-0 flex items-center justify-center"
+    >
+      <div className="bg-white/80 backdrop-blur-md p-5 rounded-full shadow-xl 
+                      hover:scale-110 transition-all duration-300">
+        <div className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-white ml-1"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
+      </div>
+    </button>
+
+  </div>
+</div>
+
 
 
           </div>
@@ -267,7 +283,42 @@ export default function Home({ onNavigate }: HomeProps) {
       </section>
 
 
+{showVideo && (
+  <div className="fixed inset-0 bg-black/80 
+                  flex items-center justify-center 
+                  z-50 p-4">
+
+    <div className="relative 
+                    w-full 
+                    max-w-5xl 
+                    aspect-video">
+
+      {/* Close Button */}
+      <button
+        onClick={() => setShowVideo(false)}
+        className="absolute -top-12 right-0 
+                   bg-white text-black 
+                   w-10 h-10 rounded-full 
+                   flex items-center justify-center 
+                   text-xl font-bold 
+                   shadow-lg hover:scale-110 transition"
+      >
+        ×
+      </button>
+
+      {/* Video */}
+      <video
+        src={demoVideo}
+        controls
+        autoPlay
+        className="w-full h-full rounded-xl shadow-2xl"
+      />
+    </div>
+  </div>
+)}
+
 
     </div>
+    
   );
 }
