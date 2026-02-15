@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import { useProfile } from '../context/ProfileContext';
 import { toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileProps {
-  onNavigate: (page: string) => void;
+
+
   resumeData?: any;
 }
 
@@ -47,13 +49,14 @@ interface PersonalInfo {
 type SectionKey = 'personal' | 'experience' | 'education' | 'skills';
 
 /* ---------------- MAIN ---------------- */
-export default function Profile({ resumeData, onNavigate }: ProfileProps) {
+export default function Profile({ resumeData }: ProfileProps) {
   const [activeSection, setActiveSection] = useState<SectionKey | null>('personal');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [profileVisible, setProfileVisible] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFinalPopup, setShowFinalPopup] = useState(false);
   const { profile } = useProfile();
+  const navigate = useNavigate();
 
 
   /* PERSONAL */
@@ -759,7 +762,7 @@ export default function Profile({ resumeData, onNavigate }: ProfileProps) {
             <button
               onClick={() => {
                 setShowFinalPopup(false);
-                onNavigate('jobs');
+                navigate('/jobs');
               }}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
             >

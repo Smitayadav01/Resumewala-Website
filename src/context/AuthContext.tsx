@@ -12,6 +12,7 @@ interface AuthContextType {
     logout: () => void;
     isAuthenticated: () => boolean;
     loading: boolean;
+    isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,7 +24,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const isAuthenticated = () => {
         return localStorage.getItem("token") !== null;
     }
+    const isAdmin = () => {
+        const user = localStorage.getItem("user");
+        if (!user) return false;
+        const parsedUser = JSON.parse(user);
+        if (parsedUser.role === "admin") {
+            return true;
+        }
+        return false;
+
+    }
     const navigate = useNavigate();
+
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
@@ -47,6 +59,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 navigate("/home");
             }
             if (response.success && response.user.role === "admin") {
+                setToken(response.token);
+                setUser(response.user);
+                localStorage.setItem("token", response.token);
+                localStorage.setItem("user", JSON.stringify(response.user));
                 navigate("/admin");
             }
             return response;
@@ -81,7 +97,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ token, setToken, user, setUser, login, register, logout, isAuthenticated, loading }}>
+        <AuthContext.Provider value={{ token, setToken, user, setUser, login, register, logout, isAuthenticated, loading, isAdmin }}>
             {children}
         </AuthContext.Provider>
     );

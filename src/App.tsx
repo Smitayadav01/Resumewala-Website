@@ -19,11 +19,9 @@ import Privacy from './pages/Privacy';
 import { useAuth } from './context/AuthContext';
 
 function AppContent() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   const authenticated = isAuthenticated();
 
@@ -47,14 +45,13 @@ function AppContent() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setIsAdmin(false);
+
     navigate('/');
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar currentPage="landing" isLoggedIn={isLoggedIn} isAdmin={isAdmin} />
+      <Navbar currentPage="landing" isLoggedIn={authenticated} isAdmin={isAdmin()} />
 
       {/* MAIN CONTENT */}
       <div className="flex-1">
@@ -82,14 +79,7 @@ function AppContent() {
           <Route
             path="/admin"
             element={
-              isAdmin ? (
-                <>
-                  <Navbar currentPage="admin" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
-                  <Admin />
-                </>
-              ) : (
-                <Navigate to="/" replace />
-              )
+              authenticated && isAdmin() ? <Admin /> : <Navigate to="/admin" replace />
             }
           />
           {/* ✅ LEGAL PAGES (NO LOGIN REQUIRED) */}
