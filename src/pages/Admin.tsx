@@ -124,30 +124,40 @@ export default function Admin() {
   const downloadResume = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/admin/download-resume/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-      });
 
-      const data = await res.json();
+      const res = await fetch(
+        `http://localhost:5000/api/admin/download-resume/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       if (!res.ok) {
-        throw new Error(data.message || "Failed to download resume");
+        throw new Error("Failed to download resume");
       }
 
-      const blob = new Blob([data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
+      // ✅ THIS IS THE FIX
+      const blob = await res.blob();
+
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
+
       link.href = url;
       link.download = "resume.pdf";
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(url);
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
     }
   };
+
 
 
 
