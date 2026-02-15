@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import { useProfile } from '../context/ProfileContext';
 import { toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileProps {
-  onNavigate: (page: string) => void;
+
+
   resumeData?: any;
 }
 
@@ -47,13 +49,22 @@ interface PersonalInfo {
 type SectionKey = 'personal' | 'experience' | 'education' | 'skills';
 
 /* ---------------- MAIN ---------------- */
+<<<<<<< HEAD
 export default function Profile({ resumeData, onNavigate }: ProfileProps) {
   const { profile } = useProfile();
+=======
+export default function Profile({ resumeData }: ProfileProps) {
+>>>>>>> d748844c8966fc0e2317b5bbc8c95bc48b9743ab
   const [activeSection, setActiveSection] = useState<SectionKey | null>('personal');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [profileVisible, setProfileVisible] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFinalPopup, setShowFinalPopup] = useState(false);
+<<<<<<< HEAD
+=======
+  const { profile } = useProfile();
+  const navigate = useNavigate();
+>>>>>>> d748844c8966fc0e2317b5bbc8c95bc48b9743ab
 
 
   /* PERSONAL */
@@ -916,6 +927,7 @@ useEffect(() => {
         Your profile is now complete. You can now browse and apply for jobs.
       </p>
 
+<<<<<<< HEAD
       <button
         onClick={() => {
           setShowFinalPopup(false);
@@ -928,6 +940,20 @@ useEffect(() => {
     </div>
   </div>
 )}
+=======
+            <button
+              onClick={() => {
+                setShowFinalPopup(false);
+                navigate('/jobs');
+              }}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+            >
+              Browse Jobs
+            </button>
+          </div>
+        </div>
+      )}
+>>>>>>> d748844c8966fc0e2317b5bbc8c95bc48b9743ab
 
 
     </div>

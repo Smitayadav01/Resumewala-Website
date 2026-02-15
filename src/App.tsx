@@ -16,12 +16,11 @@ import Privacy from './pages/Privacy';
 import { useAuth } from './context/AuthContext';
 
 function AppContent() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
+
   const authenticated = isAuthenticated();
 
   const handleNavigate = (page: string) => {
@@ -43,8 +42,7 @@ function AppContent() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setIsAdmin(false);
+
     navigate('/');
   };
 
@@ -88,20 +86,7 @@ function AppContent() {
           <Route
             path="/admin"
             element={
-              isAdmin ? (
-                <>
-                  <Navbar
-                    currentPage="admin"
-                    onNavigate={handleNavigate}
-                    isLoggedIn={isLoggedIn}
-                    isAdmin={isAdmin}
-                    onLogout={handleLogout}
-                  />
-                  <Admin />
-                </>
-              ) : (
-                <Navigate to="/" replace />
-              )
+              authenticated && isAdmin() ? <Admin /> : <Navigate to="/admin" replace />
             }
           />
 

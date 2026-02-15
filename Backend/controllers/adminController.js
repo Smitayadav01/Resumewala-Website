@@ -67,4 +67,28 @@ const deleteProfile = async (req, res) => {
     }
 };
 
-export { getAllProfiles, getProfile, EditProfile, deleteProfile };
+const downloadResume = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required" });
+        }
+        const profile = await Profile.findOne({ userId });
+        if (!profile?.resume?.url) {
+            return res.status(404).json({ message: "Resume not found" });
+        }
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=resume.pdf"
+        );
+        res.setHeader("Content-Type", "application/pdf");
+
+        https.get(profile.resume.url, (cloudRes) => {
+            cloudRes.pipe(res);
+        });
+    } catch (error) {
+        console.error("Resume download error:", error);
+        res.status(500).json({ message: "Failed to download resume" });
+    }
+};
+export { getAllProfiles, getProfile, EditProfile, deleteProfile, downloadResume };

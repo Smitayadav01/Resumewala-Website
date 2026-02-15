@@ -1,25 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2, Users, Briefcase, Download, X } from 'lucide-react';
-import { Job, Candidate } from '../types';
+import { Job } from '../types';
+import { toast } from 'sonner';
 
-const mockCandidates: Candidate[] = [
-  {
-    id: '1',
-    email: 'john.doe@example.com',
-    mobile: '9876543210',
-    fullName: 'John Doe',
-    skills: ['React', 'TypeScript', 'Node.js'],
-    resumeUrl: '#',
-  },
-  {
-    id: '2',
-    email: 'jane.smith@example.com',
-    mobile: '9876543211',
-    fullName: 'Jane Smith',
-    skills: ['JavaScript', 'Vue.js', 'MongoDB'],
-    resumeUrl: '#',
-  },
-];
+interface Candidate {
+  id: string;
+  fullName: string;
+  email: string;
+  mobile: string;
+  skills: string[];
+  resumeUrl: string;
+}
 
 const mockJobs: Job[] = [
   {
@@ -39,9 +30,11 @@ const mockJobs: Job[] = [
 export default function Admin() {
   const [activeTab, setActiveTab] = useState<'jobs' | 'candidates'>('jobs');
   const [jobs, setJobs] = useState<Job[]>(mockJobs);
-  const [candidates] = useState<Candidate[]>(mockCandidates);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [showJobModal, setShowJobModal] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -88,6 +81,47 @@ export default function Admin() {
     }
     setShowJobModal(true);
   };
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        setLoadingCandidates(true);
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/admin/profiles", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to fetch profiles");
+        }
+
+        // 🔥 MAP BACKEND → FRONTEND
+        const mappedCandidates: Candidate[] = data.profiles.map((profile: any) => ({
+          id: profile.userId || profile._id,
+          fullName: profile.personal.fullName,
+          email: profile.personal.email,
+          mobile: profile.personal.mobileNumbers,
+          skills: profile.skills || [],
+          resumeUrl: profile.resumeUrl || "#",
+        }));
+
+        setCandidates(mappedCandidates);
+      } catch (err: any) {
+        setError(err.message);
+        toast.error(err.message);
+
+      } finally {
+        setLoadingCandidates(false);
+      }
+    };
+
+    fetchCandidates();
+  }, []);
+
+
 
   const handleSubmitJob = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,22 +167,20 @@ export default function Admin() {
             <div className="flex px-8">
               <button
                 onClick={() => setActiveTab('jobs')}
-                className={`py-4 px-6 font-semibold transition-colors border-b-2 flex items-center space-x-2 ${
-                  activeTab === 'jobs'
-                    ? 'text-blue-500 border-blue-500'
-                    : 'text-gray-600 border-transparent hover:text-blue-500'
-                }`}
+                className={`py-4 px-6 font-semibold transition-colors border-b-2 flex items-center space-x-2 ${activeTab === 'jobs'
+                  ? 'text-blue-500 border-blue-500'
+                  : 'text-gray-600 border-transparent hover:text-blue-500'
+                  }`}
               >
                 <Briefcase className="h-5 w-5" />
                 <span>Manage Jobs</span>
               </button>
               <button
                 onClick={() => setActiveTab('candidates')}
-                className={`py-4 px-6 font-semibold transition-colors border-b-2 flex items-center space-x-2 ${
-                  activeTab === 'candidates'
-                    ? 'text-blue-500 border-blue-500'
-                    : 'text-gray-600 border-transparent hover:text-blue-500'
-                }`}
+                className={`py-4 px-6 font-semibold transition-colors border-b-2 flex items-center space-x-2 ${activeTab === 'candidates'
+                  ? 'text-blue-500 border-blue-500'
+                  : 'text-gray-600 border-transparent hover:text-blue-500'
+                  }`}
               >
                 <Users className="h-5 w-5" />
                 <span>View Candidates</span>
@@ -219,50 +251,55 @@ export default function Admin() {
                   <h2 className="text-2xl font-bold text-gray-800">Registered Candidates</h2>
                   <p className="text-gray-600">Total: {candidates.length}</p>
                 </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Mobile</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Skills</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Resume</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {candidates.map((candidate) => (
-                        <tr key={candidate.id} className="border-b border-gray-200 hover:bg-gray-50">
-                          <td className="px-6 py-4 text-gray-800 font-medium">{candidate.fullName}</td>
-                          <td className="px-6 py-4 text-gray-600">{candidate.email}</td>
-                          <td className="px-6 py-4 text-gray-600">{candidate.mobile}</td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1">
-                              {candidate.skills.slice(0, 3).map((skill) => (
-                                <span
-                                  key={skill}
-                                  className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-medium"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                              {candidate.skills.length > 3 && (
-                                <span className="text-gray-500 text-xs">+{candidate.skills.length - 3}</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <button className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium">
-                              <Download className="h-4 w-4" />
-                              <span>Download</span>
-                            </button>
-                          </td>
+                {loadingCandidates ? (
+                  <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Mobile</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Skills</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Resume</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {candidates.map((candidate) => (
+                          <tr key={candidate.id} className="border-b border-gray-200 hover:bg-gray-50">
+                            <td className="px-6 py-4 text-gray-800 font-medium">{candidate.fullName}</td>
+                            <td className="px-6 py-4 text-gray-600">{candidate.email}</td>
+                            <td className="px-6 py-4 text-gray-600">{candidate.mobile}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-wrap gap-1">
+                                {candidate.skills.slice(0, 3).map((skill) => (
+                                  <span
+                                    key={skill}
+                                    className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-medium"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                                {candidate.skills.length > 3 && (
+                                  <span className="text-gray-500 text-xs">+{candidate.skills.length - 3}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <button className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium">
+                                <Download className="h-4 w-4" />
+                                <span>Download</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
           </div>
