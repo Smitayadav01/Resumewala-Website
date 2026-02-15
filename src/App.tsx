@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate,useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 
 import Navbar from './components/Navbar';
@@ -11,10 +11,6 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
-// import Login from './pages/Login';
-// import Register from './pages/Register';
-
-// ✅ NEW IMPORTS
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import { useAuth } from './context/AuthContext';
@@ -25,11 +21,8 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
-
   const { isAuthenticated } = useAuth();
-
   const authenticated = isAuthenticated();
-
 
   const handleNavigate = (page: string) => {
     const routes: Record<string, string> = {
@@ -57,8 +50,15 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+     {location.pathname !== "/" && (
+  <Navbar
+    currentPage={location.pathname}
+    isLoggedIn={authenticated}
+    isAdmin={isAdmin}
+  />
+)}
 
-      {/* MAIN CONTENT */}
+
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -70,23 +70,33 @@ function AppContent() {
             }
           />
 
-
           <Route path="/upload" element={<Upload />} />
 
-          <Route path="/jobs" element={authenticated ? <Jobs /> : <Navigate to="/" replace />} />
+          <Route
+            path="/jobs"
+            element={authenticated ? <Jobs /> : <Navigate to="/" replace />}
+          />
 
           <Route path="/about" element={<About />} />
-
           <Route path="/contact" element={<Contact />} />
 
-          <Route path="/profile" element={authenticated ? <Profile /> : <Navigate to="/" replace />} />
+          <Route
+            path="/profile"
+            element={authenticated ? <Profile /> : <Navigate to="/" replace />}
+          />
 
           <Route
             path="/admin"
             element={
               isAdmin ? (
                 <>
-                  <Navbar currentPage="admin" onNavigate={handleNavigate} isLoggedIn={isLoggedIn} isAdmin={isAdmin} onLogout={handleLogout} />
+                  <Navbar
+                    currentPage="admin"
+                    onNavigate={handleNavigate}
+                    isLoggedIn={isLoggedIn}
+                    isAdmin={isAdmin}
+                    onLogout={handleLogout}
+                  />
                   <Admin />
                 </>
               ) : (
@@ -94,26 +104,18 @@ function AppContent() {
               )
             }
           />
-          {/* ✅ LEGAL PAGES (NO LOGIN REQUIRED) */}
-          <Route path="/terms" element={<Terms />} />
+
+          {/* Legal Pages */}
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </div>
 
-      {/* FOOTER */}
       {location.pathname !== '/' && <Footer />}
-
     </div>
-
-);
-
+  );
 }
 
 export default function App() {
-  return (
-
-    <AppContent />
-
-  );
+  return <AppContent />;
 }

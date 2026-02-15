@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(true);
         try {
             const response = await AuthApi.login(email, password);
-            if (response.success) {
+            if (response.success && response.user.role === "user") {
                 setToken(response.token);
                 setUser(response.user);
                 localStorage.setItem("token", response.token);

@@ -4,9 +4,7 @@ import head from '../assets/logo.png';
 import landingImg from '../assets/landing.png';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-
-
-
+import { toast } from "sonner";
 
 
 export default function Landing() {
@@ -45,7 +43,9 @@ export default function Landing() {
     e.preventDefault();
     try {
       const res = await login(loginData.email, loginData.password);
+      toast.success("Login successful");
     } catch (error) {
+      toast.error("Login failed");
       console.error('Login failed:', error);
     }
   };
@@ -56,18 +56,19 @@ export default function Landing() {
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (signupData.password !== confirmPassword) {
-      alert('Passwords do not match');
+      toast.error("Passwords do not match");
       return;
     }
     try {
       const res = await register(signupData.email, signupData.fullName, signupData.mobileNumber, signupData.password);
       if (res.success) {
+        toast.success("Registration successful");
         navigate('/home');
       }
     } catch (error) {
+      toast.error("Registration failed");
       console.error('Registration failed:', error);
     }
-    alert('Registration successful! Please login.');
     setIsLogin(true);
     setSignupData({
       fullName: '',
