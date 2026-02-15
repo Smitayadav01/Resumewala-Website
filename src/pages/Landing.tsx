@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Mail, Lock, User, Phone, Briefcase, Upload, Zap, Target } from 'lucide-react';
 import head from '../assets/logo.png';
 import landingImg from '../assets/landing.png';
@@ -50,8 +50,11 @@ export default function Landing() {
     }
   };
 
-
-  ;
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      navigate("/home");
+    }
+  }, [])
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
