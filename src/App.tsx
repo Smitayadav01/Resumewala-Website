@@ -52,7 +52,7 @@ function AppContent() {
   <Navbar
     currentPage={location.pathname}
     isLoggedIn={authenticated}
-    isAdmin={isAdmin}
+    isAdmin={isAdmin()}
   />
 )}
 

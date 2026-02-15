@@ -43,6 +43,7 @@ export default function Landing() {
     e.preventDefault();
     try {
       const res = await login(loginData.email, loginData.password);
+      console.log("3",res.json);
       toast.success("Login successful");
     } catch (error) {
       toast.error("Login failed");
