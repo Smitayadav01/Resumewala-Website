@@ -7,6 +7,9 @@ import cors from "cors";
 import jobRoutes from "./routes/job.js";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 

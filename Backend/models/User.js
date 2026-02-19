@@ -25,10 +25,18 @@ const UserSchema = new Schema({
         required: true,
         match: [/^[6-9]\d{9}$/, "Invalid mobile number"]
     },
-    password: {
-        type: String,
-        required: true
+   password: {
+    type: String,
+    required: function () {
+        return !this.googleId;
     }
+},
+googleId: {
+    type: String
+},
+resetPasswordToken: String,
+resetPasswordExpire: Date,
+
 }, { timestamps: true });
 
 UserSchema.pre('save', async function () {

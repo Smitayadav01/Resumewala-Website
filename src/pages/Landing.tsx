@@ -5,6 +5,7 @@ import landingImg from '../assets/landing.png';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
+import { GoogleLogin } from "@react-oauth/google";
 
 
 export default function Landing() {
@@ -170,7 +171,36 @@ export default function Landing() {
                   >
                     Login
                   </button>
+                  <p
+  className="text-sm text-blue-600 cursor-pointer text-right"
+  onClick={() => navigate("/forgot-password")}
+>
+  Forgot Password?
+</p>
+
                 </form>
+
+                <GoogleLogin
+  onSuccess={async (credentialResponse) => {
+    const res = await fetch("http://localhost:5000/api/auth/google-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential: credentialResponse.credential })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/home");
+    }
+  }}
+  onError={() => {
+    toast.error("Google Login Failed");
+  }}
+/>
+
 
                 <div className="mt-6">
                   <p className="text-center text-gray-600">

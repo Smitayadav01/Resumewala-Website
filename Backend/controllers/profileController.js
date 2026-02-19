@@ -1,11 +1,7 @@
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
 import { extractTextFromPDF } from "../utils/pdf.js";
-import {
-  extractSkills,
-  extractExperience,
-  extractEducation
-} from "../utils/parser.js";
+import { parseResumeWithAI } from "../utils/aiParser.js";
 import { uploadResumeToCloudinary } from "../utils/cloudinaryUpload.js";
 import cloudinary from "../config/cloudinary.js";
 import https from "https";
@@ -13,65 +9,61 @@ import https from "https";
 /* ================= UPLOAD / REPLACE RESUME ================= */
 
 const uploadResume = async (req, res) => {
+
   try {
     const userId = req.user._id;
 
     const user = await User.findById(userId);
 
-    let personal = {
-      fullName: user.fullName,
-      email: user.email,
-    }
-
     if (!req.file) {
       return res.status(400).json({ message: "Resume file required" });
     }
 
+    // 1️⃣ Extract text from PDF
     const text = await extractTextFromPDF(req.file.buffer);
 
-    // Upload new resume first
+    // 2️⃣ Parse using AI (THIS MUST BE INSIDE FUNCTION)
+    const aiParsed = await parseResumeWithAI(text);
+
+    // Safety fallback
+    const parsedSkills = aiParsed.skills || [];
+    const parsedExperience = aiParsed.experience || [];
+    const parsedEducation = aiParsed.education || [];
+    const parsedPersonal = aiParsed.personal || {};
+
+    // 3️⃣ Upload resume to Cloudinary
     const result = await uploadResumeToCloudinary(req.file.buffer, userId);
-
-
 
     const resumeData = {
       url: result.secure_url,
       publicId: result.public_id,
-      uploadedAt: new Date()
+      uploadedAt: new Date(),
     };
-
-    const parsedSkills = extractSkills(text);
-    const parsedExperience = extractExperience(text);
-    const parsedEducation = extractEducation(text);
 
     const existingProfile = await Profile.findOne({ userId });
 
-    // Merge instead of overwrite
-    const mergedExperience = [
-      ...(existingProfile?.experience || []),
-      ...parsedExperience
-    ];
-
-    const mergedEducation = [
-      ...(existingProfile?.education || []),
-      ...parsedEducation
-    ];
-
+    // 4️⃣ Update profile (overwrite instead of merge)
     const profile = await Profile.findOneAndUpdate(
       { userId },
       {
         $set: {
-          personal,
+          personal: {
+            fullName: parsedPersonal.fullName || user.fullName,
+            email: parsedPersonal.email || user.email,
+            city: parsedPersonal.city || "",
+            currentJobTitle: parsedPersonal.currentJobTitle || "",
+            totalExperience: parsedPersonal.totalExperience || "",
+          },
           resume: resumeData,
           skills: parsedSkills,
-          experience: mergedExperience,
-          education: mergedEducation
-        }
+          experience: parsedExperience,
+          education: parsedEducation,
+        },
       },
       { upsert: true, new: true }
     );
 
-    // Delete old resume AFTER successful update
+    // 5️⃣ Delete old resume after success
     if (existingProfile?.resume?.publicId) {
       await cloudinary.uploader.destroy(
         existingProfile.resume.publicId,
@@ -82,7 +74,7 @@ const uploadResume = async (req, res) => {
     res.status(200).json({
       success: true,
       resumeUrl: result.secure_url,
-      profile
+      profile,
     });
 
   } catch (error) {
@@ -90,6 +82,7 @@ const uploadResume = async (req, res) => {
     res.status(500).json({ message: "Resume parsing failed" });
   }
 };
+
 
 /* ================= GET PROFILE ================= */
 

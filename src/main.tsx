@@ -6,9 +6,11 @@ import { Toaster } from 'sonner';
 import './index.css';
 import { ProfileProvider } from './context/ProfileContext';
 import { AuthProvider } from './context/AuthContext';
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
+     <GoogleOAuthProvider clientId="166134151018-ofjldjib6faa99flin69qiosa2cdfkmj.apps.googleusercontent.com">
     <BrowserRouter>
       <Toaster position='top-right' richColors />
       <AuthProvider>
@@ -17,5 +19,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </ProfileProvider>
       </AuthProvider>
     </BrowserRouter>
+    </GoogleOAuthProvider>
   </React.StrictMode>
 );

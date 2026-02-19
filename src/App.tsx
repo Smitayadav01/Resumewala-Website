@@ -16,6 +16,9 @@ import Admin from './pages/Admin';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import { useAuth } from './context/AuthContext';
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 
 function AppContent() {
   const navigate = useNavigate();
@@ -73,6 +76,9 @@ function AppContent() {
           />
 
           <Route path="/upload" element={<Upload />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password/:token" element={<ResetPassword />} />
 
           <Route
             path="/jobs"

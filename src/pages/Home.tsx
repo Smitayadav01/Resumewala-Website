@@ -6,7 +6,7 @@ import { uploadResume } from '../services/profileApi';
 import { useProfile } from '../context/ProfileContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
-import demoVideo from '../assets/demo.mp4';
+// import demoVideo from '../assets/demo.mp4';
 
 
 interface HomeProps {
@@ -146,7 +146,7 @@ export default function Home({ onNavigate }: HomeProps) {
       className="w-full h-auto object-contain rounded-2xl"
     />
 
-    {/* Play Button (Centered on Image) */}
+    {/* Play Button (Centered on Image)
     <button
       onClick={() => setShowVideo(true)}
       className="absolute inset-0 flex items-center justify-center"
@@ -164,7 +164,7 @@ export default function Home({ onNavigate }: HomeProps) {
           </svg>
         </div>
       </div>
-    </button>
+    </button> */}
 
   </div>
 </div>
