@@ -4,6 +4,17 @@ import User from "../models/User.js";
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import { sendEmail } from "../utils/sendEmail.js";
+import {
+  welcomeTemplate,
+  verifyEmailTemplate,
+  resetPasswordTemplate,
+  adminNotificationTemplate
+} from "../utils/emailTemplates.js";
+
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
 
 export const ForgotPassword = async (req, res) => {
   try {
@@ -14,48 +25,42 @@ export const ForgotPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
+    console.log("Forgot password called");
+console.log("Email received:", email);
 
     const resetToken = crypto.randomBytes(32).toString("hex");
 
-    user.resetPasswordToken = crypto
+    const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
+    user.resetPasswordToken = hashedToken;
     user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
 
     await user.save();
 
     const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    await sendEmail({
+  to: user.email,
+  subject: "Reset Your Password - Resumewala",
+  html: resetPasswordTemplate(user.fullName, resetUrl),
+});
 
-    await transporter.sendMail({
-      to: user.email,
-      subject: "Password Reset",
-      html: `<p>Click below to reset password:</p>
-             <a href="${resetUrl}">${resetUrl}</a>`
-    });
-
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Reset email sent"
+      message: "Reset email sent",
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Forgot password error:", error);
     res.status(500).json({
       success: false,
-      message: "Email failed"
+      message: "Email failed",
     });
   }
 };
@@ -114,7 +119,6 @@ export const GoogleLogin = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-
     const { email, name, sub } = payload;
 
     let user = await User.findOne({ email });
@@ -123,14 +127,22 @@ export const GoogleLogin = async (req, res) => {
       user = await User.create({
         fullName: name,
         email,
-        mobileNumber: 9999999999, // temporary dummy
+        mobileNumber: 9999999999,
         googleId: sub,
-        password: "googleuser"
+        password: crypto.randomBytes(16).toString("hex"),
       });
-    }
 
+      // Send welcome email only for new users
+      await sendEmail({
+        to: user.email,
+        subject: "Welcome to Resumewala 🎉",
+        html: welcomeTemplate(name),
+      });
+    } // ✅ THIS WAS MISSING
+
+    // Generate token for both new and existing users
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -138,18 +150,17 @@ export const GoogleLogin = async (req, res) => {
     return res.status(200).json({
       success: true,
       token,
-      user
+      user,
     });
 
   } catch (error) {
     console.error("Google login error:", error);
     return res.status(500).json({
       success: false,
-      message: "Google login failed"
+      message: "Google login failed",
     });
   }
 };
-
 
 export const Register = async (req, res) => {
   try {
@@ -175,6 +186,7 @@ export const Register = async (req, res) => {
       });
     }
 
+    // 3️⃣ Create user
     const user = await User.create({
       fullName,
       email,
@@ -182,12 +194,71 @@ export const Register = async (req, res) => {
       password
     });
 
+//     const otp = generateOTP();
+
+// user.emailOTP = otp;
+// user.emailOTPExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+// await user.save();
+
+// await sendEmail({
+//   to: user.email,
+//   subject: "Verify Your Email - OTP",
+//   html: `
+//     <div style="font-family:Arial;padding:20px">
+//       <h2>Email Verification</h2>
+//       <p>Hello ${user.fullName},</p>
+//       <p>Your OTP for email verification is:</p>
+//       <h1 style="letter-spacing:5px;">${otp}</h1>
+//       <p>This OTP expires in 10 minutes.</p>
+//     </div>
+//   `
+// });
+
+    
+    // 4️⃣ Generate JWT
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
+//     // Generate verification token
+// const verifyToken = crypto.randomBytes(32).toString("hex");
+
+// user.emailVerifyToken = crypto
+//   .createHash("sha256")
+//   .update(verifyToken)
+//   .digest("hex");
+
+// user.emailVerifyExpire = Date.now() + 24 * 60 * 60 * 1000;
+
+// await user.save();
+
+// const verifyUrl = `http://localhost:5173/verify-email/${verifyToken}`;
+
+// await sendEmail({
+//   to: user.email,
+//   subject: "Verify Your Email",
+//   html: verifyEmailTemplate(user.fullName, verifyUrl),
+// });
+
+
+    // 5️⃣ Send welcome email to user
+    await sendEmail({
+  to: user.email,
+  subject: "Welcome to Resumewala 🎉",
+  html: welcomeTemplate(user.fullName),
+});
+
+    // 6️⃣ Send admin notification email
+    await sendEmail({
+  to: process.env.ADMIN_EMAIL,
+  subject: "🚀 New User Registered - Resumewala",
+  html: adminNotificationTemplate(user),
+});
+
+    // 7️⃣ Send response
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
@@ -272,3 +343,131 @@ export const Login = async (req, res) => {
 };
 
 
+
+export const VerifyEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      emailVerifyToken: hashedToken,
+      emailVerifyExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired token"
+      });
+    }
+
+    user.isVerified = true;
+    user.emailVerifyToken = undefined;
+    user.emailVerifyExpire = undefined;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Email verified successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Verification failed"
+    });
+  }
+};
+
+export const VerifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (
+      user.emailOTP !== otp ||
+      user.emailOTPExpire < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP"
+      });
+    }
+
+    user.isVerified = true;
+    user.emailOTP = undefined;
+    user.emailOTPExpire = undefined;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Verification failed"
+    });
+  }
+};
+
+export const ResendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "User already verified"
+      });
+    }
+
+    const otp = generateOTP();
+
+    user.emailOTP = otp;
+    user.emailOTPExpire = Date.now() + 10 * 60 * 1000;
+
+    await user.save();
+
+    await sendEmail({
+      to: user.email,
+      subject: "Resend OTP - Email Verification",
+      html: `<h2>Your New OTP: ${otp}</h2>`
+    });
+
+    res.json({
+      success: true,
+      message: "OTP resent successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Resend failed"
+    });
+  }
+};

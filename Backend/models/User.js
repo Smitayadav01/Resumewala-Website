@@ -36,6 +36,14 @@ googleId: {
 },
 resetPasswordToken: String,
 resetPasswordExpire: Date,
+isVerified: {
+  type: Boolean,
+  default: false
+},
+emailVerifyToken: String,
+emailVerifyExpire: Date,
+emailOTP: String,
+emailOTPExpire: Date,
 
 }, { timestamps: true });
 

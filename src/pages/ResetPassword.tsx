@@ -23,7 +23,7 @@ export default function ResetPassword() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/users/reset-password/${token}`,
+        `http://localhost:5000/api/auth/reset-password/${token}`,
         {
           method: "POST",
           headers: {
@@ -100,7 +100,11 @@ export default function ResetPassword() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
           >
-            {loading ? "Resetting..." : "Reset Password"}
+            {loading ? (
+    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+  ) : (
+    "Reset Password"
+  )}
           </button>
         </form>
       </div>
