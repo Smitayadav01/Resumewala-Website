@@ -181,25 +181,25 @@ export default function Landing() {
                 </form>
 
                 <GoogleLogin
-  onSuccess={async (credentialResponse) => {
-    const res = await fetch("http://localhost:5000/api/auth/google-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ credential: credentialResponse.credential })
-    });
+                  onSuccess={async (credentialResponse) => {
+                    const res = await fetch("http://localhost:5000/api/auth/google-login", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ credential: credentialResponse.credential })
+                    });
 
-    const data = await res.json();
+                    const data = await res.json();
 
-    if (data.success) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/home");
-    }
-  }}
-  onError={() => {
-    toast.error("Google Login Failed");
-  }}
-/>
+                    if (data.success) {
+                      localStorage.setItem("token", data.token);
+                      localStorage.setItem("user", JSON.stringify(data.user));
+                      navigate("/home");
+                    }
+                  }}
+                  onError={() => {
+                    toast.error("Google Login Failed");
+                  }}
+                />
 
 
                 <div className="mt-6">

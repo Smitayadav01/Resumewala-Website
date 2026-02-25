@@ -21,11 +21,12 @@ const uploadResume = async (req, res) => {
 
     
     const text = await extractTextFromPDF(req.file.buffer);
+    console.log(text);
 
     
     const aiParsed = await parseResumeWithAI(text);
-
-    
+    console.log(aiParsed);
+    // Safety fallback
     const parsedSkills = aiParsed.skills || [];
     const parsedExperience = aiParsed.experience || [];
     const parsedEducation = aiParsed.education || [];

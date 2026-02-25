@@ -906,7 +906,7 @@ useEffect(() => {
         </div>
       )}
 
-      {showFinalPopup && (
+      {/* {showFinalPopup && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-xl">
       <CheckCircle className="text-green-600 h-14 w-14 mx-auto mb-4" />
@@ -930,7 +930,7 @@ useEffect(() => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
 
 
     </div>
