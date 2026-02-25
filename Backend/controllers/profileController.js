@@ -19,19 +19,19 @@ const uploadResume = async (req, res) => {
       return res.status(400).json({ message: "Resume file required" });
     }
 
-    // 1️⃣ Extract text from PDF
+    
     const text = await extractTextFromPDF(req.file.buffer);
 
-    // 2️⃣ Parse using AI (THIS MUST BE INSIDE FUNCTION)
+    
     const aiParsed = await parseResumeWithAI(text);
 
-    // Safety fallback
+    
     const parsedSkills = aiParsed.skills || [];
     const parsedExperience = aiParsed.experience || [];
     const parsedEducation = aiParsed.education || [];
     const parsedPersonal = aiParsed.personal || {};
 
-    // 3️⃣ Upload resume to Cloudinary
+    
     const result = await uploadResumeToCloudinary(req.file.buffer, userId);
 
     const resumeData = {
@@ -42,7 +42,7 @@ const uploadResume = async (req, res) => {
 
     const existingProfile = await Profile.findOne({ userId });
 
-    // 4️⃣ Update profile (overwrite instead of merge)
+    
     const profile = await Profile.findOneAndUpdate(
       { userId },
       {
@@ -63,7 +63,7 @@ const uploadResume = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // 5️⃣ Delete old resume after success
+   
     if (existingProfile?.resume?.publicId) {
       await cloudinary.uploader.destroy(
         existingProfile.resume.publicId,
