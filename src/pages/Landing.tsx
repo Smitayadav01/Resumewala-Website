@@ -44,6 +44,10 @@ export default function Landing() {
     e.preventDefault();
     try {
       const res = await login(loginData.email, loginData.password);
+      if(!res.ok){
+        toast.error(res.message);
+        return;
+      }
       console.log("3",res.json);
       toast.success("Login successful");
     } catch (error) {
@@ -172,11 +176,11 @@ export default function Landing() {
                     Login
                   </button>
                   <p
-  className="text-sm text-blue-600 cursor-pointer text-right"
-  onClick={() => navigate("/forgot-password")}
->
-  Forgot Password?
-</p>
+                    className="text-sm text-blue-600 cursor-pointer text-right"
+                    onClick={() => navigate("/forgot-password")}
+                  >
+                    Forgot Password?
+                  </p>
 
                 </form>
 
