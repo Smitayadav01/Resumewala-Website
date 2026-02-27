@@ -19,7 +19,10 @@ export default function Home({ onNavigate }: HomeProps) {
   const { setProfile } = useProfile();
   const navigate = useNavigate();
   const [showVideo, setShowVideo] = useState(false);
+  const [loading,setLoading] = useState(false); 
   const handleFileSelect = async (file: File) => {
+     setLoading(true)
+     console.log(loading)
     if (!file || uploading) return;
 
     const allowedTypes = [
@@ -53,6 +56,7 @@ export default function Home({ onNavigate }: HomeProps) {
       // Navigate to Profile page and pass parsed data
       setProfile(data.profile);
       toast.success("Resume uploaded successfully");
+      setLoading(false)
       navigate('/profile');
 
 
@@ -88,6 +92,7 @@ export default function Home({ onNavigate }: HomeProps) {
                   type="file"
                   accept=".pdf"
                   className="hidden"
+                  disabled={loading}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleFileSelect(file);
@@ -136,38 +141,38 @@ export default function Home({ onNavigate }: HomeProps) {
                 </div>
               </div>
             </div>
-<div className="flex justify-center lg:justify-end">
-  <div className="relative w-full max-w-sm lg:max-w-md">
+          <div className="flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-sm lg:max-w-md">
 
-    {/* Girl Image */}
-    <img
-      src={head}
-      alt="Resume upload illustration"
-      className="w-full h-auto object-contain rounded-2xl"
-    />
+              {/* Girl Image */}
+              <img
+                src={head}
+                alt="Resume upload illustration"
+                className="w-full h-auto object-contain rounded-2xl"
+              />
 
-    {/* Play Button (Centered on Image)
-    <button
-      onClick={() => setShowVideo(true)}
-      className="absolute inset-0 flex items-center justify-center"
-    >
-      <div className="bg-white/80 backdrop-blur-md p-5 rounded-full shadow-xl 
-                      hover:scale-110 transition-all duration-300">
-        <div className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-white ml-1"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </div>
-      </div>
-    </button> */}
+              {/* Play Button (Centered on Image)
+              <button
+                onClick={() => setShowVideo(true)}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <div className="bg-white/80 backdrop-blur-md p-5 rounded-full shadow-xl 
+                                hover:scale-110 transition-all duration-300">
+                  <div className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6 text-white ml-1"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </button> */}
 
-  </div>
-</div>
+            </div>
+          </div>
 
 
 

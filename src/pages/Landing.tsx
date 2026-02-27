@@ -45,7 +45,7 @@ export default function Landing() {
     try {
       const res = await login(loginData.email, loginData.password);
       if(!res.ok){
-        toast.error(res.message);
+        toast.success(res.message);
         return;
       }
       console.log("3",res.json);

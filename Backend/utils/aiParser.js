@@ -83,7 +83,9 @@ Return ONLY valid JSON matching this structure:
     "currentCTC": "",
     "dob": "",
     "gender": "",
-    ""
+    "highestQualification":"",
+    "college":"",
+    "yearOfPassing":"",
   },
   "skills": [],
   "experience": [

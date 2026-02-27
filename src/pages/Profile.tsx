@@ -168,7 +168,7 @@ useEffect(() => {
     }
 
     if (Array.isArray(profile.experience)) {
-      setExperiences(profile.experience);
+      setExperiences(profile.experience );
     }
 
     if (Array.isArray(profile.education)) {
@@ -311,22 +311,22 @@ useEffect(() => {
           {/* PERSONAL */}
           <Accordion title="Basic Information" icon={<User />} open={activeSection === 'personal'} onToggle={() => toggleSection('personal')}>
             <Grid>
-              
-<Input
-  label="Full Name"
-  value={personalInfo.fullName}
-  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-    setPersonalInfo({ ...personalInfo, fullName: e.target.value })
-  }
-/>
+              {console.log(personalInfo)}
+              <Input
+                label="Full Name"
+                value={personalInfo.fullName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPersonalInfo({ ...personalInfo, fullName: e.target.value })
+                }
+              />
 
-<Input
-  label="Gender"
-  value={personalInfo.gender}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, gender: e.target.value })
-  }
-/>
+              <Input
+                label="Gender"
+                value={personalInfo.gender}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, gender: e.target.value })
+                }
+              />
 
               <Input
                 label="Gender"
@@ -506,374 +506,382 @@ useEffect(() => {
               />
 
 
-<Input
-  label="Total Experience"
-  value={personalInfo.totalExperience}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, totalExperience: e.target.value })
-  }
-/>
+              <Input
+                label="Total Experience"
+                value={personalInfo.totalExperience}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, totalExperience: e.target.value })
+                }
+              />
 
-<Input
-  label="Current Job Title"
-  value={personalInfo.currentJobTitle}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, currentJobTitle: e.target.value })
-  }
-/>
+              <Input
+                label="Current Job Title"
+                value={personalInfo.currentJobTitle}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, currentJobTitle: e.target.value })
+                }
+              />
 
-<Input
-  label="Company Name"
-  value={personalInfo.companyName}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, companyName: e.target.value })
-  }
-/>
+              <Input
+                label="Company Name"
+                value={personalInfo.companyName}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, companyName: e.target.value })
+                }
+              />
 
-<Input
-  label="Industry"
-  value={personalInfo.industry}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, industry: e.target.value })
-  }
-/>
+              <Input
+                label="Industry"
+                value={personalInfo.industry}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, industry: e.target.value })
+                }
+              />
 
-<Input
-  label="Designation"
-  value={personalInfo.designation}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, designation: e.target.value })
-  }
-/>
+              <Input
+                label="Designation"
+                value={personalInfo.designation}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, designation: e.target.value })
+                }
+              />
 
-<Input
-  label="Current CTC"
-  value={personalInfo.currentCTC}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, currentCTC: e.target.value })
-  }
-/>
+              <Input
+                label="Current CTC"
+                value={personalInfo.currentCTC}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, currentCTC: e.target.value })
+                }
+              />
 
-<Input
-  label="Current Location"
-  value={personalInfo.location}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, location: e.target.value })
-  }
-/>
+              <Input
+                label="Current Location"
+                value={personalInfo.location}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, location: e.target.value })
+                }
+              />
 
-<Input
-  label="Preferred Location"
-  value={personalInfo.preferredLocation}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, preferredLocation: e.target.value })
-  }
-/>
+              <Input
+                label="Preferred Location"
+                value={personalInfo.preferredLocation}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, preferredLocation: e.target.value })
+                }
+              />
 
-<Input
-  label="Employment Type"
-  type="select"
-  value={personalInfo.employmentType}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, employmentType: e.target.value })
-  }
-  options={[
-    { label: 'Select Employment Type', value: '' },
-    { label: 'Full-time', value: 'Full-time' },
-    { label: 'Part-time', value: 'Part-time' },
-    { label: 'Contract', value: 'Contract' },
-  ]}
-/>
+              <Input
+                label="Employment Type"
+                type="select"
+                value={personalInfo.employmentType}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, employmentType: e.target.value })
+                }
+                options={[
+                  { label: 'Select Employment Type', value: '' },
+                  { label: 'Full-time', value: 'Full-time' },
+                  { label: 'Part-time', value: 'Part-time' },
+                  { label: 'Contract', value: 'Contract' },
+                ]}
+              />
 
-<Input
-  label="Work Mode"
-  type="select"
-  value={personalInfo.workMode}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, workMode: e.target.value })
-  }
-  options={[
-    { label: 'Select Work Mode', value: '' },
-    { label: 'On-site', value: 'On-site' },
-    { label: 'Hybrid', value: 'Hybrid' },
-    { label: 'Remote', value: 'Remote' },
-  ]}
-/>
+              <Input
+                label="Work Mode"
+                type="select"
+                value={personalInfo.workMode}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, workMode: e.target.value })
+                }
+                options={[
+                  { label: 'Select Work Mode', value: '' },
+                  { label: 'On-site', value: 'On-site' },
+                  { label: 'Hybrid', value: 'Hybrid' },
+                  { label: 'Remote', value: 'Remote' },
+                ]}
+              />
 
 
-<Input
-  label="Highest Qualification"
-  value={personalInfo.highestQualification}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, highestQualification: e.target.value })
-  }
-/>
+              <Input
+                label="Highest Qualification"
+                value={personalInfo.highestQualification}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, highestQualification: e.target.value })
+                }
+              />
 
-<Input
-  label="College / University"
-  value={personalInfo.college}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, college: e.target.value })
-  }
-/>
+              <Input
+                label="College / University"
+                value={personalInfo.college}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, college: e.target.value })
+                }
+              />
 
-<Input
-  label="Year of Passing"
-  value={personalInfo.yearOfPassing}
-  onChange={(e) =>
-    setPersonalInfo({ ...personalInfo, yearOfPassing: e.target.value })
-  }
-/>
+              <Input
+                label="Year of Passing"
+                value={personalInfo.yearOfPassing}
+                onChange={(e) =>
+                  setPersonalInfo({ ...personalInfo, yearOfPassing: e.target.value })
+                }
+              />
 
               </Grid>
             <SaveBtn onClick={() => saveSection('personal', personalInfo)} />
           </Accordion>
 
          {/* EXPERIENCE */}
-<Accordion
-  title="Experience"
-  icon={<Briefcase />}
-  open={activeSection === 'experience'}
-  onToggle={() => toggleSection('experience')}
->
-  {experiences.map((exp) => (
-    <Card key={exp.id}>
-      <div className="flex justify-between">
-        <div>
-          <h3 className="font-semibold">{exp.position}</h3>
-          <p className="text-sm text-blue-600">{exp.company}</p>
-          <p className="text-xs text-gray-500">
-            {exp.employmentType} • {exp.location}
-          </p>
-        </div>
-
-        <Trash2
-          className="cursor-pointer text-red-500"
-          onClick={() =>
-            setExperiences(experiences.filter((e) => e.id !== exp.id))
-          }
-        />
-      </div>
-    </Card>
-  ))}
-
-  {showExpForm && (
-    <Form>
-      <Grid>
-        <Input
-          label="Company"
-          value={newExp.company}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, company: e.target.value })
-          }
-        />
-        <Input
-          label="Position"
-          value={newExp.position}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, position: e.target.value })
-          }
-        />
-        <Input
-          label="Employment Type"
-          value={newExp.employmentType}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, employmentType: e.target.value })
-          }
-        />
-        <Input
-          label="Location"
-          value={newExp.location}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, location: e.target.value })
-          }
-        />
-        <Input
-          label="Start Date"
-          type="date"
-          value={newExp.startDate}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, startDate: e.target.value })
-          }
-        />
-        <Input
-          label="End Date"
-          type="date"
-          value={newExp.endDate}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, endDate: e.target.value })
-          }
-        />
-        <Input
-          label="Notice Period"
-          value={newExp.noticePeriod}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, noticePeriod: e.target.value })
-          }
-        />
-        <Input
-          label="Skills Used"
-          full
-          value={newExp.skillsUsed}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, skillsUsed: e.target.value })
-          }
-        />
-        <Input
-          label="Description"
-          full
-          value={newExp.description}
-          onChange={(e: any) =>
-            setNewExp({ ...newExp, description: e.target.value })
-          }
-        />
-      </Grid>
-
-      <SaveBtn onClick={addExperience} />
-    </Form>
-  )}
-
-  <AddBtn onClick={() => setShowExpForm(true)} />
-</Accordion>
-
-{/* EDUCATION */}
-<Accordion
-  title="Education"
-  icon={<GraduationCap />}
-  open={activeSection === 'education'}
-  onToggle={() => toggleSection('education')}
->
-  {education.map((edu) => (
-    <Card key={edu.id}>
-      <div className="flex justify-between">
-        <div>
-          <h3 className="font-semibold">{edu.degree}</h3>
-          <p className="text-sm text-blue-600">{edu.institution}</p>
-        </div>
-
-        <Trash2
-          className="cursor-pointer text-red-500"
-          onClick={() =>
-            setEducation(education.filter((e) => e.id !== edu.id))
-          }
-        />
-      </div>
-    </Card>
-  ))}
-
-  {showEduForm && (
-    <Form>
-      <Grid>
-        <Input
-          label="Institution"
-          value={newEdu.institution}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, institution: e.target.value })
-          }
-        />
-        <Input
-          label="University / Board"
-          value={newEdu.university}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, university: e.target.value })
-          }
-        />
-        <Input
-          label="Degree"
-          value={newEdu.degree}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, degree: e.target.value })
-          }
-        />
-        <Input
-          label="Field of Study"
-          value={newEdu.fieldOfStudy}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, fieldOfStudy: e.target.value })
-          }
-        />
-        <Input
-          label="Education Type"
-          value={newEdu.educationType}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, educationType: e.target.value })
-          }
-        />
-        <Input
-          label="Start Date"
-          type="date"
-          value={newEdu.startDate}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, startDate: e.target.value })
-          }
-        />
-        <Input
-          label="End Date"
-          type="date"
-          value={newEdu.endDate}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, endDate: e.target.value })
-          }
-        />
-        <Input
-          label="Grade / CGPA"
-          value={newEdu.grade}
-          onChange={(e: any) =>
-            setNewEdu({ ...newEdu, grade: e.target.value })
-          }
-        />
-      </Grid>
-
-      <SaveBtn onClick={addEducation} />
-    </Form>
-  )}
-
-  <AddBtn onClick={() => setShowEduForm(true)} />
-</Accordion>
-
-          {/* SKILLS */}
-<Accordion
-  title="Skills"
-  icon={<Briefcase />}
-  open={activeSection === 'skills'}
-  onToggle={() => toggleSection('skills')}
->
-  {/* ADD SKILL */}
-  <div className="flex gap-3 mb-4">
-    <input
-      value={newSkill}
-      onChange={(e) => setNewSkill(e.target.value)}
-      placeholder="Add a skill (e.g. React, Java)"
-      className="border rounded-lg px-4 py-2 flex-1"
-    />
-    <SaveBtn onClick={addSkill} />
-  </div>
-
-  {/* SHOW SKILLS */}
-  {skills.length > 0 ? (
-    <div className="flex flex-wrap gap-3">
-      {skills.map((skill, index) => (
-        <div
-          key={index}
-          className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full border"
+        <Accordion
+          title="Experience"
+          icon={<Briefcase />}
+          open={activeSection === 'experience'}
+          onToggle={() => toggleSection('experience')}
         >
-          <span className="text-sm font-medium">{skill}</span>
+          {experiences.map((exp) => (
+            <Card key={exp.id}>
+              <div className="flex justify-between">
+                <div>
+                  <h3 className="font-semibold">{exp.position}</h3>
+                  <p className="text-sm text-blue-600">{exp.company}</p>
+                  <p className="text-xs text-gray-500">
+                    {exp.employmentType} • {exp.location}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    From {exp.startDate} - To {exp.endDate}
+                  </p>
+                  <p className="text-sm text-gray-700 pt-2">
+                    {exp.description}
+                  </p>
 
-          <Trash2
-            className="h-4 w-4 cursor-pointer text-red-500"
-            onClick={async () => {
-              const updated = skills.filter((_, i) => i !== index);
-              setSkills(updated);
-              await saveSection('skills', updated);
-            }}
-          />
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-sm text-gray-500">No skills added yet</p>
-  )}
-</Accordion>
+                </div>
+
+                <Trash2
+                  className="cursor-pointer text-red-500"
+                  onClick={() =>
+                    setExperiences(experiences.filter((e) => e.id !== exp.id))
+                  }
+                />
+              </div>
+            </Card>
+          ))}
+
+          {showExpForm && (
+            <Form>
+              <Grid>
+                <Input
+                  label="Company"
+                  value={newExp.company}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, company: e.target.value })
+                  }
+                />
+                <Input
+                  label="Position"
+                  value={newExp.position}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, position: e.target.value })
+                  }
+                />
+                <Input
+                  label="Employment Type"
+                  value={newExp.employmentType}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, employmentType: e.target.value })
+                  }
+                />
+                <Input
+                  label="Location"
+                  value={newExp.location}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, location: e.target.value })
+                  }
+                />
+                <Input
+                  label="Start Date"
+                  type="date"
+                  value={newExp.startDate}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, startDate: e.target.value })
+                  }
+                />
+                <Input
+                  label="End Date"
+                  type="date"
+                  value={newExp.endDate}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, endDate: e.target.value })
+                  }
+                />
+                <Input
+                  label="Notice Period"
+                  value={newExp.noticePeriod}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, noticePeriod: e.target.value })
+                  }
+                />
+                <Input
+                  label="Skills Used"
+                  full
+                  value={newExp.skillsUsed}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, skillsUsed: e.target.value })
+                  }
+                />
+                <Input
+                  label="Description"
+                  full
+                  value={newExp.description}
+                  onChange={(e: any) =>
+                    setNewExp({ ...newExp, description: e.target.value })
+                  }
+                />
+              </Grid>
+
+              <SaveBtn onClick={addExperience} />
+            </Form>
+          )}
+
+          <AddBtn onClick={() => setShowExpForm(true)} />
+        </Accordion>
+
+        {/* EDUCATION */}
+        <Accordion
+          title="Education"
+          icon={<GraduationCap />}
+          open={activeSection === 'education'}
+          onToggle={() => toggleSection('education')}
+        >
+          {education.map((edu) => (
+            <Card key={edu.id}>
+              <div className="flex justify-between">
+                <div>
+                  <h3 className="font-semibold">{edu.degree}</h3>
+                  <p className="text-sm text-blue-600">{edu.institution}</p>
+                  
+                </div>
+
+                <Trash2
+                  className="cursor-pointer text-red-500"
+                  onClick={() =>
+                    setEducation(education.filter((e) => e.id !== edu.id))
+                  }
+                />
+              </div>
+            </Card>
+          ))}
+
+          {showEduForm && (
+            <Form>
+              <Grid>
+                <Input
+                  label="Institution"
+                  value={newEdu.institution}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, institution: e.target.value })
+                  }
+                />
+                <Input
+                  label="University / Board"
+                  value={newEdu.university}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, university: e.target.value })
+                  }
+                />
+                <Input
+                  label="Degree"
+                  value={newEdu.degree}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, degree: e.target.value })
+                  }
+                />
+                <Input
+                  label="Field of Study"
+                  value={newEdu.fieldOfStudy}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, fieldOfStudy: e.target.value })
+                  }
+                />
+                <Input
+                  label="Education Type"
+                  value={newEdu.educationType}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, educationType: e.target.value })
+                  }
+                />
+                <Input
+                  label="Start Date"
+                  type="date"
+                  value={newEdu.startDate}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, startDate: e.target.value })
+                  }
+                />
+                <Input
+                  label="End Date"
+                  type="date"
+                  value={newEdu.endDate}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, endDate: e.target.value })
+                  }
+                />
+                <Input
+                  label="Grade / CGPA"
+                  value={newEdu.grade}
+                  onChange={(e: any) =>
+                    setNewEdu({ ...newEdu, grade: e.target.value })
+                  }
+                />
+              </Grid>
+
+              <SaveBtn onClick={addEducation} />
+            </Form>
+          )}
+
+          <AddBtn onClick={() => setShowEduForm(true)} />
+        </Accordion>
+
+                  {/* SKILLS */}
+        <Accordion
+          title="Skills"
+          icon={<Briefcase />}
+          open={activeSection === 'skills'}
+          onToggle={() => toggleSection('skills')}
+        >
+          {/* ADD SKILL */}
+          <div className="flex gap-3 mb-4">
+            <input
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              placeholder="Add a skill (e.g. React, Java)"
+              className="border rounded-lg px-4 py-2 flex-1"
+            />
+            <SaveBtn onClick={addSkill} />
+          </div>
+
+          {/* SHOW SKILLS */}
+          {skills.length > 0 ? (
+            <div className="flex flex-wrap gap-3">
+              {skills.map((skill, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full border"
+                >
+                  <span className="text-sm font-medium">{skill}</span>
+
+                  <Trash2
+                    className="h-4 w-4 cursor-pointer text-red-500"
+                    onClick={async () => {
+                      const updated = skills.filter((_, i) => i !== index);
+                      setSkills(updated);
+                      await saveSection('skills', updated);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No skills added yet</p>
+          )}
+        </Accordion>
 
         </div>
 
