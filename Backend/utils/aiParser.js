@@ -79,7 +79,13 @@ Return ONLY valid JSON matching this structure:
     "email": "",
     "city": "",
     "currentJobTitle": "",
-    "totalExperience": ""
+    "totalExperience": "",
+    "currentCTC": "",
+    "dob": "",
+    "gender": "",
+    "highestQualification":"",
+    "college":"",
+    "yearOfPassing":"",
   },
   "skills": [],
   "experience": [
