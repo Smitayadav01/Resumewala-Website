@@ -11,6 +11,7 @@ export const parseResume = async (file: File) => {
       {
         degree: 'B.E Computer Engineering',
         institution: 'SLRTCE',
+        
         startDate: '2022',
         endDate: '2026',
       },

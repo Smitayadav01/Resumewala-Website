@@ -55,7 +55,7 @@ export default function Profile({ resumeData }: ProfileProps) {
   const [profileVisible, setProfileVisible] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFinalPopup, setShowFinalPopup] = useState(false);
-  const { profile } = useProfile();
+  const { profile,setProfile } = useProfile();
   const navigate = useNavigate();
 
 
@@ -140,6 +140,23 @@ const calculateAge = (dob: string) => {
   return age.toString();
 };
 
+
+useEffect(()=>{
+  const getProfile = async ()=>{
+    const token = await localStorage.getItem('token')
+    const res = await fetch("http://localhost:5000/api/profile",{
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    
+    const data = await res.json()
+    setProfile(data.profile)
+  }
+  getProfile( )
+},[])
+
 useEffect(() => {
   if (personalInfo.dob) {
     const age = calculateAge(personalInfo.dob);
@@ -164,6 +181,7 @@ useEffect(() => {
     if (!profile) return;
 
     if (profile.personal) {
+      console.log(profile.personal)
       setPersonalInfo(prev => ({ ...prev, ...profile.personal }));
     }
 
@@ -687,7 +705,7 @@ useEffect(() => {
                   onChange={(e: any) =>
                     setNewExp({ ...newExp, employmentType: e.target.value })
                   }
-                />
+                />  
                 <Input
                   label="Location"
                   value={newExp.location}
@@ -756,7 +774,8 @@ useEffect(() => {
                 <div>
                   <h3 className="font-semibold">{edu.degree}</h3>
                   <p className="text-sm text-blue-600">{edu.institution}</p>
-                  
+                  <p ></p>
+                    
                 </div>
 
                 <Trash2

@@ -60,35 +60,39 @@ export default function UploadResume() {
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+  if (!file) return;
 
+  const token = localStorage.getItem("token");
+
+  const formData = new FormData();
+  formData.append("resume", file);
+
+  try {
     setIsLoading(true);
-    setError('');
 
-    try {
-      const mockExtractedData = {
-        fullName: 'John Doe',
-        email: 'john.doe@example.com',
-        mobile: '9876543210',
-        dateOfBirth: '1995-05-15',
-        address: 'Mumbai, Maharashtra',
-      };
+    const res = await fetch("http://localhost:5000/api/resume/upload", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    const data = await res.json();
 
-      sessionStorage.setItem(
-        'resumeData',
-        JSON.stringify(mockExtractedData)
-      );
-
-      navigate('/profile', { state: { fromResume: true } });
-    } catch (err) {
-      setError('Failed to upload resume. Please try again.');
-      console.error('Upload error:', err);
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) {
+      throw new Error(data.message);
     }
-  };
+
+    // store parsed data to context
+    navigate("/profile");
+
+  } catch (err) {
+    setError("Upload failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-12 px-4">
