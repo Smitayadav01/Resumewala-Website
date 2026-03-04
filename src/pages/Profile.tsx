@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Eye,
   EyeOff,
+  Pencil,
 } from 'lucide-react';
 import { useProfile } from '../context/ProfileContext';
 import { toast } from "sonner";
@@ -50,6 +51,10 @@ type SectionKey = 'personal' | 'experience' | 'education' | 'skills';
 
 /* ---------------- MAIN ---------------- */
 export default function Profile({ resumeData }: ProfileProps) {
+  const [editingExpId, setEditingExpId] = useState<number | null>(null);
+  const [editExp, setEditExp] = useState<any>(null);
+  const [editingEduId,setEditingEduId] = useState<null | number>(null)
+  const [editEdu, setEditEdu] = useState<any>(null);
   const [activeSection, setActiveSection] = useState<SectionKey | null>('personal');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [profileVisible, setProfileVisible] = useState(true);
@@ -186,11 +191,21 @@ useEffect(() => {
     }
 
     if (Array.isArray(profile.experience)) {
-      setExperiences(profile.experience );
+        setExperiences(
+          profile.experience.map((exp: any) => ({
+            ...exp,
+            id: exp._id ?? exp.id ?? Date.now() + Math.random(),
+          }))
+        )
     }
 
     if (Array.isArray(profile.education)) {
-      setEducation(profile.education);
+      setEducation(
+        profile.education.map((edu: any) => ({
+          ...edu,
+          id: edu._id ?? edu.id ?? Date.now() + Math.random(),
+        }))
+      );
     }
 
     if (Array.isArray(profile.skills)) {
@@ -202,6 +217,29 @@ useEffect(() => {
     }
   }, [profile]);
 
+  const saveEditedEducation = async () => {
+    const updated = education.map((edu) =>
+      (edu._id ?? edu.id) === (editEdu._id ?? editEdu.id)
+        ? JSON.parse(JSON.stringify(editEdu))
+        : edu
+    );
+    setEducation(updated);
+    setEditingEduId(null);
+    setEditEdu(null);
+    await saveSection('education', updated);
+  };
+
+  const saveEditedExperience = async () => {
+  const updated = experiences.map((exp) =>
+    (exp._id ?? exp.id) === (editExp._id ?? editExp.id)
+      ? JSON.parse(JSON.stringify(editExp))
+      : exp
+  );
+  setExperiences(updated);
+  setEditingExpId(null);
+  setEditExp(null);
+  await saveSection('experience', updated);
+};
 
   useEffect(() => {
     console.log(profile)
@@ -654,33 +692,81 @@ useEffect(() => {
           open={activeSection === 'experience'}
           onToggle={() => toggleSection('experience')}
         >
-          {experiences.map((exp) => (
-            <Card key={exp.id}>
-              <div className="flex justify-between">
-                <div>
-                  <h3 className="font-semibold">{exp.position}</h3>
-                  <p className="text-sm text-blue-600">{exp.company}</p>
-                  <p className="text-xs text-gray-500">
-                    {exp.employmentType} • {exp.location}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    From {exp.startDate} - To {exp.endDate}
-                  </p>
-                  <p className="text-sm text-gray-700 pt-2">
-                    {exp.description}
-                  </p>
+          {experiences.map((exp) =>
+            editingExpId === (exp._id ?? exp.id) ? (
+              // ── EDIT MODE ──
+              <Form key={exp._id ?? exp.id}>
+                <Grid>
+                  <Input label="Company" value={editExp.company}
+                    onChange={(e: any) => setEditExp({ ...editExp, company: e.target.value })} />
+                  <Input label="Position" value={editExp.position}
+                    onChange={(e: any) => setEditExp({ ...editExp, position: e.target.value })} />
+                  <Input label="Employment Type" value={editExp.employmentType}
+                    onChange={(e: any) => setEditExp({ ...editExp, employmentType: e.target.value })} />
+                  <Input label="Location" value={editExp.location}
+                    onChange={(e: any) => setEditExp({ ...editExp, location: e.target.value })} />
+                  <Input label="Start Date" type="date" value={editExp.startDate}
+                    onChange={(e: any) => setEditExp({ ...editExp, startDate: e.target.value })} />
+                  <Input label="End Date" type="date" value={editExp.endDate}
+                    onChange={(e: any) => setEditExp({ ...editExp, endDate: e.target.value })} />
+                  <Input label="Notice Period" value={editExp.noticePeriod}
+                    onChange={(e: any) => setEditExp({ ...editExp, noticePeriod: e.target.value })} />
+                  <Input label="Skills Used" full value={editExp.skillsUsed}
+                    onChange={(e: any) => setEditExp({ ...editExp, skillsUsed: e.target.value })} />
+                  <Input label="Description" full value={editExp.description}
+                    onChange={(e: any) => setEditExp({ ...editExp, description: e.target.value })} />
+                </Grid>
 
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={saveEditedExperience}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg flex gap-2"
+                  >
+                    <Save className="h-4 w-4 mt-0.5" /> Save Changes
+                  </button>
+                  <button
+                    onClick={() => { setEditingExpId(null); setEditExp(null); }}
+                    className="border px-6 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
                 </div>
+              </Form>
+            ) : (
+              // ── VIEW MODE ──
+              <Card key={exp._id ?? exp.id}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold">{exp.position}</h3>
+                    <p className="text-sm text-blue-600">{exp.company}</p>
+                    <p className="text-xs text-gray-500">{exp.employmentType} • {exp.location}</p>
+                    <p className="text-xs text-gray-500">From {exp.startDate} - To {exp.endDate}</p>
+                    <p className="text-sm text-gray-700 pt-2">{exp.description}</p>
+                  </div>
 
-                <Trash2
-                  className="cursor-pointer text-red-500"
-                  onClick={() =>
-                    setExperiences(experiences.filter((e) => e.id !== exp.id))
-                  }
-                />
-              </div>
-            </Card>
-          ))}
+                  <div className="flex gap-3">
+                    {/* ── EDIT BUTTON ── */}
+                    <button
+                      onClick={() => { setEditingExpId(exp._id ?? exp.id); setEditExp(JSON.parse(JSON.stringify(exp))); }}
+                      className="text-blue-500 hover:text-blue-700 transition"
+                      title="Edit"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+
+                    <Trash2
+                      className="cursor-pointer text-red-500 hover:text-red-700 transition h-4 w-4 mt-0.5"
+                      onClick={async () => {
+                        const updated = experiences.filter((e) => (e._id ?? e.id) !== (exp._id ?? exp.id));
+                        setExperiences(updated);
+                        await saveSection('experience', updated);
+                      }}
+                    />
+                  </div>
+                </div>
+              </Card>
+            )
+          )}
 
           {showExpForm && (
             <Form>
@@ -768,26 +854,72 @@ useEffect(() => {
           open={activeSection === 'education'}
           onToggle={() => toggleSection('education')}
         >
-          {education.map((edu) => (
-            <Card key={edu.id}>
-              <div className="flex justify-between">
-                <div>
-                  <h3 className="font-semibold">{edu.degree}</h3>
-                  <p className="text-sm text-blue-600">{edu.institution}</p>
-                  <p ></p>
-                    
-                </div>
+          {education.map((edu) => {
+  const eduId = edu._id ?? edu.id;
 
-                <Trash2
-                  className="cursor-pointer text-red-500"
-                  onClick={() =>
-                    setEducation(education.filter((e) => e.id !== edu.id))
-                  }
-                />
-              </div>
-            </Card>
-          ))}
+  return editingEduId === eduId ? (
+    <Form key={eduId}>
+      <Grid>
+        <Input label="Institution" value={editEdu.institution}
+          onChange={(e: any) => setEditEdu({ ...editEdu, institution: e.target.value })} />
+        <Input label="University / Board" value={editEdu.university}
+          onChange={(e: any) => setEditEdu({ ...editEdu, university: e.target.value })} />
+        <Input label="Degree" value={editEdu.degree}
+          onChange={(e: any) => setEditEdu({ ...editEdu, degree: e.target.value })} />
+        <Input label="Field of Study" value={editEdu.fieldOfStudy}
+          onChange={(e: any) => setEditEdu({ ...editEdu, fieldOfStudy: e.target.value })} />
+        <Input label="Education Type" value={editEdu.educationType}
+          onChange={(e: any) => setEditEdu({ ...editEdu, educationType: e.target.value })} />
+        <Input label="Start Date" type="date" value={editEdu.startDate}
+          onChange={(e: any) => setEditEdu({ ...editEdu, startDate: e.target.value })} />
+        <Input label="End Date" type="date" value={editEdu.endDate}
+          onChange={(e: any) => setEditEdu({ ...editEdu, endDate: e.target.value })} />
+        <Input label="Grade / CGPA" value={editEdu.grade}
+          onChange={(e: any) => setEditEdu({ ...editEdu, grade: e.target.value })} />
+      </Grid>
 
+      <div className="flex gap-3 mt-4">
+        <button onClick={saveEditedEducation}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg flex gap-2">
+          <Save className="h-4 w-4 mt-0.5" /> Save Changes
+        </button>
+        <button onClick={() => { setEditingEduId(null); setEditEdu(null); }}
+          className="border px-6 py-2 rounded-lg text-gray-600 hover:bg-gray-100">
+          Cancel
+        </button>
+      </div>
+    </Form>
+  ) : (
+    <Card key={eduId}>
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="font-semibold">{edu.degree}</h3>
+          <p className="text-sm text-blue-600">{edu.institution}</p>
+          <p className="text-xs text-gray-500">{edu.university}</p>
+          <p className="text-xs text-gray-500">{edu.fieldOfStudy} • {edu.educationType}</p>
+          <p className="text-xs text-gray-500">From {edu.startDate} - To {edu.endDate}</p>
+          <p className="text-xs text-gray-500">Grade: {edu.grade}</p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => { setEditingEduId(eduId); setEditEdu(JSON.parse(JSON.stringify(edu))); }}
+            className="text-blue-500 hover:text-blue-700 transition" title="Edit">
+            <Pencil className="h-4 w-4" />
+          </button>
+          <Trash2
+            className="cursor-pointer text-red-500 hover:text-red-700 transition h-4 w-4 mt-0.5"
+            onClick={async () => {
+              const updated = education.filter((e) => (e._id ?? e.id) !== eduId);
+              setEducation(updated);
+              await saveSection('education', updated);
+            }}
+          />
+        </div>
+      </div>
+    </Card>
+  );
+})}
           {showEduForm && (
             <Form>
               <Grid>

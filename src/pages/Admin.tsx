@@ -10,6 +10,7 @@ interface Candidate {
   mobile: string;
   skills: string[];
   resumeUrl: string;
+  userId: string;
 }
 
 
@@ -92,13 +93,13 @@ useEffect(() => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           },
+          
         });
 
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.message || "Failed to fetch profiles");
         }
-
         // 🔥 MAP BACKEND → FRONTEND
         const mappedCandidates: Candidate[] = data.profiles.map((profile: any) => ({
           id: profile.userId || profile._id,
@@ -359,7 +360,7 @@ useEffect(() => {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <button onClick={() => downloadResume(candidate.id)} className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium">
+                              <button onClick={() => downloadResume(candidate.userId)} className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium">
                                 <Download className="h-4 w-4" />
                                 <span>Download</span>
                               </button>
