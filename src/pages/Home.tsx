@@ -1,6 +1,6 @@
 import { Briefcase, Upload, CheckCircle, ArrowRight, FilePlus, Zap, Shield, BarChart3 } from 'lucide-react';
 import head from '../assets/lady.png';
-import { useRef, useState } from 'react';
+import { useRef, useState,useEffect } from 'react';
 import upload from '../assets/upload.png';
 import { uploadResume } from '../services/profileApi';
 import { useProfile } from '../context/ProfileContext';
@@ -20,53 +20,74 @@ export default function Home({ onNavigate }: HomeProps) {
   const navigate = useNavigate();
   const [showVideo, setShowVideo] = useState(false);
   const [loading,setLoading] = useState(false); 
-  const handleFileSelect = async (file: File) => {
-     setLoading(true)
-     console.log(loading)
-    if (!file || uploading) return;
+  const [parsing, setParsing] = useState(false);
+const rotatingWords = [
+  "Get Discovered",
+  "Get Noticed",
+  "Get Interview Calls",
+  "Get Hired Faster"
+];
 
-    const allowedTypes = [
-      'application/pdf'
-    ];
+const [wordIndex, setWordIndex] = useState(0);
 
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Please upload a PDF file");
+useEffect(() => {
+  const interval = setInterval(() => {
+    setWordIndex((prev) => (prev + 1) % rotatingWords.length);
+  }, 2500);
+
+  return () => clearInterval(interval);
+}, []);
+
+ const handleFileSelect = async (file: File) => {
+
+  if (!file || uploading) return;
+
+  const allowedTypes = ['application/pdf'];
+
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Please upload a PDF file");
+    return;
+  }
+
+  setParsing(true);   // ✅ START LOADER IMMEDIATELY
+  setUploading(true);
+
+  try {
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to upload resume");
+      setParsing(false);
       return;
     }
 
-    try {
-      // Prepare form data
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Please login to upload resume");
-        return;
-      }
-      // Send to backend API
-      const res = await uploadResume(file, token)
-      console.log(res);
+    const res = await uploadResume(file, token);
 
-      if (!res.ok) {
-        toast.error("Failed to parse resume");
-        return;
-      }
-
-      const data = await res.json();
-      console.log('Parsed resume data:', data);
-
-      // Navigate to Profile page and pass parsed data
-      setProfile(data.profile);
-      toast.success("Resume uploaded successfully");
-      setLoading(false)
-      navigate('/profile');
-
-
-    } catch (err) {
-      console.error(err);
-      toast.error("Error uploading resume. Please try again.");
-    } finally {
-      setUploading(false);
+    if (!res.ok) {
+      toast.error("Failed to parse resume");
+      setParsing(false);
+      return;
     }
-  };
+
+    const data = await res.json();
+
+    console.log("Parsed resume data:", data);
+
+    setProfile(data.profile);
+
+    setTimeout(() => {
+      setParsing(false);
+      navigate("/profile");
+    }, 1200); // small delay for animation
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Error uploading resume. Please try again.");
+    setParsing(false);
+  } finally {
+    setUploading(false);
+  }
+};
 
 
   return (
@@ -116,9 +137,9 @@ export default function Home({ onNavigate }: HomeProps) {
               <div>
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
                   Upload Your Resume,{' '}
-                  <span className="bg-gradient-to-r from-indigo-600 via-blue-500 to-sky-400 bg-clip-text text-transparent font-bold">
-                    Get Discovered
-                  </span>
+<span className="bg-gradient-to-r from-indigo-600 via-blue-500 to-sky-400 bg-clip-text text-transparent font-bold transition-all duration-500">
+  {rotatingWords[wordIndex]}
+</span>
 
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
@@ -288,42 +309,32 @@ export default function Home({ onNavigate }: HomeProps) {
       </section>
 
 
-{showVideo && (
-  <div className="fixed inset-0 bg-black/80 
-                  flex items-center justify-center 
-                  z-50 p-4">
 
-    <div className="relative 
-                    w-full 
-                    max-w-5xl 
-                    aspect-video">
+{/* AI Parsing Loader */}
+{parsing && (
+  <div className="fixed inset-0 bg-white/90 backdrop-blur-md flex items-center justify-center z-50">
+    
+    <div className="text-center">
 
-      {/* Close Button */}
-      <button
-        onClick={() => setShowVideo(false)}
-        className="absolute -top-12 right-0 
-                   bg-white text-black 
-                   w-10 h-10 rounded-full 
-                   flex items-center justify-center 
-                   text-xl font-bold 
-                   shadow-lg hover:scale-110 transition"
-      >
-        ×
-      </button>
+      <div className="flex justify-center mb-6">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
 
-      {/* Video */}
-      <video
-        src={demoVideo}
-        controls
-        autoPlay
-        className="w-full h-full rounded-xl shadow-2xl"
-      />
+      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        AI is analyzing your resume
+      </h3>
+
+      <p className="text-gray-600 text-sm">
+        Extracting skills, experience and building your profile...
+      </p>
+
     </div>
+
   </div>
 )}
 
+</div>
 
-    </div>
-    
-  );
+);
 }
+
