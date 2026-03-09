@@ -1,7 +1,7 @@
 import { MapPin, Briefcase, Calendar, Search, X,CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Job } from '../types';
-
+import browse from '../assets/browse.png';
 import { toast } from "react-toastify";
 
 export default function Jobs() {

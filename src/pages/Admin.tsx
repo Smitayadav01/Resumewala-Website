@@ -167,23 +167,28 @@ useEffect(() => {
   e.preventDefault();
 
   try {
-    const res = await fetch("http://localhost:5000/api/jobs", {
-      method: editingJob ? "PUT" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: formData.title,
-        company: formData.company,
-        location: formData.location,
-        experience: formData.experience,
-        description: formData.description,
-        requirements: formData.requirements.split(',').map(r => r.trim()),
-        salary: formData.salary,
-        jobType: formData.jobType,
-      }),
-    });
+    const url = editingJob
+  ? `http://localhost:5000/api/jobs/${editingJob._id}`
+  : "http://localhost:5000/api/jobs";
 
+const method = editingJob ? "PUT" : "POST";
+
+const res = await fetch(url, {
+  method,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    title: formData.title,
+    company: formData.company,
+    location: formData.location,
+    experience: formData.experience,
+    description: formData.description,
+    requirements: formData.requirements.split(",").map(r => r.trim()),
+    salary: formData.salary,
+    jobType: formData.jobType,
+  }),
+});
     const data = await res.json();
 
     if (!res.ok) {
@@ -216,8 +221,8 @@ useEffect(() => {
     }
 
     toast.success("Job deleted successfully");
-
-    fetchJobs(); // 🔥 refresh list after delete
+    setShowJobModal(false);
+    fetchJobs(); 
 
   } catch (error: any) {
     toast.error(error.message);
