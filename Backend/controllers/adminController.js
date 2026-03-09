@@ -4,6 +4,7 @@ import https from "https";
 const getAllProfiles = async (req, res) => {
     try {
         const profiles = await Profile.find();
+        console.log(profiles)
         res.status(200).json({ success: true, profiles });
     } catch (error) {
         console.error("Get all profiles error:", error);

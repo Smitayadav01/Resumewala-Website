@@ -109,6 +109,7 @@ useEffect(() => {
           skills: profile.skills || [],
           resumeUrl: profile.resumeUrl || "#",
         }));
+        console.log(mappedCandidates)
 
         setCandidates(mappedCandidates);
       } catch (err: any) {

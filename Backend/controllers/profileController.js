@@ -21,7 +21,6 @@ const uploadResume = async (req, res) => {
 
     
     const text = await extractTextFromPDF(req.file.buffer);
-    console.log(text);
 
     
     const aiParsed = await parseResumeWithAI(text);
@@ -49,11 +48,17 @@ const uploadResume = async (req, res) => {
       {
         $set: {
           personal: {
-            fullName: parsedPersonal.fullName || user.fullName,
-            email: parsedPersonal.email || user.email,
+            fullName: parsedPersonal.fullName ,
+            email: parsedPersonal.email ,
             city: parsedPersonal.city || "",
             currentJobTitle: parsedPersonal.currentJobTitle || "",
             totalExperience: parsedPersonal.totalExperience || "",
+            highestQualification: parsedPersonal.highestQualification || "",
+            college:parsedPersonal.college||"",
+            yearOfPassing : parsedPersonal.yearOfPassing || "",
+            currentCTC: parsedPersonal.currentCTC || "",
+            dob: parsedPersonal.dob || "",
+            gender: parsedPersonal.gender || ""
           },
           resume: resumeData,
           skills: parsedSkills,
