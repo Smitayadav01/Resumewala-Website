@@ -21,10 +21,10 @@ router.get("/", authMiddleware, getProfile);
 
 router.put("/", authMiddleware, EditProfile);
 
-router.get(
-  "/download-resume",
-  authMiddleware,
-  downloadResume
-);
+// router.get(
+//   "/download-resume/:id",
+//   authMiddleware,
+//   downloadResume
+// );
 
 export default router;

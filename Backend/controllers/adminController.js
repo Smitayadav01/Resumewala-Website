@@ -1,5 +1,6 @@
 import Profile from "../models/Profile.js";
 import https from "https";
+import mongoose from "mongoose";
 
 const getAllProfiles = async (req, res) => {
     try {
@@ -72,6 +73,10 @@ const deleteProfile = async (req, res) => {
 const downloadResume = async (req, res) => {
     try {
         const userId = req.params.id;
+        console.log(userId)
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID" });
+    }
         if (!userId) {
             return res.status(400).json({ message: "User ID is required" });
         }

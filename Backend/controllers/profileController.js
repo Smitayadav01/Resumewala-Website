@@ -162,9 +162,13 @@ const EditProfile = async (req, res) => {
 
 const downloadResume = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
 
     const profile = await Profile.findOne({ userId });
+
 
     if (!profile?.resume?.url) {
       return res.status(404).json({ message: "Resume not found" });

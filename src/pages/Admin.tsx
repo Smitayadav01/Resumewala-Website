@@ -102,7 +102,8 @@ useEffect(() => {
         }
         // 🔥 MAP BACKEND → FRONTEND
         const mappedCandidates: Candidate[] = data.profiles.map((profile: any) => ({
-          id: profile.userId || profile._id,
+          id:  profile._id,
+          userId: profile.userId ,
           fullName: profile.personal.fullName,
           email: profile.personal.email,
           mobile: profile.personal.mobileNumbers,
@@ -127,7 +128,7 @@ useEffect(() => {
   const downloadResume = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-
+      console.log(id)
       const res = await fetch(
         `http://localhost:5000/api/admin/download-resume/${id}`,
         {
@@ -346,6 +347,7 @@ const res = await fetch(url, {
                       </thead>
                       <tbody>
                         {candidates.map((candidate) => (
+                          
                           <tr key={candidate.id} className="border-b border-gray-200 hover:bg-gray-50">
                             <td className="px-6 py-4 text-gray-800 font-medium">{candidate.fullName}</td>
                             <td className="px-6 py-4 text-gray-600">{candidate.email}</td>
