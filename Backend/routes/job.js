@@ -2,8 +2,13 @@ import express from "express";
 import multer from "multer";
 import { createJob, getJobs, deleteJob, updateJob } from "../controllers/jobController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
-import roleMiddleware from "../middlewares/roleMiddleware.js";
 import CandidateModel from "../models/CandidateModel.js";
+import Job from "../models/Job.js";
+import ProfileModel from "../models/Profile.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { jobAppliedAdminTemplate, jobAppliedUserTemplate } from "../utils/emailTemplates.js";
+import UserModel from "../models/User.js";
+
 
 const router = express.Router();
 
@@ -27,13 +32,8 @@ router.post("/", createJob);
 // Get All Jobs
 router.get("/", getJobs);
 
-// Update Job
-router.put("/:id", updateJob);
-
-// Delete Job
-router.delete("/:id", deleteJob);
-
-// ----------------- APPLY FOR JOB -----------------
+// ✅ APPLY ROUTE MUST BE BEFORE /:id routes
+// Otherwise Express reads "apply" as an :id param and it never hits this handler
 router.post(
   "/apply",
   authMiddleware,
@@ -41,6 +41,7 @@ router.post(
   async (req, res) => {
     try {
       const { jobId, personalInfo, experiences, education, skills } = req.body;
+      const userId = req.user.id;
 
       if (!jobId || !personalInfo) {
         return res.status(400).json({
@@ -49,10 +50,21 @@ router.post(
         });
       }
 
-      // ✅ Check if user already applied
+      const profile  = await ProfileModel.findOne({userId})
+
+      // Check if job exists
+      const job = await Job.findById(jobId);
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found",
+        });
+      }
+
+      // Check if user already applied
       const existing = await CandidateModel.findOne({
         jobId,
-        userId: req.user.id,
+        userId,
       });
 
       if (existing) {
@@ -62,23 +74,39 @@ router.post(
         });
       }
 
-      // ✅ Create candidate if not applied before
-      const candidate = {
+      // Create Candidate document
+      const candidate = await CandidateModel.create({
         jobId,
-        userId: req.user.id,
-        personalInfo: personalInfo ? JSON.parse(personalInfo) : {},
-        experiences: experiences ? JSON.parse(experiences) : [],
-        education: education ? JSON.parse(education) : [],
-        skills: skills ? JSON.parse(skills) : [],
-        resumeUrl: req.file ? `/uploads/${req.file.filename}` : null,
-      };
+        userId,
+        personalInfo: profile.personal || {},
+        experiences: profile.experience || [],
+        education: profile.education || [],
+        skills: profile.skills || [],
+        resumeUrl: profile.resume?.url || null,
+      });
 
-      const savedCandidate = await CandidateModel.create(candidate);
+      // after candidate is created, fetch user info for email
+      const user = await UserModel.findById(userId);
 
-      res.json({
+      //Email to user
+      
+      await sendEmail({
+        to: user.email,
+        subject: `✅ Application Submitted - ${job.title} at ${job.company}`,
+        html: jobAppliedUserTemplate(user.fullName, job.title, job.company),
+      });
+
+      // Email to admin
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL,
+        subject: `📋 New Application - ${job.title} at ${job.company}`,
+        html: jobAppliedAdminTemplate(user.fullName, user.email, job.title, job.company),
+      });
+
+      res.status(201).json({
         success: true,
         message: "Applied successfully",
-        candidate: savedCandidate,
+        candidate,
       });
 
     } catch (err) {
@@ -90,5 +118,9 @@ router.post(
     }
   }
 );
+
+// ✅ /:id routes come AFTER /apply
+router.put("/:id", updateJob);
+router.delete("/:id", deleteJob);
 
 export default router;

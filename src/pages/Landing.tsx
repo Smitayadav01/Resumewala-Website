@@ -45,7 +45,7 @@ export default function Landing() {
     try {
       const res = await login(loginData.email, loginData.password);
       if(!res.ok){
-        toast.success(res.message);
+        toast.error(res.message);
         return;
       }
       console.log("3",res.json);
@@ -73,6 +73,8 @@ export default function Landing() {
       if (res.success) {
         toast.success("Registration successful");
         navigate('/home');
+      }else{
+        toast.error("Registration failed")
       }
     } catch (error) {
       toast.error("Registration failed");
