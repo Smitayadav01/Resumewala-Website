@@ -3,7 +3,7 @@ import multer from "multer";
 import { createJob, getJobs, deleteJob, updateJob } from "../controllers/jobController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import CandidateModel from "../models/CandidateModel.js";
-import Job from "../models/Job.js";
+import Job from "../models/job.js";
 import ProfileModel from "../models/Profile.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { jobAppliedAdminTemplate, jobAppliedUserTemplate } from "../utils/emailTemplates.js";
