@@ -43,7 +43,7 @@ console.log("Email received:", email);
 
     await user.save();
 
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `https:/resumewala.co.in//reset-password/${resetToken}`;
 
     await sendEmail({
   to: user.email,

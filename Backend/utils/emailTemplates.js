@@ -138,7 +138,7 @@ export const resetPasswordTemplate = (name, resetUrl) => {
 
       <tr>
         <td align="center" style="padding:30px 0;">
-          <a href="https://resumewala.co.in"
+          <a href="${resetUrl}"
              style="background:#ef4444;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;">
              Reset Password
           </a>
