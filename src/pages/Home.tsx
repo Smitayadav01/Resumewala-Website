@@ -47,7 +47,9 @@ useEffect(() => {
   if (!allowedTypes.includes(file.type)) {
     toast.error("Please upload a PDF file");
     return;
+  
   }
+
 
   setParsing(true);   // ✅ START LOADER IMMEDIATELY
   setUploading(true);
@@ -98,41 +100,54 @@ useEffect(() => {
           <div className="grid lg:grid-cols-2 gap-8 items-center">
 
             <div className="space-y-5 mt-0">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const file = e.dataTransfer.files[0];
-                  handleFileSelect(file);
-                }}
-                className="group p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf"
-                  className="hidden"
-                  disabled={loading}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFileSelect(file);
-                  }}
-                />
+             {/* Upload Box */}
+<div
+  onClick={() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to upload resume");
+      return;
+    }
+    fileInputRef.current?.click();
+  }}
+  onDragOver={(e) => e.preventDefault()}
+  onDrop={(e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to upload resume");
+      return;
+    }
+    const file = e.dataTransfer.files[0];
+    handleFileSelect(file);
+  }}
+  className="group p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
+>
+  <input
+    ref={fileInputRef}
+    type="file"
+    accept=".pdf"
+    className="hidden"
+    disabled={loading}
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (file) handleFileSelect(file);
+    }}
+  />
 
-                <div className="text-center">
-                  <div className="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Upload className="h-7 w-7 text-blue-600" />
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 mb-2">
-                    Upload Resume
-                  </p>
-                  <p className="text-gray-600 mb-3">or click to browse</p>
-                  <p className="text-sm text-gray-500">
-                    PDF format • Auto-fills your profile
-                  </p>
-                </div>
-              </div>
+  <div className="text-center">
+    <div className="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+      <Upload className="h-7 w-7 text-blue-600" />
+    </div>
+    <p className="text-lg font-bold text-gray-900 mb-2">
+      Upload Resume
+    </p>
+    <p className="text-gray-600 mb-3">or click to browse</p>
+    <p className="text-sm text-gray-500">
+      PDF format • Auto-fills your profile
+    </p>
+  </div>
+</div>
 
               <div>
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">

@@ -39,7 +39,7 @@ export const welcomeTemplate = (name) => {
             <!-- CTA Button -->
             <tr>
               <td align="center" style="padding:30px 0;">
-                <a href="http://localhost:5173"
+                <a href="https://resumewala.co.in"
                    style="background:#4f46e5;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
                    Upload Resume Now
                 </a>
@@ -138,7 +138,7 @@ export const resetPasswordTemplate = (name, resetUrl) => {
 
       <tr>
         <td align="center" style="padding:30px 0;">
-          <a href="${resetUrl}"
+          <a href="https://resumewala.co.in"
              style="background:#ef4444;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;">
              Reset Password
           </a>
@@ -242,7 +242,7 @@ export const jobAppliedUserTemplate = (name, jobTitle, company) => {
             <!-- CTA -->
             <tr>
               <td align="center" style="padding:30px 0;">
-                <a href="http://localhost:5173"
+                <a href="https://resumewala.co.in"
                    style="background:#4f46e5;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
                    View More Jobs
                 </a>

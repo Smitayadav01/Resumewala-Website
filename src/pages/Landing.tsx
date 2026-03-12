@@ -41,20 +41,28 @@ export default function Landing() {
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await login(loginData.email, loginData.password);
-      if(!res.ok){
-        toast.error(res.message);
-        return;
-      }
-      console.log("3",res.json);
-      toast.success("Login successful");
-    } catch (error) {
-      toast.error("Login failed");
-      console.error('Login failed:', error);
+  e.preventDefault();
+  try {
+    const res = await login(loginData.email, loginData.password);
+
+    // Check based on actual response structure
+    if (!res || res.success === false) {
+      toast.error(res?.message || "Login failed");
+      return;
     }
-  };
+
+    // Save token and user if returned by your login
+    if (res.token) localStorage.setItem("token", res.token);
+    if (res.user) localStorage.setItem("user", JSON.stringify(res.user));
+
+    toast.success("Login successful");
+    navigate("/"); // redirect after successful login
+
+  } catch (error) {
+    toast.error("Login failed");
+    console.error('Login failed:', error);
+  }
+};
 
   useEffect(() => {
     if (localStorage.getItem("token")) {

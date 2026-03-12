@@ -16,20 +16,32 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   const { logout, isAuthenticated } = useAuth();
   const authenticated = isAuthenticated();
   const navigate = useNavigate();
-  const handleLogout = () => {
-  setMobileOpen(false);
-  logout();
-  navigate('/'); // always go to landing page
-};
 
+  const handleLogout = () => {
+    setMobileOpen(false);
+    logout();
+    navigate('/');
+  };
 
   const go = (page: string) => {
     setMobileOpen(false);
-    navigate(page);
+
+    const routes: Record<string, string> = {
+      home: '/',
+      jobs: '/jobs',
+      profile: '/profile',
+      admin: '/admin',
+      about: '/about',
+      contact: '/contact',
+      login: '/login'
+    };
+
+    navigate(routes[page] || '/');
   };
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Top Bar */}
@@ -37,20 +49,18 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
           {/* Logo */}
           <div
-  className="flex items-center cursor-pointer"
-  onClick={() => go(authenticated ? '/home' : '/')}
->
-  <img src={logo} alt="Logo" className="h-24 w-auto" />
-</div>
-
+            className="flex items-center cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <img src={logo} alt="Logo" className="h-24 w-auto" />
+          </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
+
             {authenticated ? (
               <>
                 <NavBtn label="Home" page="home" />
-                {/* <NavBtn label="About Us" page="about" />
-                <NavBtn label="Contact" page="contact" /> */}
                 <NavBtn label="Browse Jobs" page="jobs" />
 
                 {isAdmin ? (
@@ -58,8 +68,9 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
                 ) : (
                   <button
                     onClick={() => go('profile')}
-                    className={`flex items-center space-x-2 nav-btn ${currentPage === 'profile' ? 'text-blue-500' : ''
-                      }`}
+                    className={`flex items-center space-x-2 nav-btn ${
+                      currentPage === 'profile' ? 'text-blue-500' : ''
+                    }`}
                   >
                     <User className="h-5 w-5" />
                     <span>My Profile</span>
@@ -67,24 +78,28 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
                 )}
 
                 <button
-  onClick={() => {
-    setMobileOpen(false);
-    logout();
-    navigate('/'); // always landing
-  }}
-  className="flex items-center space-x-2 nav-btn hover:text-red-500"
->
-  <LogOut className="h-5 w-5" />
-  <span>Logout</span>
-</button>
-
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 nav-btn hover:text-red-500"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Logout</span>
+                </button>
               </>
             ) : (
               <>
                 <NavBtn label="About Us" page="about" />
                 <NavBtn label="Contact" page="contact" />
+
+                {/* LOGIN BUTTON */}
+                <button
+                  onClick={() => go('login')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Login / Sign Up
+                </button>
               </>
             )}
+
           </div>
 
           {/* Mobile Menu Button */}
@@ -94,25 +109,29 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
+
         </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+
           <div className="flex flex-col p-4 space-y-3">
 
-            {isLoggedIn ? (
+            {authenticated ? (
               <>
                 <MobileBtn label="Home" page="home" />
-                {/* <MobileBtn label="About Us" page="about" />
-                <MobileBtn label="Contact" page="contact" /> */}
                 <MobileBtn label="Browse Jobs" page="jobs" />
 
                 {isAdmin ? (
                   <MobileBtn label="Admin Panel" page="admin" />
                 ) : (
-                  <MobileBtn label="My Profile" page="profile" icon={<User className="h-4 w-4" />} />
+                  <MobileBtn
+                    label="My Profile"
+                    page="profile"
+                    icon={<User className="h-4 w-4" />}
+                  />
                 )}
 
                 <button
@@ -125,10 +144,19 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
               </>
             ) : (
               <>
-                {/* <MobileBtn label="About Us" page="about" />
-                <MobileBtn label="Contact" page="contact" /> */}
+                <MobileBtn label="About Us" page="about" />
+                <MobileBtn label="Contact" page="contact" />
+
+                {/* MOBILE LOGIN BUTTON */}
+                <button
+                  onClick={() => go('login')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Login / Sign Up
+                </button>
               </>
             )}
+
           </div>
         </div>
       )}
@@ -136,12 +164,12 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   );
 
   /* Components */
+
   function NavBtn({ label, page }: { label: string; page: string }) {
     return (
       <button
         onClick={() => go(page)}
-        className={`nav-btn ${currentPage === page ? 'text-blue-500' : ''
-          }`}
+        className={`nav-btn ${currentPage === page ? 'text-blue-500' : ''}`}
       >
         {label}
       </button>

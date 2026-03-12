@@ -1,7 +1,4 @@
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { Toaster } from "react-hot-toast";
 
 import Navbar from './components/Navbar';
@@ -19,20 +16,22 @@ import Privacy from './pages/Privacy';
 import { useAuth } from './context/AuthContext';
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Employee from "./pages/Employee";
+import ScrollToTop from './components/ScrollToTop';
 
 
 function AppContent() {
+
   const navigate = useNavigate();
   const location = useLocation();
-
   const { isAuthenticated, isAdmin } = useAuth();
 
   const authenticated = isAuthenticated();
 
   const handleNavigate = (page: string) => {
+
     const routes: Record<string, string> = {
-      landing: '/',
-      home: '/home',
+      home: '/',
       upload: '/upload',
       jobs: '/jobs',
       about: '/about',
@@ -40,75 +39,87 @@ function AppContent() {
       profile: '/profile',
       admin: '/admin',
       login: '/login',
-      register: '/register',
       terms: '/terms',
       privacy: '/privacy',
+      employee:'/employee',
     };
+
     navigate(routes[page] || '/');
-  };
-
-  const handleLogout = () => {
-
-    navigate('/');
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
 
-      {/* <ToastContainer position="top-right" autoClose={3000} /> */}
-       <Toaster position="top-right" reverseOrder={false} />
-     {location.pathname !== "/" && (
-  <Navbar
-    currentPage={location.pathname}
-    isLoggedIn={authenticated}
-    isAdmin={isAdmin()}
-  />
-)}
+      <Toaster position="top-right" reverseOrder={false} />
 
+      {/* Hide navbar only on login page */}
+      {location.pathname !== "/login" && (
+        <Navbar
+          currentPage={location.pathname}
+          isLoggedIn={authenticated}
+          isAdmin={isAdmin()}
+        />
+      )}
 
       <div className="flex-1">
-        <Routes>
-          <Route path="/" element={<Landing />} />
 
+        <Routes>
+
+          {/* HOME PAGE FIRST */}
           <Route
-            path="/home"
-            element={
-              authenticated ? <Home onNavigate={handleNavigate} /> : <Navigate to="/" replace />
-            }
+            path="/"
+            element={<Home onNavigate={handleNavigate} />}
           />
 
-          <Route path="/upload" element={<Upload />} />
+          {/* LOGIN / SIGNUP PAGE */}
+          <Route path="/login" element={<Landing />} />
 
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-<Route path="/reset-password/:token" element={<ResetPassword />} />
+          {/* PROTECTED ROUTES */}
+
+          <Route
+            path="/upload"
+            element={authenticated ? <Upload /> : <Navigate to="/login" replace />}
+          />
 
           <Route
             path="/jobs"
-            element={authenticated ? <Jobs /> : <Navigate to="/" replace />}
+            element={authenticated ? <Jobs /> : <Navigate to="/login" replace />}
           />
 
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+           <Route path="/employee" element={<Employee />} />
 
           <Route
             path="/profile"
-            element={authenticated ? <Profile /> : <Navigate to="/" replace />}
+            element={authenticated ? <Profile /> : <Navigate to="/login" replace />}
           />
 
           <Route
             path="/admin"
             element={
-              authenticated && isAdmin() ? <Admin /> : <Navigate to="/admin" replace />
+              authenticated && isAdmin()
+                ? <Admin />
+                : <Navigate to="/login" replace />
             }
           />
 
-          {/* Legal Pages */}
+          {/* PUBLIC PAGES */}
+
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+
         </Routes>
+
       </div>
 
-      {location.pathname !== '/' && <Footer />}
+      {location.pathname !== '/login' && <Footer />}
+
+      <ScrollToTop />
     </div>
   );
 }
