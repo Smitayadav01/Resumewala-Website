@@ -42,7 +42,7 @@ export default function Admin() {
   const [jobs, setJobs] = useState<Job[]>([]);
 const fetchJobs = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/jobs");
+    const res = await fetch("https://resumewala.co.in/api/jobs");
     const data = await res.json();
     setJobs(data.jobs);
   } catch (err) {
@@ -88,7 +88,7 @@ useEffect(() => {
       try {
         setLoadingCandidates(true);
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/admin/profiles", {
+        const res = await fetch("https://resumewala.co.in/api/admin/profiles", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
@@ -130,7 +130,7 @@ useEffect(() => {
       const token = localStorage.getItem("token");
       console.log(id)
       const res = await fetch(
-        `http://localhost:5000/api/admin/download-resume/${id}`,
+        `https://resumewala.co.in/api/admin/download-resume/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -170,8 +170,8 @@ useEffect(() => {
 
   try {
     const url = editingJob
-  ? `http://localhost:5000/api/jobs/${editingJob._id}`
-  : "http://localhost:5000/api/jobs";
+  ? `https://resumewala.co.in/api/jobs/${editingJob._id}`
+  : "https://resumewala.co.in/api/jobs";
 
 const method = editingJob ? "PUT" : "POST";
 
@@ -212,7 +212,7 @@ const res = await fetch(url, {
   if (!confirmDelete) return;
 
   try {
-    const res = await fetch(`http://localhost:5000/api/jobs/${_id}`, {
+    const res = await fetch(`https://resumewala.co.in/api/jobs/${_id}`, {
       method: "DELETE",
     });
 

@@ -70,7 +70,7 @@ export default function UploadResume() {
   try {
     setIsLoading(true);
 
-    const res = await fetch("http://localhost:5000/api/resume/upload", {
+    const res = await fetch("https://resumewala.co.in/api/resume/upload", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

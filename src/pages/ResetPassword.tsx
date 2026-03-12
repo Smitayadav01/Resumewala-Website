@@ -23,7 +23,7 @@ export default function ResetPassword() {
 
     try {
       const res = await fetch(
- `${import.meta.env.VITE_API_URL}/api/auth/reset-password/${token}`,
+ `https://resumewala.co.in/api/auth/reset-password/${token}`,
         {
           method: "POST",
           headers: {
