@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
-
+const API_URL = import.meta.env.VITE_API_URL;
 export default function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function ResetPassword() {
 
     try {
       const res = await fetch(
- `https://resumewala.co.in/api/auth/reset-password/${token}`,
+        `${API_URL}/api/auth/reset-password/${token}`,
         {
           method: "POST",
           headers: {

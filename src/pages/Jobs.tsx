@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Job } from '../types';
 import browse from '../assets/browse.png';
 import { toast } from "sonner";
-
+const API_URL = import.meta.env.VITE_API_URL;
 export default function Jobs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -16,7 +16,7 @@ export default function Jobs() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/jobs");
+      const res = await fetch(`${API_URL}/api/jobs`);
       const data = await res.json();
       setJobs(data.jobs);
     } catch (error) {
@@ -36,11 +36,9 @@ export default function Jobs() {
     job.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleApply = async (job: Job, fromModal = false) => {
-  console.log("🔵 Apply clicked for:", job.title, job._id);
+  const handleApply = async (job: Job, fromModal = false) => {;
   
   const token = localStorage.getItem('token');
-  console.log("🔵 Token:", token ? "EXISTS" : "NULL");
   
   if (!token) {
     toast.error('Please login first');
@@ -48,26 +46,21 @@ export default function Jobs() {
   }
 
   if (appliedJobIds.has(job._id)) {
-    console.log("🔵 Already applied");
     return;
   }
   
   if (applyingJobId === job._id) {
-    console.log("🔵 Already applying");
     return;
   }
 
   setApplyingJobId(job._id);
-  console.log("🔵 Fetching profile...");
 
   try {
-    const profileRes = await fetch('http://localhost:5000/api/profile', {
+    const profileRes = await fetch(`${API_URL}/api/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    console.log("🔵 Profile response status:", profileRes.status);
     
     const profileData = await profileRes.json();
-    console.log("🔵 Profile data:", profileData);
 
     if (!profileRes.ok) {
       throw new Error('Could not load profile');
@@ -79,18 +72,14 @@ export default function Jobs() {
     formData.append('experiences', JSON.stringify(profileData.experience || []));
     formData.append('education', JSON.stringify(profileData.education || []));
     formData.append('skills', JSON.stringify(profileData.skills || []));
-    
-    console.log("🔵 Sending apply request...");
 
-    const res = await fetch('http://localhost:5000/api/jobs/apply', {
+    const res = await fetch(`${API_URL}/api/jobs/apply`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
     
-    console.log("🔵 Apply response status:", res.status);
     const resData = await res.json();
-    console.log("🔵 Apply response data:", resData);
 
     if (!res.ok) {
       

@@ -24,7 +24,6 @@ const uploadResume = async (req, res) => {
 
     
     const aiParsed = await parseResumeWithAI(text);
-    console.log(aiParsed);
     // Safety fallback
     const parsedSkills = aiParsed.skills || [];
     const parsedExperience = aiParsed.experience || [];
