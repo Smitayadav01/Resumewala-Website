@@ -5,7 +5,6 @@ import mongoose from "mongoose";
 const getAllProfiles = async (req, res) => {
     try {
         const profiles = await Profile.find();
-        console.log(profiles)
         res.status(200).json({ success: true, profiles });
     } catch (error) {
         console.error("Get all profiles error:", error);
@@ -73,7 +72,6 @@ const deleteProfile = async (req, res) => {
 const downloadResume = async (req, res) => {
     try {
         const userId = req.params.id;
-        console.log(userId)
         if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid User ID" });
     }

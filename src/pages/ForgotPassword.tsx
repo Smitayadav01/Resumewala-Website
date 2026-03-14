@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -13,7 +15,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://resumewala.co.in/api/auth/forgot-password", {
+      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

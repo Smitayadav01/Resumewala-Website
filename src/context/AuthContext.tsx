@@ -65,7 +65,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 localStorage.setItem("user", JSON.stringify(response.user));
                 navigate("/admin");
             }
-            console.log("2",response.json);
             return response;
         } finally {
             setLoading(false);

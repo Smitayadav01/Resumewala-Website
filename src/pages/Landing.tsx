@@ -7,10 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { GoogleLogin } from "@react-oauth/google";
 
-
+const API_URL = import.meta.env.VITE_API_URL;
 export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading,setLoading] = useState(false)
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
@@ -30,6 +31,29 @@ export default function Landing() {
       [e.target.name]: e.target.value,
     });
   };
+
+    const Spinner = () => (
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      />
+    </svg>
+  );
 
   const { login, register } = useAuth();
 
@@ -76,18 +100,23 @@ export default function Landing() {
       toast.error("Passwords do not match");
       return;
     }
+    setLoading(true)
     try {
+      
       const res = await register(signupData.email, signupData.fullName, signupData.mobileNumber, signupData.password);
+      
       if (res.success) {
         toast.success("Registration successful");
-        navigate('/home');
+        navigate('/');
       }else{
         toast.error("Registration failed")
       }
+      
     } catch (error) {
       toast.error("Registration failed");
       console.error('Registration failed:', error);
     }
+    setLoading(false)
     setIsLogin(true);
     setSignupData({
       fullName: '',
@@ -196,7 +225,7 @@ export default function Landing() {
 
                 <GoogleLogin
                   onSuccess={async (credentialResponse) => {
-                    const res = await fetch("http://localhost:5000/api/auth/google-login", {
+                    const res = await fetch(`${API_URL}/api/auth/google-login`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ credential: credentialResponse.credential })
@@ -207,7 +236,7 @@ export default function Landing() {
                     if (data.success) {
                       localStorage.setItem("token", data.token);
                       localStorage.setItem("user", JSON.stringify(data.user));
-                      navigate("/home");
+                      navigate("/");
                     }
                   }}
                   onError={() => {
@@ -222,7 +251,7 @@ export default function Landing() {
                     <button
                       onClick={() => setIsLogin(false)}
                       className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-semibold hover:opacity-90"
-
+                      
                     >
                       Sign Up
                     </button>
@@ -320,9 +349,22 @@ export default function Landing() {
 
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all"
+                    disabled={loading}
+                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold shadow-lg transition-all
+                      ${
+                        loading
+                          ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-80 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700"
+                      } text-white`}
                   >
-                    Create Account
+                    {loading ? (
+                      <>
+                        <Spinner />
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Create Account"
+                    )}
                   </button>
                 </form>
 

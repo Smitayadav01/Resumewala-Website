@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2, Users, Briefcase, Download, X } from 'lucide-react';
 import { Job } from '../types';
 import { toast } from 'sonner';
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 interface Candidate {
   id: string;
@@ -42,7 +44,7 @@ export default function Admin() {
   const [jobs, setJobs] = useState<Job[]>([]);
 const fetchJobs = async () => {
   try {
-    const res = await fetch("https://resumewala.co.in/api/jobs");
+    const res = await fetch(`${API_URL}/api/jobs`);
     const data = await res.json();
     setJobs(data.jobs);
   } catch (err) {
@@ -88,7 +90,7 @@ useEffect(() => {
       try {
         setLoadingCandidates(true);
         const token = localStorage.getItem("token");
-        const res = await fetch("https://resumewala.co.in/api/admin/profiles", {
+        const res = await fetch(`${API_URL}/api/admin/profiles`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
@@ -110,7 +112,6 @@ useEffect(() => {
           skills: profile.skills || [],
           resumeUrl: profile.resumeUrl || "#",
         }));
-        console.log(mappedCandidates)
 
         setCandidates(mappedCandidates);
       } catch (err: any) {
@@ -128,9 +129,8 @@ useEffect(() => {
   const downloadResume = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-      console.log(id)
       const res = await fetch(
-        `https://resumewala.co.in/api/admin/download-resume/${id}`,
+        `${API_URL}/api/admin/download-resume/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -170,8 +170,8 @@ useEffect(() => {
 
   try {
     const url = editingJob
-  ? `https://resumewala.co.in/api/jobs/${editingJob._id}`
-  : "https://resumewala.co.in/api/jobs";
+  ? `${API_URL}/api/jobs/${editingJob._id}`
+  : `${API_URL}/api/jobs`;
 
 const method = editingJob ? "PUT" : "POST";
 
@@ -212,7 +212,7 @@ const res = await fetch(url, {
   if (!confirmDelete) return;
 
   try {
-    const res = await fetch(`https://resumewala.co.in/api/jobs/${_id}`, {
+    const res = await fetch(`${API_URL}/api/jobs/${_id}`, {
       method: "DELETE",
     });
 

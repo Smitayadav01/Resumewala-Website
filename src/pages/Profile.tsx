@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import { useEffect, useState } from 'react';
 import {
   User,
@@ -149,7 +150,7 @@ const calculateAge = (dob: string) => {
 useEffect(()=>{
   const getProfile = async ()=>{
     const token = await localStorage.getItem('token')
-    const res = await fetch("http://localhost:5000/api/profile",{
+    const res = await fetch(`${API_URL}/api/profile`,{
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -186,7 +187,6 @@ useEffect(() => {
     if (!profile) return;
 
     if (profile.personal) {
-      console.log(profile.personal)
       setPersonalInfo(prev => ({ ...prev, ...profile.personal }));
     }
 
@@ -241,9 +241,6 @@ useEffect(() => {
   await saveSection('experience', updated);
 };
 
-  useEffect(() => {
-    console.log(profile)
-  }, [profile])
   /* ---------------- HELPERS ---------------- */
   const toggleSection = (key: SectionKey) =>
     setActiveSection(activeSection === key ? null : key);
@@ -254,7 +251,7 @@ useEffect(() => {
     const payload: any = {};
     payload[section] = data;
 
-    const res = await fetch("http://localhost:5000/api/profile", {
+    const res = await fetch(`${API_URL}/api/profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -367,7 +364,6 @@ useEffect(() => {
           {/* PERSONAL */}
           <Accordion title="Basic Information" icon={<User />} open={activeSection === 'personal'} onToggle={() => toggleSection('personal')}>
             <Grid>
-              {console.log(personalInfo)}
               <Input
                 label="Full Name"
                 value={personalInfo.fullName}

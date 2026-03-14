@@ -73,8 +73,6 @@ useEffect(() => {
 
     const data = await res.json();
 
-    console.log("Parsed resume data:", data);
-
     setProfile(data.profile);
 
     setTimeout(() => {
