@@ -8,6 +8,7 @@ import jobRoutes from "./routes/job.js";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import dotenv from "dotenv";
+import contactRoutes from "./routes/contact.js";
 
 dotenv.config();
 
@@ -33,5 +34,6 @@ app.use("/api/auth", userRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.listen(5000, () => console.log("Server running on 5000"));
