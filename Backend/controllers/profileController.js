@@ -1,6 +1,6 @@
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
-import { extractTextFromPDF } from "../utils/pdf.js";
+import { extractResumeText } from "../utils/pdf.js";
 import { parseResumeWithAI } from "../utils/aiParser.js";
 import { uploadResumeToCloudinary } from "../utils/cloudinaryUpload.js";
 import cloudinary from "../config/cloudinary.js";
@@ -20,7 +20,7 @@ const uploadResume = async (req, res) => {
     }
 
     
-    const text = await extractTextFromPDF(req.file.buffer);
+    const text = await extractResumeText(req.file);
 
     
     const aiParsed = await parseResumeWithAI(text);
@@ -36,6 +36,8 @@ const uploadResume = async (req, res) => {
     const resumeData = {
       url: result.secure_url,
       publicId: result.public_id,
+      fileName: req.file.originalname,
+      mimeType: req.file.mimetype,
       uploadedAt: new Date(),
     };
 

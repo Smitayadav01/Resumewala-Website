@@ -1,11 +1,20 @@
-import { createRequire } from "module";
+import mammoth from "mammoth";
 
-const require = createRequire(import.meta.url);
+export const extractResumeText = async (file) => {
+  if (file.mimetype === "application/pdf") {
+    return await extractTextFromPDF(file.buffer);
+  }
 
-// ✅ Import the actual parser function (NOT index.js demo)
-const pdfParse = require("pdf-parse/lib/pdf-parse");
+  if (
+    file.mimetype === "application/msword" ||
+    file.mimetype ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    const result = await mammoth.extractRawText({
+      buffer: file.buffer,
+    });
+    return result.value;
+  }
 
-export const extractTextFromPDF = async (buffer) => {
-  const data = await pdfParse(buffer);
-  return data.text;
+  throw new Error("Unsupported file format");
 };

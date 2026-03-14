@@ -41,7 +41,9 @@ const ProfileSchema = new mongoose.Schema(
     resume: {
       url: String,
       publicId: String,
-      uploadedAt: Date,
+      fileName: String,
+      mimeType: String,
+      uploadedAt: Date
     },
 
     /* ---------------- EXPERIENCE ---------------- */

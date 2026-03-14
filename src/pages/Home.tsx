@@ -42,12 +42,22 @@ useEffect(() => {
 
   if (!file || uploading) return;
 
-  const allowedTypes = ['application/pdf'];
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
 
   if (!allowedTypes.includes(file.type)) {
-    toast.error("Please upload a PDF file");
+    toast.error("Please upload PDF, DOC or DOCX file");
     return;
-  
+  }
+
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  if (file.size > maxSize) {
+    toast.error("File size must be less than 5MB");
+    return;
   }
 
 
@@ -122,16 +132,16 @@ useEffect(() => {
   className="group p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
 >
   <input
-    ref={fileInputRef}
-    type="file"
-    accept=".pdf"
-    className="hidden"
-    disabled={loading}
-    onChange={(e) => {
-      const file = e.target.files?.[0];
-      if (file) handleFileSelect(file);
-    }}
-  />
+  ref={fileInputRef}
+  type="file"
+  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  className="hidden"
+  disabled={loading}
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileSelect(file);
+  }}
+/>
 
   <div className="text-center">
     <div className="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -142,7 +152,7 @@ useEffect(() => {
     </p>
     <p className="text-gray-600 mb-3">or click to browse</p>
     <p className="text-sm text-gray-500">
-      PDF format • Auto-fills your profile
+      Auto-fills your profile
     </p>
   </div>
 </div>

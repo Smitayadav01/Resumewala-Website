@@ -1,6 +1,6 @@
 import Profile from "../models/Profile.js";
-import https from "https";
 import mongoose from "mongoose";
+import axios from "axios";
 
 const getAllProfiles = async (req, res) => {
     try {
@@ -70,31 +70,39 @@ const deleteProfile = async (req, res) => {
 };
 
 const downloadResume = async (req, res) => {
-    try {
-        const userId = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
+  try {
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid User ID" });
     }
-        if (!userId) {
-            return res.status(400).json({ message: "User ID is required" });
-        }
-        const profile = await Profile.findOne({ userId });
-        if (!profile?.resume?.url) {
-            return res.status(404).json({ message: "Resume not found" });
-        }
-        res.setHeader(
-            "Content-Disposition",
-            "attachment; filename=resume.pdf"
-        );
-        res.setHeader("Content-Type", "application/pdf");
 
-        https.get(profile.resume.url, (cloudRes) => {
-            cloudRes.pipe(res);
-        });
-    } catch (error) {
-        console.error("Resume download error:", error);
-        res.status(500).json({ message: "Failed to download resume" });
+    const profile = await Profile.findOne({ userId });
+
+    if (!profile?.resume?.url) {
+      return res.status(404).json({ message: "Resume not found" });
     }
+
+    const fileUrl = profile.resume.url;
+    const fileName = profile.resume.fileName || "resume";
+    const mimeType =
+      profile.resume.mimeType || "application/octet-stream";
+
+    const response = await axios.get(fileUrl, {
+      responseType: "stream",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${fileName}"`
+    );
+    res.setHeader("Content-Type", mimeType);
+
+    response.data.pipe(res);
+  } catch (error) {
+    console.error("Resume download error:", error);
+    res.status(500).json({ message: "Failed to download resume" });
+  }
 };
 
 export { getAllProfiles, getProfile, EditProfile, deleteProfile, downloadResume };

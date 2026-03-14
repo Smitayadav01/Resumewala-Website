@@ -1,4 +1,4 @@
-import upload from "../middlewares/uploadMiddleware.js";
+import {upload} from "../middlewares/uploadMiddleware.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import { 
   uploadResume, 
