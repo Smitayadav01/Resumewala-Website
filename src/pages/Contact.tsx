@@ -81,7 +81,7 @@ export default function Contact() {
             </h3>
 
             <p className="text-gray-700 font-medium mb-1">
-              contact@resumewala.com
+              aresumewala@gmail.com
             </p>
 
             <p className="text-sm text-gray-500">
