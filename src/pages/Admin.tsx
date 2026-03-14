@@ -129,6 +129,7 @@ useEffect(() => {
   const downloadResume = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
+
       const res = await fetch(
         `${API_URL}/api/admin/download-resume/${id}`,
         {
@@ -142,18 +143,30 @@ useEffect(() => {
         throw new Error("Failed to download resume");
       }
 
-      // ✅ THIS IS THE FIX
       const blob = await res.blob();
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      // ⭐ get filename from header
+      const contentDisposition = res.headers.get("content-disposition");
 
+      let fileName = "resume";
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?(.+)"?/);
+        if (match?.[1]) {
+          fileName = match[1];
+        }
+      }
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
       link.href = url;
-      link.download = "resume.pdf";
+      link.download = fileName;
+
       document.body.appendChild(link);
       link.click();
 
-      document.body.removeChild(link);
+      link.remove();
       window.URL.revokeObjectURL(url);
 
     } catch (err: any) {
@@ -161,9 +174,6 @@ useEffect(() => {
       toast.error(err.message);
     }
   };
-
-
-
 
   const handleSubmitJob = async (e: React.FormEvent) => {
   e.preventDefault();
