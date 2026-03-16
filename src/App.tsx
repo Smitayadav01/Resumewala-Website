@@ -81,10 +81,7 @@ function AppContent() {
             element={authenticated ? <Upload /> : <Navigate to="/login" replace />}
           />
 
-          <Route
-            path="/jobs"
-            element={authenticated ? <Jobs /> : <Navigate to="/login" replace />}
-          />
+         <Route path="/jobs" element={<Jobs />} />
 
            <Route path="/employee" element={<Employee />} />
 

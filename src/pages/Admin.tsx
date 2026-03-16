@@ -24,15 +24,16 @@ export default function Admin() {
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    title: '',
-    company: '',
-    location: '',
-    experience: '',
-    description: '',
-    requirements: '',
-    salary: '',
-    jobType: 'Full-time',
-  });
+  title: '',
+  company: '',
+  location: '',
+  experience: '',
+  qualification: '',
+  description: '',
+  requirements: '',
+  salary: '',
+  jobType: 'Full-time',
+});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -61,27 +62,29 @@ useEffect(() => {
     if (job) {
       setEditingJob(job);
       setFormData({
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        experience: job.experience,
-        description: job.description,
-        requirements: job.requirements.join(', '),
-        salary: job.salary || '',
-        jobType: job.jobType,
-      });
+  title: job.title,
+  company: job.company,
+  location: job.location,
+  experience: job.experience,
+  qualification: job.qualification || '',
+  description: job.description,
+  requirements: job.requirements.join(', '),
+  salary: job.salary || '',
+  jobType: job.jobType,
+});
     } else {
       setEditingJob(null);
       setFormData({
-        title: '',
-        company: '',
-        location: '',
-        experience: '',
-        description: '',
-        requirements: '',
-        salary: '',
-        jobType: 'Full-time',
-      });
+  title: '',
+  company: '',
+  location: '',
+  experience: '',
+  qualification: '',
+  description: '',
+  requirements: '',
+  salary: '',
+  jobType: 'Full-time',
+});
     }
     setShowJobModal(true);
   };
@@ -190,16 +193,17 @@ const res = await fetch(url, {
   headers: {
     "Content-Type": "application/json",
   },
-  body: JSON.stringify({
-    title: formData.title,
-    company: formData.company,
-    location: formData.location,
-    experience: formData.experience,
-    description: formData.description,
-    requirements: formData.requirements.split(",").map(r => r.trim()),
-    salary: formData.salary,
-    jobType: formData.jobType,
-  }),
+ body: JSON.stringify({
+  title: formData.title,
+  company: formData.company,
+  location: formData.location,
+  experience: formData.experience,
+  qualification: formData.qualification,
+  description: formData.description,
+  requirements: formData.requirements.split(",").map(r => r.trim()),
+  salary: formData.salary,
+  jobType: formData.jobType,
+}),
 });
     const data = await res.json();
 
@@ -470,6 +474,20 @@ const res = await fetch(url, {
                   />
                 </div>
               </div>
+
+              <div>
+  <label className="block text-gray-700 font-medium mb-2">
+    Qualification Required
+  </label>
+  <input
+    type="text"
+    name="qualification"
+    value={formData.qualification}
+    onChange={handleChange}
+    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    placeholder="e.g., Graduate / MBA / B.Tech"
+  />
+</div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>

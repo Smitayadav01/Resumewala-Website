@@ -11,10 +11,12 @@ interface NavbarProps {
 }
 
 export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps) {
+
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const { logout, isAuthenticated } = useAuth();
   const authenticated = isAuthenticated();
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -24,6 +26,7 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   };
 
   const go = (page: string) => {
+
     setMobileOpen(false);
 
     const routes: Record<string, string> = {
@@ -58,11 +61,12 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
 
+            {/* Always visible */}
+            {authenticated && <NavBtn label="Home" page="home" />}
+            <NavBtn label="Browse Jobs" page="jobs" />
+
             {authenticated ? (
               <>
-                <NavBtn label="Home" page="home" />
-                <NavBtn label="Browse Jobs" page="jobs" />
-
                 {isAdmin ? (
                   <NavBtn label="Admin Panel" page="admin" />
                 ) : (
@@ -90,7 +94,6 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
                 <NavBtn label="About Us" page="about" />
                 <NavBtn label="Contact" page="contact" />
 
-                {/* LOGIN BUTTON */}
                 <button
                   onClick={() => go('login')}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -115,15 +118,17 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
       {/* Mobile Menu */}
       {mobileOpen && (
+
         <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
 
           <div className="flex flex-col p-4 space-y-3">
 
+            {/* Always visible */}
+            <MobileBtn label="Home" page="home" />
+            <MobileBtn label="Browse Jobs" page="jobs" />
+
             {authenticated ? (
               <>
-                <MobileBtn label="Home" page="home" />
-                <MobileBtn label="Browse Jobs" page="jobs" />
-
                 {isAdmin ? (
                   <MobileBtn label="Admin Panel" page="admin" />
                 ) : (
@@ -147,7 +152,6 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
                 <MobileBtn label="About Us" page="about" />
                 <MobileBtn label="Contact" page="contact" />
 
-                {/* MOBILE LOGIN BUTTON */}
                 <button
                   onClick={() => go('login')}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg"
@@ -159,22 +163,27 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
           </div>
         </div>
+
       )}
     </nav>
   );
 
-  /* Components */
+  /* Desktop Button */
 
   function NavBtn({ label, page }: { label: string; page: string }) {
     return (
       <button
         onClick={() => go(page)}
-        className={`nav-btn ${currentPage === page ? 'text-blue-500' : ''}`}
+        className={`nav-btn font-medium ${
+          currentPage === page ? 'text-blue-500' : 'text-gray-700'
+        }`}
       >
         {label}
       </button>
     );
   }
+
+  /* Mobile Button */
 
   function MobileBtn({
     label,
