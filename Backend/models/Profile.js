@@ -9,33 +9,52 @@ const ProfileSchema = new mongoose.Schema(
     },
 
     /* ---------------- PERSONAL INFO ---------------- */
-    personal: {
-      fullName: String,
-      gender: String,
-      dob: String,
-      age: String,
-      city: String,
-      email: String,
+   personal: {
+  fullName: {
+    type: String,
+    required: [true, "Full Name is required"]
+  },
+  gender: String,
+  dob: String,
+  age: String,
 
-      currentStatus: String,
-      totalExperience: String,
+  city: {
+    type: String,
+    required: [true, "City is required"]
+  },
 
-      currentJobTitle: String,
-      companyName: String,
-      industry: String,
-      designation: String,
+  email: {
+    type: String,
+    required: [true, "Email is required"]
+  },
 
-      currentCTC: String,
-      location: String,
-      preferredLocation: String,
+  currentStatus: {
+    type: String,
+    required: [true, "Current Status is required"]
+  },
 
-      employmentType: String,
-      workMode: String,
+  totalExperience: String,
 
-      highestQualification: String,
-      college: String,
-      yearOfPassing: String,
-    },
+  currentJobTitle: String,
+  companyName: String,
+  industry: String,
+  designation: String,
+
+  currentCTC: String,
+  location: String,
+  preferredLocation: String,
+
+  employmentType: String,
+  workMode: String,
+
+  highestQualification: {
+    type: String,
+    required: [true, "Highest Qualification is required"]
+  },
+
+  college: String,
+  yearOfPassing: String,
+},
 
     /* ---------------- RESUME ---------------- */
     resume: {

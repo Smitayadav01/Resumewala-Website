@@ -1,10 +1,19 @@
 import mammoth from "mammoth";
+import pdf from "pdf-parse";
 
 export const extractResumeText = async (file) => {
+  // 📄 PDF handling
   if (file.mimetype === "application/pdf") {
-    return await extractTextFromPDF(file.buffer);
+    try {
+      const data = await pdf(file.buffer);
+      return data.text;
+    } catch (error) {
+      console.log("PDF parse error:", error);
+      throw error;
+    }
   }
 
+  // 📄 DOC / DOCX handling
   if (
     file.mimetype === "application/msword" ||
     file.mimetype ===

@@ -26,9 +26,30 @@ export default function Jobs() {
     }
   };
 
+  const fetchAppliedJobs = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const res = await fetch(`${API_URL}/api/jobs/applied`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setAppliedJobIds(new Set(data.jobIds)); // ✅ KEY LINE
+    }
+
+  } catch (err) {
+    console.error("Error fetching applied jobs:", err);
+  }
+};
+
   useEffect(() => {
-    fetchJobs();
-  }, []);
+  fetchJobs();
+  fetchAppliedJobs(); // ✅ ADD THIS
+}, []);
 
   const filteredJobs = jobs.filter((job) =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

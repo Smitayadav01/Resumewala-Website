@@ -103,11 +103,11 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-white">
 
-      <section className="relative overflow-hidden bg-white pt-0 pb-16">
+      <section className="relative overflow-hidden bg-white pt-0 pb-8 -mt-4 lg:-mt-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8 items-center">
 
-            <div className="space-y-5 mt-0">
+           <div className="space-y-4 mt-0">
              {/* Upload Box */}
 <div
   onClick={() => {
@@ -129,8 +129,8 @@ useEffect(() => {
     const file = e.dataTransfer.files[0];
     handleFileSelect(file);
   }}
-  className="group p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
->
+  className="group p-5 sm:p-6 lg:p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
+  >
   <input
   ref={fileInputRef}
   type="file"
@@ -170,7 +170,7 @@ useEffect(() => {
                 </p>
               </div>
 
-              <div className="flex gap-6 pt-4">
+              <div className="flex flex-wrap gap-4 pt-4">
                 <div className="flex items-start space-x-2">
                   <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <p className="text-gray-700 font-medium text-sm">100% Free</p>
@@ -185,16 +185,15 @@ useEffect(() => {
                 </div>
               </div>
             </div>
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-sm lg:max-w-md">
+         <div className="flex justify-center lg:justify-end">
+ <div className="relative w-full max-w-[220px] sm:max-w-xs md:max-w-sm lg:max-w-md mx-auto">
 
               {/* Girl Image */}
               <img
-                src={head}
-                alt="Resume upload illustration"
-                className="w-full h-auto object-contain rounded-2xl"
-              />
-
+  src={head}
+  alt="Resume upload illustration"
+className="w-full h-auto object-contain rounded-2xl mx-auto"
+/>
               {/* Play Button (Centered on Image)
               <button
                 onClick={() => setShowVideo(true)}
@@ -324,7 +323,7 @@ useEffect(() => {
               <img
                 src={upload}
                 alt="Professional success"
-                className="rounded-2xl w-70 h-70 object-cover"
+                className="rounded-2xl w-full h-auto object-cover"
               />
             </div>
           </div>

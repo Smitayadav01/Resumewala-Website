@@ -300,13 +300,31 @@ useEffect(() => {
     (skills.length ? 25 : 0);
 
     useEffect(() => {
-  if (completion === 100) {
+  if (completion === 100 && !localStorage.getItem("profileCompleted")) {
     setShowFinalPopup(true);
+    localStorage.setItem("profileCompleted", "true");
   }
 }, [completion]);
 
 
 
+const requiredFields = [
+  'fullName',
+  'email',
+  'city',
+  'currentStatus',
+  'highestQualification'
+];
+
+const validatePersonalInfo = () => {
+  for (let field of requiredFields) {
+    if (!personalInfo[field as keyof PersonalInfo]) {
+      toast.error(`Please fill ${field}`);
+      return false;
+    }
+  }
+  return true;
+};
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
@@ -363,322 +381,206 @@ useEffect(() => {
 
           {/* PERSONAL */}
           <Accordion title="Basic Information" icon={<User />} open={activeSection === 'personal'} onToggle={() => toggleSection('personal')}>
-            <Grid>
-              <Input
-                label="Full Name"
-                value={personalInfo.fullName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, fullName: e.target.value })
-                }
-              />
+           <Grid>
 
-              <Input
-                label="Gender"
-                value={personalInfo.gender}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, gender: e.target.value })
-                }
-              />
+  {/* BASIC INFO */}
+  <Input
+    label="Full Name"
+    required
+    value={personalInfo.fullName}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, fullName: e.target.value })
+    }
+  />
 
-              <Input
-                label="Gender"
-                value={personalInfo.gender}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, gender: e.target.value })
-                }
-              />
+  <Input
+    label="Gender"
+    value={personalInfo.gender}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, gender: e.target.value })
+    }
+  />
 
-              <Input
-                label="Date of Birth"
-                type="date"
-                value={personalInfo.dob}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, dob: e.target.value })
-                }
-              />
+  <Input
+    label="Date of Birth"
+    type="date"
+    value={personalInfo.dob}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, dob: e.target.value })
+    }
+  />
 
-              <Input
-                label="Age"
-                value={personalInfo.age}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, age: e.target.value })
-                }
-              />
+  <Input
+    label="Age"
+    value={personalInfo.age}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, age: e.target.value })
+    }
+  />
 
-              <Input
-                label="City"
-                value={personalInfo.city}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, city: e.target.value })
-                }
-              />
+  <Input
+    label="City"
+    required
+    value={personalInfo.city}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, city: e.target.value })
+    }
+  />
 
-              <Input
-                label="Email"
-                type="email"
-                value={personalInfo.email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, email: e.target.value })
-                }
-              />
+  <Input
+    label="Email"
+    required
+    type="email"
+    value={personalInfo.email}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, email: e.target.value })
+    }
+  />
 
-              <Input
-                label="Current Status"
-                type="select"
-                value={personalInfo.currentStatus}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, currentStatus: e.target.value })
-                }
-                options={[
-                  { label: 'Select Current Status', value: '' },
-                  { label: 'Fresher', value: 'Fresher' },
-                  { label: 'Employed', value: 'Employed' },
-                  { label: 'Unemployed', value: 'Unemployed' },
-                ]}
-              />
+  <Input
+    label="Current Status"
+    required
+    type="select"
+    value={personalInfo.currentStatus}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, currentStatus: e.target.value })
+    }
+    options={[
+      { label: 'Select Current Status', value: '' },
+      { label: 'Fresher', value: 'Fresher' },
+      { label: 'Employed', value: 'Employed' },
+      { label: 'Unemployed', value: 'Unemployed' },
+    ]}
+  />
 
+  {/* EXPERIENCE */}
+  <Input
+    label="Total Experience"
+    value={personalInfo.totalExperience}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, totalExperience: e.target.value })
+    }
+  />
 
-              <Input
-                label="Total Experience"
-                value={personalInfo.totalExperience}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, totalExperience: e.target.value })
-                }
-              />
+  <Input
+    label="Current Job Title"
+    value={personalInfo.currentJobTitle}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, currentJobTitle: e.target.value })
+    }
+  />
 
-              <Input
-                label="Current Job Title"
-                value={personalInfo.currentJobTitle}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, currentJobTitle: e.target.value })
-                }
-              />
+  <Input
+    label="Company Name"
+    value={personalInfo.companyName}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, companyName: e.target.value })
+    }
+  />
 
-              <Input
-                label="Company Name"
-                value={personalInfo.companyName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, companyName: e.target.value })
-                }
-              />
+  <Input
+    label="Industry"
+    value={personalInfo.industry}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, industry: e.target.value })
+    }
+  />
 
-              <Input
-                label="Industry"
-                value={personalInfo.industry}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, industry: e.target.value })
-                }
-              />
+  <Input
+    label="Designation"
+    value={personalInfo.designation}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, designation: e.target.value })
+    }
+  />
 
-              <Input
-                label="Designation"
-                value={personalInfo.designation}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, designation: e.target.value })
-                }
-              />
+  <Input
+    label="Current CTC"
+    value={personalInfo.currentCTC}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, currentCTC: e.target.value })
+    }
+  />
 
-              <Input
-                label="Current CTC"
-                value={personalInfo.currentCTC}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, currentCTC: e.target.value })
-                }
-              />
+  <Input
+    label="Current Location"
+    value={personalInfo.location}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, location: e.target.value })
+    }
+  />
 
-              <Input
-                label="Current Location"
-                value={personalInfo.location}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, location: e.target.value })
-                }
-              />
+  <Input
+    label="Preferred Location"
+    value={personalInfo.preferredLocation}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, preferredLocation: e.target.value })
+    }
+  />
 
-              <Input
-                label="Preferred Location"
-                value={personalInfo.preferredLocation}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, preferredLocation: e.target.value })
-                }
-              />
+  <Input
+    label="Employment Type"
+    type="select"
+    value={personalInfo.employmentType}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, employmentType: e.target.value })
+    }
+    options={[
+      { label: 'Select Employment Type', value: '' },
+      { label: 'Full-time', value: 'Full-time' },
+      { label: 'Part-time', value: 'Part-time' },
+      { label: 'Contract', value: 'Contract' },
+    ]}
+  />
 
-              <Input
-                label="Employment Type"
-                type="select"
-                value={personalInfo.employmentType}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setPersonalInfo({ ...personalInfo, employmentType: e.target.value })
-                }
-                options={[
-                  { label: 'Select Employment Type', value: '' },
-                  { label: 'Full-time', value: 'Full-time' },
-                  { label: 'Part-time', value: 'Part-time' },
-                  { label: 'Contract', value: 'Contract' },
-                ]}
-              />
+  <Input
+    label="Work Mode"
+    type="select"
+    value={personalInfo.workMode}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, workMode: e.target.value })
+    }
+    options={[
+      { label: 'Select Work Mode', value: '' },
+      { label: 'On-site', value: 'On-site' },
+      { label: 'Hybrid', value: 'Hybrid' },
+      { label: 'Remote', value: 'Remote' },
+    ]}
+  />
 
-              <Input
-                label="Work Mode"
-                type="select"
-                value={personalInfo.workMode}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setPersonalInfo({ ...personalInfo, workMode: e.target.value })
-                }
-                options={[
-                  { label: 'Select Work Mode', value: '' },
-                  { label: 'On-site', value: 'On-site' },
-                  { label: 'Hybrid', value: 'Hybrid' },
-                  { label: 'Remote', value: 'Remote' },
-                ]}
-              />
+  {/* EDUCATION */}
+  <Input
+    label="Highest Qualification"
+    required
+    value={personalInfo.highestQualification}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, highestQualification: e.target.value })
+    }
+  />
 
+  <Input
+    label="College / University"
+    value={personalInfo.college}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, college: e.target.value })
+    }
+  />
 
-              <Input
-                label="Highest Qualification"
-                value={personalInfo.highestQualification}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, highestQualification: e.target.value })
-                }
-              />
+  <Input
+    label="Year of Passing"
+    value={personalInfo.yearOfPassing}
+    onChange={(e) =>
+      setPersonalInfo({ ...personalInfo, yearOfPassing: e.target.value })
+    }
+  />
 
-              <Input
-                label="College / University"
-                value={personalInfo.college}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, college: e.target.value })
-                }
-              />
-
-              <Input
-                label="Year of Passing"
-                value={personalInfo.yearOfPassing}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPersonalInfo({ ...personalInfo, yearOfPassing: e.target.value })
-                }
-              />
-
-
-              <Input
-                label="Total Experience"
-                value={personalInfo.totalExperience}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, totalExperience: e.target.value })
-                }
-              />
-
-              <Input
-                label="Current Job Title"
-                value={personalInfo.currentJobTitle}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, currentJobTitle: e.target.value })
-                }
-              />
-
-              <Input
-                label="Company Name"
-                value={personalInfo.companyName}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, companyName: e.target.value })
-                }
-              />
-
-              <Input
-                label="Industry"
-                value={personalInfo.industry}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, industry: e.target.value })
-                }
-              />
-
-              <Input
-                label="Designation"
-                value={personalInfo.designation}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, designation: e.target.value })
-                }
-              />
-
-              <Input
-                label="Current CTC"
-                value={personalInfo.currentCTC}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, currentCTC: e.target.value })
-                }
-              />
-
-              <Input
-                label="Current Location"
-                value={personalInfo.location}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, location: e.target.value })
-                }
-              />
-
-              <Input
-                label="Preferred Location"
-                value={personalInfo.preferredLocation}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, preferredLocation: e.target.value })
-                }
-              />
-
-              <Input
-                label="Employment Type"
-                type="select"
-                value={personalInfo.employmentType}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, employmentType: e.target.value })
-                }
-                options={[
-                  { label: 'Select Employment Type', value: '' },
-                  { label: 'Full-time', value: 'Full-time' },
-                  { label: 'Part-time', value: 'Part-time' },
-                  { label: 'Contract', value: 'Contract' },
-                ]}
-              />
-
-              <Input
-                label="Work Mode"
-                type="select"
-                value={personalInfo.workMode}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, workMode: e.target.value })
-                }
-                options={[
-                  { label: 'Select Work Mode', value: '' },
-                  { label: 'On-site', value: 'On-site' },
-                  { label: 'Hybrid', value: 'Hybrid' },
-                  { label: 'Remote', value: 'Remote' },
-                ]}
-              />
-
-
-              <Input
-                label="Highest Qualification"
-                value={personalInfo.highestQualification}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, highestQualification: e.target.value })
-                }
-              />
-
-              <Input
-                label="College / University"
-                value={personalInfo.college}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, college: e.target.value })
-                }
-              />
-
-              <Input
-                label="Year of Passing"
-                value={personalInfo.yearOfPassing}
-                onChange={(e) =>
-                  setPersonalInfo({ ...personalInfo, yearOfPassing: e.target.value })
-                }
-              />
-
-              </Grid>
-            <SaveBtn onClick={() => saveSection('personal', personalInfo)} />
+</Grid>
+            <SaveBtn
+  onClick={() => {
+    if (!validatePersonalInfo()) return;
+    saveSection('personal', personalInfo);
+  }}
+/>
           </Accordion>
 
          {/* EXPERIENCE */}
@@ -1061,7 +963,7 @@ useEffect(() => {
         </div>
       )}
 
-      {/* {showFinalPopup && (
+      {showFinalPopup && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-xl">
       <CheckCircle className="text-green-600 h-14 w-14 mx-auto mb-4" />
@@ -1085,7 +987,7 @@ useEffect(() => {
             </button>
           </div>
         </div>
-      )} */}
+      )}
 
 
     </div>
@@ -1104,9 +1006,11 @@ const Accordion = ({ title, icon, open, onToggle, children }: any) => (
 );
 
 const Grid = ({ children }: any) => <div className="grid md:grid-cols-2 gap-5">{children}</div>;
-const Input = ({ label, type = 'text', options = [], full, ...props }: any) => (
+const Input = ({ label, required = false, type = 'text', options = [], full, ...props }: any) => (
   <div className={full ? 'md:col-span-2' : ''}>
-    <label className="text-sm font-medium">{label}</label>
+    <label className="text-sm font-medium">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
 
     {type === 'select' ? (
       <select

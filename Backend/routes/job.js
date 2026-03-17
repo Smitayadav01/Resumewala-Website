@@ -119,6 +119,29 @@ router.post(
   }
 );
 
+
+router.get("/applied", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const applications = await CandidateModel.find({ userId }).select("jobId");
+
+    const jobIds = applications.map(app => app.jobId.toString());
+
+    res.status(200).json({
+      success: true,
+      jobIds
+    });
+
+  } catch (error) {
+    console.error("Fetch applied jobs error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch applied jobs"
+    });
+  }
+});
+
 // ✅ /:id routes come AFTER /apply
 router.put("/:id", updateJob);
 router.delete("/:id", deleteJob);

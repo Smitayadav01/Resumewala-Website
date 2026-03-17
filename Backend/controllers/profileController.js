@@ -112,12 +112,29 @@ const getProfile = async (req, res) => {
 };
 
 /* ================= EDIT PROFILE (NO RESUME) ================= */
-
 const EditProfile = async (req, res) => {
   try {
     const userId = req.user._id;
 
     const updates = {};
+
+    /* ---------- VALIDATION ---------- */
+    if (req.body.personal) {
+      const {
+        fullName,
+        email,
+        city,
+        currentStatus,
+        highestQualification
+      } = req.body.personal;
+
+      if (!fullName || !email || !city || !currentStatus || !highestQualification) {
+        return res.status(400).json({
+          success: false,
+          message: "Please fill all required fields (Full Name, Email, City, Current Status, Highest Qualification)"
+        });
+      }
+    }
 
     /* ---------- PERSONAL (PARTIAL UPDATE) ---------- */
     if (req.body.personal && typeof req.body.personal === "object") {

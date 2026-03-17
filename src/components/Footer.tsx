@@ -20,7 +20,7 @@ const Footer = () => {
   ];
 
   const footerLinks = [
-    { name: 'Home', href: '/home' },
+    { name: 'Home', href: '/' },
     { name: 'About Us', href: '/about' },
     { name: 'Employers', href: '/employee' },
     { name: 'Browse Jobs', href: '/jobs' },
