@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export default function About() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-white">
+  <div className="min-h-screen bg-white -mt-6 md:-mt-10">
 
 
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-teal-50 py-10 md:py-2">

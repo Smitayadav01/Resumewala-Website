@@ -103,7 +103,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-white">
 
-      <section className="relative overflow-hidden bg-white pt-0 pb-8 -mt-4 lg:-mt-6">
+      <section className="relative overflow-hidden bg-white pt-8 pb-8 lg:pt-0 lg:-mt-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8 items-center">
 
@@ -194,36 +194,13 @@ useEffect(() => {
   alt="Resume upload illustration"
 className="w-full h-auto object-contain rounded-2xl mx-auto"
 />
-              {/* Play Button (Centered on Image)
-              <button
-                onClick={() => setShowVideo(true)}
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <div className="bg-white/80 backdrop-blur-md p-5 rounded-full shadow-xl 
-                                hover:scale-110 transition-all duration-300">
-                  <div className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-white ml-1"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                </div>
-              </button> */}
-
             </div>
           </div>
-
-
-
           </div>
         </div>
       </section>
 
-      <section id="features" className="py-20 bg-gray-50">
+      <section id="features" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
