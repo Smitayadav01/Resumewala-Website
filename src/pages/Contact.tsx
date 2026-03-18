@@ -81,7 +81,7 @@ export default function Contact() {
             </h3>
 
             <p className="text-gray-700 font-medium mb-1">
-              aresumewala@gmail.com
+               info@resumewala.co.in 
             </p>
 
             <p className="text-sm text-gray-500">
@@ -100,7 +100,7 @@ export default function Contact() {
             </h3>
 
             <p className="text-gray-700 font-medium mb-1">
-              +91 (123) 456-7890
+              +91 7506836835 
             </p>
 
             <p className="text-sm text-gray-500">
