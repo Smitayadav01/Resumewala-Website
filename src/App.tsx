@@ -76,10 +76,7 @@ function AppContent() {
 
           {/* PROTECTED ROUTES */}
 
-          <Route
-            path="/upload"
-            element={authenticated ? <Upload /> : <Navigate to="/login" replace />}
-          />
+         <Route path="/upload" element={<Upload />} />
 
          <Route path="/jobs" element={<Jobs />} />
 

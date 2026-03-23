@@ -39,7 +39,6 @@ useEffect(() => {
 }, []);
 
  const handleFileSelect = async (file: File) => {
-
   if (!file || uploading) return;
 
   const allowedTypes = [
@@ -53,27 +52,21 @@ useEffect(() => {
     return;
   }
 
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  const maxSize = 5 * 1024 * 1024;
 
   if (file.size > maxSize) {
     toast.error("File size must be less than 5MB");
     return;
   }
 
-
-  setParsing(true);   // ✅ START LOADER IMMEDIATELY
+  setParsing(true);
   setUploading(true);
 
   try {
+    const token = localStorage.getItem("token"); // ✅ optional now
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to upload resume");
-      setParsing(false);
-      return;
-    }
-
-    const res = await uploadResume(file, token);
+    // 👇 pass token only if exists
+    const res = await uploadResume(file, token || undefined);
 
     if (!res.ok) {
       toast.error("Failed to parse resume");
@@ -83,12 +76,24 @@ useEffect(() => {
 
     const data = await res.json();
 
-    setProfile(data.profile);
+setProfile(data.profile);
 
-    setTimeout(() => {
-      setParsing(false);
-      navigate("/profile");
-    }, 1200); // small delay for animation
+setTimeout(() => {
+  setParsing(false);
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    localStorage.setItem("guestResume", JSON.stringify(data.profile));
+
+    toast.success("Resume uploaded! Please login to continue");
+
+    navigate("/login");
+  } else {
+    navigate("/profile");
+  }
+
+}, 1200);
 
   } catch (err) {
     console.error(err);
@@ -98,7 +103,6 @@ useEffect(() => {
     setUploading(false);
   }
 };
-
 
   return (
     <div className="min-h-screen bg-white">
@@ -111,24 +115,14 @@ useEffect(() => {
              {/* Upload Box */}
 <div
   onClick={() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to upload resume");
-      return;
-    }
-    fileInputRef.current?.click();
-  }}
+  fileInputRef.current?.click(); // ✅ always allow
+}}
   onDragOver={(e) => e.preventDefault()}
   onDrop={(e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to upload resume");
-      return;
-    }
-    const file = e.dataTransfer.files[0];
-    handleFileSelect(file);
-  }}
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  handleFileSelect(file); // ✅ no login check
+}}
   className="group p-5 sm:p-6 lg:p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
   >
   <input

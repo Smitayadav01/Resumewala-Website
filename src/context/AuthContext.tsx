@@ -51,13 +51,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(true);
         try {
             const response = await AuthApi.login(email, password);
-            if (response.success && response.user.role === "user") {
-                setToken(response.token);
-                setUser(response.user);
-                localStorage.setItem("token", response.token);
-                localStorage.setItem("user", JSON.stringify(response.user));
-                navigate("/home");
-            }
+           if (response.success && response.user.role === "user") {
+    setToken(response.token);
+    setUser(response.user);
+
+    localStorage.setItem("token", response.token);
+    localStorage.setItem("user", JSON.stringify(response.user));
+
+    // 🔥 SAVE GUEST RESUME AFTER LOGIN
+    const guestResume = localStorage.getItem("guestResume");
+
+    if (guestResume) {
+        const parsed = JSON.parse(guestResume);
+
+        try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/profile/save-guest`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${response.token}`, // ✅ use fresh token
+                },
+                body: JSON.stringify(parsed),
+            });
+
+            localStorage.removeItem("guestResume"); // ✅ cleanup
+        } catch (err) {
+            console.error("Guest resume save failed", err);
+        }
+    }
+
+    // 🔥 FINAL REDIRECT
+    navigate("/profile");
+}
             if (response.success && response.user.role === "admin") {
                 setToken(response.token);
                 setUser(response.user);
@@ -80,6 +105,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(response.user);
                 localStorage.setItem("token", response.token);
                 localStorage.setItem("user", JSON.stringify(response.user));
+                const guestResume = localStorage.getItem("guestResume");
+
+if (guestResume) {
+    const parsed = JSON.parse(guestResume);
+
+    await fetch(`${import.meta.env.VITE_API_URL}/api/profile/save-guest`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${response.token}`,
+        },
+        body: JSON.stringify(parsed),
+    });
+
+    localStorage.removeItem("guestResume");
+}
             }
 
             return response;
