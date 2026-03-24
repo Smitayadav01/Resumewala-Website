@@ -1,6 +1,5 @@
 import mammoth from "mammoth";
-import pdf from "pdf-parse";
-
+import pdf from "pdf-parse-new";
 export const extractResumeText = async (file) => {
   // 📄 PDF handling
   if (file.mimetype === "application/pdf") {

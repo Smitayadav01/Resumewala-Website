@@ -47,88 +47,106 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         setLoading(false);
     }, []);
+    
     const login = async (email: string, password: string) => {
-        setLoading(true);
-        try {
-            const response = await AuthApi.login(email, password);
-           if (response.success && response.user.role === "user") {
+  setLoading(true);
+
+  try {
+    const response = await AuthApi.login(email, password);
+
+    if (!response.success) return response;
+
     setToken(response.token);
     setUser(response.user);
 
     localStorage.setItem("token", response.token);
     localStorage.setItem("user", JSON.stringify(response.user));
 
-    // 🔥 SAVE GUEST RESUME AFTER LOGIN
+    // ⭐ GUEST SYNC (background)
+    const guestResume = localStorage.getItem("guestResume");
+
+    if (guestResume && response.user.role === "user") {
+      const parsed = JSON.parse(guestResume);
+
+      fetch(`${import.meta.env.VITE_API_URL}/api/profile/complete-guest`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${response.token}`,
+        },
+        body: JSON.stringify(parsed),
+      })
+        .then(() => localStorage.removeItem("guestResume"))
+        .catch(() => console.log("guest sync failed"));
+    } else {
+      // ⭐ clear if admin login
+      localStorage.removeItem("guestResume");
+    }
+
+    // ⭐ FINAL NAVIGATION (always)
+    if (response.user.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/profile");
+    }
+
+    return response;
+
+  } finally {
+    setLoading(false);
+  }
+};
+    const register = async (
+  email: string,
+  fullName: string,
+  mobileNumber: string,
+  password: string
+) => {
+  setLoading(true);
+
+  try {
+    const response = await AuthApi.register(
+      email,
+      fullName,
+      mobileNumber,
+      password
+    );
+
+    if (!response.success) return response;
+
+    // ⭐ auto login
+    setToken(response.token);
+    setUser(response.user);
+
+    localStorage.setItem("token", response.token);
+    localStorage.setItem("user", JSON.stringify(response.user));
+
+    // ⭐ guest sync background
     const guestResume = localStorage.getItem("guestResume");
 
     if (guestResume) {
-        const parsed = JSON.parse(guestResume);
+      const parsed = JSON.parse(guestResume);
 
-        try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/profile/save-guest`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${response.token}`, // ✅ use fresh token
-                },
-                body: JSON.stringify(parsed),
-            });
-
-            localStorage.removeItem("guestResume"); // ✅ cleanup
-        } catch (err) {
-            console.error("Guest resume save failed", err);
-        }
-    }
-
-    // 🔥 FINAL REDIRECT
-    navigate("/profile");
-}
-            if (response.success && response.user.role === "admin") {
-                setToken(response.token);
-                setUser(response.user);
-                localStorage.setItem("token", response.token);
-                localStorage.setItem("user", JSON.stringify(response.user));
-                navigate("/admin");
-            }
-            return response;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const register = async (email: string, fullName: string, mobileNumber: string, password: string) => {
-        setLoading(true);
-        try {
-            const response = await AuthApi.register(email, fullName, mobileNumber, password);
-            if (response.success) {
-                setToken(response.token);
-                setUser(response.user);
-                localStorage.setItem("token", response.token);
-                localStorage.setItem("user", JSON.stringify(response.user));
-                const guestResume = localStorage.getItem("guestResume");
-
-if (guestResume) {
-    const parsed = JSON.parse(guestResume);
-
-    await fetch(`${import.meta.env.VITE_API_URL}/api/profile/save-guest`, {
+      fetch(`${import.meta.env.VITE_API_URL}/api/profile/complete-guest`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${response.token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${response.token}`,
         },
         body: JSON.stringify(parsed),
-    });
+      })
+        .then(() => localStorage.removeItem("guestResume"))
+        .catch(() => console.log("guest sync failed"));
+    }
 
-    localStorage.removeItem("guestResume");
-}
-            }
+    navigate("/profile");
 
-            return response;
-        } finally {
-            setLoading(false);
-        }
-    };
+    return response;
 
+  } finally {
+    setLoading(false);
+  }
+};
     const logout = () => {
         setToken(null);
         setUser(null);

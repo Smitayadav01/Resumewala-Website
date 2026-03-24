@@ -146,22 +146,47 @@ const calculateAge = (dob: string) => {
   return age.toString();
 };
 
+useEffect(() => {
 
-useEffect(()=>{
-  const getProfile = async ()=>{
-    const token = await localStorage.getItem('token')
-    const res = await fetch(`${API_URL}/api/profile`,{
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    
-    const data = await res.json()
-    setProfile(data.profile)
-  }
-  getProfile( )
-},[])
+  const hydrateProfile = async () => {
+
+    const token = localStorage.getItem("token");
+
+    // ⭐ CASE-1 → Logged user → DB fetch
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (data?.profile) {
+          setProfile(data.profile);
+        }
+
+      } catch (err) {
+        console.log("Profile fetch failed");
+      }
+
+      return;
+    }
+
+    // ⭐ CASE-2 → Guest hydration
+    const guest = localStorage.getItem("guestResume");
+
+    if (guest) {
+      const parsed = JSON.parse(guest);
+      setProfile(parsed);
+    }
+
+  };
+
+  hydrateProfile();
+
+}, []);
 
 useEffect(() => {
   if (personalInfo.dob) {

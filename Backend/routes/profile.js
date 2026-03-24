@@ -6,15 +6,17 @@ import {
   getProfile, 
   EditProfile, 
   downloadResume,
-  saveGuestProfile
+  saveGuestProfile,
+  completeGuestProfile
 } from "../controllers/profileController.js";
 import { Router } from "express";
+import optionalAuth from "../middlewares/optionalMiddleware.js";
 
 const router = Router();
 
 router.post(
   "/upload-resume",
-  authMiddleware,
+  optionalAuth,
   upload.single("resume"),
   uploadResume
 );
@@ -23,10 +25,9 @@ router.get("/", authMiddleware,requireAuth, getProfile);
 
 router.put("/", authMiddleware, EditProfile);
 router.post(
-  "/save-guest",
+  "/complete-guest",
   authMiddleware,
-  requireAuth,
-  saveGuestProfile
+  completeGuestProfile
 );
 
 // router.get(

@@ -10,30 +10,35 @@ import https from "https";
 
 const uploadResume = async (req, res) => {
   try {
-    // ✅ OPTIONAL USER
-    let userId = null;
-
-    if (req.user && req.user._id) {
-      userId = req.user._id;
-    }
 
     if (!req.file) {
-      return res.status(400).json({ message: "Resume file required" });
+      return res.status(400).json({
+        success: false,
+        message: "Resume file required"
+      });
     }
 
-    // ✅ Extract text
+    // ✅ STEP 1 — extract text
     const text = await extractResumeText(req.file);
 
-    // ✅ AI parsing
+    // ✅ STEP 2 — AI parse
     const aiParsed = await parseResumeWithAI(text);
 
     const parsedSkills = aiParsed.skills || [];
     const parsedExperience = aiParsed.experience || [];
     const parsedEducation = aiParsed.education || [];
     const parsedPersonal = aiParsed.personal || {};
+    const previousPublicId = req.body.previousPublicId;
 
-    // ✅ Upload to Cloudinary (use temp id if guest)
-    const uploadId = userId || `guest_${Date.now()}`;
+    if (previousPublicId) {
+      await cloudinary.uploader.destroy(previousPublicId, {
+          resource_type: "raw"
+      });
+    }
+
+    // ✅ STEP 3 — upload cloudinary
+    const uploadId =
+      req.user?._id || `guest_${Date.now()}`;
 
     const result = await uploadResumeToCloudinary(
       req.file.buffer,
@@ -48,58 +53,10 @@ const uploadResume = async (req, res) => {
       uploadedAt: new Date(),
     };
 
-    /* ================= CASE 1: LOGGED IN USER ================= */
-    if (userId) {
-      const existingProfile = await Profile.findOne({ userId });
-
-      const profile = await Profile.findOneAndUpdate(
-        { userId },
-        {
-          $set: {
-            personal: {
-              fullName: parsedPersonal.fullName || "",
-              email: parsedPersonal.email || "",
-              city: parsedPersonal.city || "",
-              currentJobTitle: parsedPersonal.currentJobTitle || "",
-              totalExperience: parsedPersonal.totalExperience || "",
-              highestQualification: parsedPersonal.highestQualification || "",
-              college: parsedPersonal.college || "",
-              yearOfPassing: parsedPersonal.yearOfPassing || "",
-              currentCTC: parsedPersonal.currentCTC || "",
-              dob: parsedPersonal.dob || "",
-              gender: parsedPersonal.gender || "",
-            },
-            resume: resumeData,
-            skills: parsedSkills,
-            experience: parsedExperience,
-            education: parsedEducation,
-          },
-        },
-        { upsert: true, new: true }
-      );
-
-      // delete old resume
-      if (existingProfile?.resume?.publicId) {
-        await cloudinary.uploader.destroy(
-          existingProfile.resume.publicId,
-          { resource_type: "raw" }
-        );
-      }
-
-      return res.status(200).json({
-        success: true,
-        profile,
-        resumeUrl: result.secure_url,
-        guest: false,
-      });
-    }
-
-    /* ================= CASE 2: GUEST USER ================= */
-
+    // ✅ STEP 4 — RETURN ONLY
     return res.status(200).json({
       success: true,
-      guest: true,
-      message: "Resume parsed successfully (guest)",
+      guest: !req.user,
       profile: {
         personal: parsedPersonal,
         skills: parsedSkills,
@@ -111,7 +68,10 @@ const uploadResume = async (req, res) => {
 
   } catch (error) {
     console.error("Resume upload error:", error);
-    res.status(500).json({ message: "Resume parsing failed" });
+    res.status(500).json({
+      success: false,
+      message: "Resume parsing failed"
+    });
   }
 };
 
@@ -260,13 +220,59 @@ const userId = req.user._id;
   }
 };
 
+const completeGuestProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const {
+      personal,
+      skills,
+      experience,
+      education,
+      resume
+    } = req.body;
+
+    const existingProfile = await Profile.findOne({ userId });
+
+    // ⭐ If already has resume → delete old
+    if (existingProfile?.resume?.publicId) {
+      await cloudinary.uploader.destroy(
+        existingProfile.resume.publicId,
+        { resource_type: "raw" }
+      );
+    }
+
+    const profile = await Profile.findOneAndUpdate(
+      { userId },
+      {
+        personal,
+        skills,
+        experience,
+        education,
+        resume,
+      },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      profile
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to complete profile"
+    });
+  }
+};
+
 export {
   uploadResume,
   getProfile,
   EditProfile,
   downloadResume,
-  saveGuestProfile
+  saveGuestProfile,
+  completeGuestProfile,
 };
-
-
-

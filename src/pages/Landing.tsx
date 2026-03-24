@@ -65,28 +65,14 @@ export default function Landing() {
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
+    e.preventDefault();
+
     const res = await login(loginData.email, loginData.password);
 
-    // Check based on actual response structure
     if (!res || res.success === false) {
       toast.error(res?.message || "Login failed");
-      return;
     }
-
-    // Save token and user if returned by your login
-    if (res.token) localStorage.setItem("token", res.token);
-    if (res.user) localStorage.setItem("user", JSON.stringify(res.user));
-
-    toast.success("Login successful");
-    navigate("/"); // redirect after successful login
-
-  } catch (error) {
-    toast.error("Login failed");
-    console.error('Login failed:', error);
-  }
-};
+  };
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -95,37 +81,24 @@ export default function Landing() {
   }, [])
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (signupData.password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    setLoading(true)
-    try {
-      
-      const res = await register(signupData.email, signupData.fullName, signupData.mobileNumber, signupData.password);
-      
-      if (res.success) {
-        toast.success("Registration successful");
-        navigate('/');
-      }else{
-        toast.error("Registration failed")
-      }
-      
-    } catch (error) {
-      toast.error("Registration failed");
-      console.error('Registration failed:', error);
-    }
-    setLoading(false)
-    setIsLogin(true);
-    setSignupData({
-      fullName: '',
-      email: '',
-      mobileNumber: '',
-      password: '',
-    });
-    setConfirmPassword('');
-  };
+  e.preventDefault();
+
+  if (signupData.password !== confirmPassword) {
+    toast.error("Passwords do not match");
+    return;
+  }
+
+  const res = await register(
+    signupData.email,
+    signupData.fullName,
+    signupData.mobileNumber,
+    signupData.password
+  );
+
+  if (!res.success) {
+    toast.error("Registration failed");
+  }
+};
 
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50">

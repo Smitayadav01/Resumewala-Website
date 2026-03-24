@@ -66,7 +66,9 @@ useEffect(() => {
     const token = localStorage.getItem("token"); // ✅ optional now
 
     // 👇 pass token only if exists
-    const res = await uploadResume(file, token || undefined);
+    const prev = localStorage.getItem("guestResumePublicId")
+
+    const res = await uploadResume(file, token || undefined, prev ?? undefined)
 
     if (!res.ok) {
       toast.error("Failed to parse resume");
