@@ -2,10 +2,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const authMiddleware = async (req, res, next) => {
-  console.log("🔥 MIDDLEWARE HIT");
 
   const authHeader = req.headers.authorization;
-  console.log("Authorization Header:", authHeader);
 
   // ✅ NO HEADER → allow
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
