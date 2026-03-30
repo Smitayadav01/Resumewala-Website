@@ -148,6 +148,35 @@ export default function Landing() {
                 <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Back</h2>
                 <p className="text-gray-600 text-center mb-8">Login to your account</p>
 
+                {/* Google Login - TOP PRIORITY */}
+<div className="mb-6">
+  <GoogleLogin
+    onSuccess={async (credentialResponse) => {
+      const res = await fetch(`${API_URL}/api/auth/google-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: credentialResponse.credential })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/");
+      }
+    }}
+    onError={() => {
+      toast.error("Google Login Failed");
+    }}
+  />
+</div>
+
+<div className="flex items-center my-6">
+  <div className="flex-grow h-px bg-gray-300"></div>
+  <span className="px-3 text-sm text-gray-500">OR</span>
+  <div className="flex-grow h-px bg-gray-300"></div>
+</div>
                 <form onSubmit={handleLoginSubmit} className="space-y-6">
                   <div>
                     <label className="block text-gray-700 font-medium mb-2">Email</label>
@@ -196,7 +225,7 @@ export default function Landing() {
 
                 </form>
 
-                <GoogleLogin
+                {/* <GoogleLogin
                   onSuccess={async (credentialResponse) => {
                     const res = await fetch(`${API_URL}/api/auth/google-login`, {
                       method: "POST",
@@ -216,7 +245,7 @@ export default function Landing() {
                     toast.error("Google Login Failed");
                   }}
                 />
-
+ */}
 
                 <div className="mt-6">
                   <p className="text-center text-gray-600">
