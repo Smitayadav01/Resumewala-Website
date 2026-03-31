@@ -21,6 +21,7 @@ export default function Home({ onNavigate }: HomeProps) {
   const [showVideo, setShowVideo] = useState(false);
   const [loading,setLoading] = useState(false); 
   const [parsing, setParsing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 const rotatingWords = [
   "Get Discovered",
   "Get Noticed",
@@ -67,9 +68,9 @@ useEffect(() => {
 
     // 👇 pass token only if exists
     const prev = localStorage.getItem("guestResumePublicId")
-
+    console.log("uploaded1");
     const res = await uploadResume(file, token || undefined, prev ?? undefined)
-
+    console.log("uploeded2");
     if (!res.ok) {
       toast.error("Failed to parse resume");
       setParsing(false);
@@ -86,14 +87,12 @@ setTimeout(() => {
   const token = localStorage.getItem("token");
 
   if (!token) {
-    localStorage.setItem("guestResume", JSON.stringify(data.profile));
+  localStorage.setItem("guestResume", JSON.stringify(data.profile));
 
-    toast.success("Resume uploaded! Please login to continue");
-
-    navigate("/login");
-  } else {
-    navigate("/profile");
-  }
+  setShowSuccessModal(true); // ✅ show popup instead of direct redirect
+} else {
+  navigate("/profile");
+}
 
 }, 1200);
 
@@ -325,6 +324,54 @@ className="w-full h-auto object-contain rounded-2xl mx-auto"
 
     </div>
 
+  </div>
+)}
+
+{showSuccessModal && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    
+    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-fadeIn">
+
+      {/* Icon */}
+      <div className="flex justify-center mb-5">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+          <CheckCircle className="h-8 w-8 text-green-600" />
+        </div>
+      </div>
+
+      {/* Title */}
+      <h2 className="text-2xl font-bold text-gray-900 mb-3">
+        Resume Uploaded Successfully 🎉
+      </h2>
+
+      {/* Message */}
+      <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+        Your resume has been uploaded successfully.  
+        To save your profile and access it anytime, kindly login.
+      </p>
+
+      {/* Buttons */}
+      <div className="flex gap-3 justify-center">
+
+        <button
+          onClick={() => {
+            setShowSuccessModal(false);
+            navigate("/login");
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-medium transition"
+        >
+          Login Now
+        </button>
+
+        {/* <button
+          onClick={() => setShowSuccessModal(false)}
+          className="border border-gray-300 px-6 py-2 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition"
+        >
+          Later
+        </button> */}
+
+      </div>
+    </div>
   </div>
 )}
 
