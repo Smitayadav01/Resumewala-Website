@@ -12,7 +12,6 @@ export const extractResumeText = async (file) => {
     }
   }
 
-  // 📄 DOC / DOCX handling
   if (
     file.mimetype === "application/msword" ||
     file.mimetype ===
