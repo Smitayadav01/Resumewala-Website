@@ -108,12 +108,12 @@ setTimeout(() => {
   return (
     <div className=" bg-white">
 
-      <section className="relative overflow-hidden bg-white pt-2 pb-8 lg:pt-4">
+      <section className="relative overflow-hidden bg-white pt-5 sm:pt-10 pb-6 lg:pt-0">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
+   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-center">
 
       {/* LEFT SIDE */}
-      <div className="space-y-6">
+      <div className="space-y-5">
 
         {/* Upload Box */}
         <div
@@ -124,18 +124,18 @@ setTimeout(() => {
             const file = e.dataTransfer.files[0];
             handleFileSelect(file);
           }}
-          className="relative group p-5 sm:p-6 lg:p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
+          className="relative group p-6 sm:p-8 lg:p-10 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
         >
 
           {/* 🔥 TRUST STAMP */}
-          <div className="absolute -top-2 right-3 sm:-top-6 sm:right-6 z-20">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border-2 border-green-500 shadow-lg flex flex-col items-center justify-center text-center rotate-[-12deg]">
-              <span className="text-xs sm:text-sm font-bold text-green-600">
-                100% FREE
+          <div className="absolute -top-2 left-2 sm:-top-4 sm:right-4 z-20">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border-2 border-red-500 shadow-lg flex flex-col items-center justify-center text-center rotate-[-12deg]">
+              <span className="text-xs sm:text-sm font-bold text-red-600">
+               Absolutely free...
               </span>
-              <span className="text-[10px] sm:text-xs text-gray-500">
+              {/* <span className="text-[10px] sm:text-xs text-gray-500">
                 Verified
-              </span>
+              </span> */}
             </div>
           </div>
 
@@ -152,19 +152,19 @@ setTimeout(() => {
           />
 
           <div className="text-center">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Upload className="h-6 w-6 text-blue-600" />
-            </div>
+           <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Upload className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
+           </div>
 
-            <p className="text-lg sm:text-xl font-bold text-gray-900">
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">
               Upload Resume
             </p>
 
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-base sm:text-lg text-gray-600">
               or tap to browse
             </p>
 
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+           <p className="text-sm sm:text-base text-gray-500 mt-1">
               Auto-fills your profile — fast & secure
             </p>
           </div>
@@ -172,40 +172,40 @@ setTimeout(() => {
 
         {/* Heading */}
         <div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
             Upload Your Resume,{" "}
             <span className="bg-gradient-to-r from-indigo-600 via-blue-500 to-sky-400 bg-clip-text text-transparent">
               {rotatingWords[wordIndex]}
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-gray-600 mt-3">
+          <p className="text-base sm:text-lg text-gray-600 mt-4">
             Free for job seekers · Suitable for freshers & experienced professionals
           </p>
         </div>
 
         {/* Points */}
-        <div className="flex flex-wrap gap-4 pt-2">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-blue-600" />
-            <span className="text-sm text-gray-700 font-medium">100% Free</span>
-          </div>
+       <div className="flex flex-wrap gap-5 pt-3">
+  <div className="flex items-center gap-2">
+    <CheckCircle className="h-6 w-6 text-blue-600" />
+    <span className="text-base sm:text-lg text-gray-700 font-medium">100% Free</span>
+  </div>
 
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-blue-600" />
-            <span className="text-sm text-gray-700 font-medium">Interview Calls</span>
-          </div>
+  <div className="flex items-center gap-2">
+    <CheckCircle className="h-6 w-6 text-blue-600" />
+    <span className="text-base sm:text-lg text-gray-700 font-medium">Interview Calls</span>
+  </div>
 
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-blue-600" />
-            <span className="text-sm text-gray-700 font-medium">Job matching</span>
-          </div>
-        </div>
+  <div className="flex items-center gap-2">
+    <CheckCircle className="h-6 w-6 text-blue-600" />
+    <span className="text-base sm:text-lg text-gray-700 font-medium">Job matching</span>
+  </div>
+</div>
       </div>
 
       {/* RIGHT SIDE IMAGE */}
-      <div className="flex justify-center lg:justify-end mt-4 lg:mt-0">
-        <div className="relative w-full max-w-[200px] sm:max-w-[260px] md:max-w-sm">
+      <div className="flex justify-center lg:justify-end mt-0">
+       <div className="relative w-full max-w-[200px] sm:max-w-[260px] md:max-w-sm lg:max-w-md mx-auto">
 
           <img
             src={head}
