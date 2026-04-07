@@ -300,7 +300,6 @@ export default function About() {
     <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
 
       {/* LEFT → IMAGE */}
-      {/* LEFT → IMAGE */}
 <div className="flex justify-center md:justify-start">
   <img
     src={founderImg}

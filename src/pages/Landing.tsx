@@ -92,7 +92,7 @@ export default function Landing() {
     signupData.email,
     signupData.fullName,
     signupData.mobileNumber,
-    signupData.password
+    signupData.password,
   );
 
   if (!res.success) {

@@ -106,89 +106,112 @@ setTimeout(() => {
 };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className=" bg-white">
 
-      <section className="relative overflow-hidden bg-white pt-8 pb-8 lg:pt-0 lg:-mt-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8 items-center">
+      <section className="relative overflow-hidden bg-white pt-2 pb-8 lg:pt-4">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
 
-           <div className="space-y-4 mt-0">
-             {/* Upload Box */}
-<div
-  onClick={() => {
-  fileInputRef.current?.click(); // ✅ always allow
-}}
-  onDragOver={(e) => e.preventDefault()}
-  onDrop={(e) => {
-  e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  handleFileSelect(file); // ✅ no login check
-}}
-  className="group p-5 sm:p-6 lg:p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
-  >
-  <input
-  ref={fileInputRef}
-  type="file"
-  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  className="hidden"
-  disabled={loading}
-  onChange={(e) => {
-    const file = e.target.files?.[0];
-    if (file) handleFileSelect(file);
-  }}
-/>
+      {/* LEFT SIDE */}
+      <div className="space-y-6">
 
-  <div className="text-center">
-    <div className="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
-      <Upload className="h-7 w-7 text-blue-600" />
-    </div>
-    <p className="text-lg font-bold text-gray-900 mb-2">
-      Upload Resume
-    </p>
-    <p className="text-gray-600 mb-3">or click to browse</p>
-    <p className="text-sm text-gray-500">
-      Auto-fills your profile
-    </p>
-  </div>
-</div>
+        {/* Upload Box */}
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            handleFileSelect(file);
+          }}
+          className="relative group p-5 sm:p-6 lg:p-8 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 hover:border-blue-500 hover:bg-blue-100 transition-all cursor-pointer"
+        >
 
-              <div>
-                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-                  Upload Your Resume,{' '}
-<span className="bg-gradient-to-r from-indigo-600 via-blue-500 to-sky-400 bg-clip-text text-transparent font-bold transition-all duration-500">
-  {rotatingWords[wordIndex]}
-</span>
-
-                </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  Free for job seekers · Suitable for freshers & experienced professionals
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-4 pt-4">
-                <div className="flex items-start space-x-2">
-                  <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-gray-700 font-medium text-sm">100% Free</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-gray-700 font-medium text-sm">Interview Calls</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-gray-700 font-medium text-sm">Job matching</p>
-                </div>
-              </div>
+          {/* 🔥 TRUST STAMP */}
+          <div className="absolute -top-2 right-3 sm:-top-6 sm:right-6 z-20">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border-2 border-green-500 shadow-lg flex flex-col items-center justify-center text-center rotate-[-12deg]">
+              <span className="text-xs sm:text-sm font-bold text-green-600">
+                100% FREE
+              </span>
+              <span className="text-[10px] sm:text-xs text-gray-500">
+                Verified
+              </span>
             </div>
-         <div className="flex justify-center lg:justify-end">
- <div className="relative w-full max-w-[220px] sm:max-w-xs md:max-w-sm lg:max-w-md mx-auto">
+          </div>
 
-              {/* Girl Image */}
-              <img
-  src={head}
-  alt="Resume upload illustration"
-className="w-full h-auto object-contain rounded-2xl mx-auto"
-/>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx"
+            className="hidden"
+            disabled={loading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileSelect(file);
+            }}
+          />
+
+          <div className="text-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Upload className="h-6 w-6 text-blue-600" />
+            </div>
+
+            <p className="text-lg sm:text-xl font-bold text-gray-900">
+              Upload Resume
+            </p>
+
+            <p className="text-sm sm:text-base text-gray-600">
+              or tap to browse
+            </p>
+
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              Auto-fills your profile — fast & secure
+            </p>
+          </div>
+        </div>
+
+        {/* Heading */}
+        <div>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+            Upload Your Resume,{" "}
+            <span className="bg-gradient-to-r from-indigo-600 via-blue-500 to-sky-400 bg-clip-text text-transparent">
+              {rotatingWords[wordIndex]}
+            </span>
+          </h1>
+
+          <p className="text-base sm:text-lg text-gray-600 mt-3">
+            Free for job seekers · Suitable for freshers & experienced professionals
+          </p>
+        </div>
+
+        {/* Points */}
+        <div className="flex flex-wrap gap-4 pt-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-blue-600" />
+            <span className="text-sm text-gray-700 font-medium">100% Free</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-blue-600" />
+            <span className="text-sm text-gray-700 font-medium">Interview Calls</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-blue-600" />
+            <span className="text-sm text-gray-700 font-medium">Job matching</span>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE IMAGE */}
+      <div className="flex justify-center lg:justify-end mt-4 lg:mt-0">
+        <div className="relative w-full max-w-[200px] sm:max-w-[260px] md:max-w-sm">
+
+          <img
+            src={head}
+            alt="Resume upload"
+            className="w-full h-auto object-contain rounded-2xl mx-auto"
+          />
             </div>
           </div>
           </div>
