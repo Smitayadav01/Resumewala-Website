@@ -250,13 +250,11 @@ export default function Jobs() {
                       <p className="text-lg font-bold text-gray-900 mb-4">{job.salary}</p>
                     )}
 
-                    <div className="flex flex-wrap gap-2 mb-5">
-                      {job.requirements?.slice(0, 3).map((skill, index) => (
-                        <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
+                    <div className="mb-5">
+  <p className="text-sm text-gray-600 leading-relaxed break-words">
+    {job.requirements?.slice(0, 3).join(' • ')}
+  </p>
+</div>
 
                     <ApplyButton job={job} fromModal={false} extraClass="w-full py-2.5" />
                   </div>
@@ -304,7 +302,7 @@ export default function Jobs() {
               <h3 className="text-xl font-bold text-gray-900 mb-3">Required Skills</h3>
               <div className="flex flex-wrap gap-3">
                 {selectedJob.requirements?.map((skill, index) => (
-                  <span key={index} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-medium">
+                  <span key={index} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-medium break-words max-w-full">
                     {skill}
                   </span>
                 ))}

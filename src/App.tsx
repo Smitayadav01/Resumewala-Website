@@ -18,6 +18,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Employee from "./pages/Employee";
 import ScrollToTop from './components/ScrollToTop';
+import Dashboard from './pages/Dashboard';
 
 
 function AppContent() {
@@ -25,6 +26,7 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, isAdmin } = useAuth();
+  const isEmployeeRoute = location.pathname.startsWith("/employee");
 
   const authenticated = isAuthenticated();
 
@@ -53,13 +55,14 @@ function AppContent() {
       <Toaster position="top-right" reverseOrder={false} />
 
       {/* Hide navbar only on login page */}
-      {location.pathname !== "/login" && (
-        <Navbar
-          currentPage={location.pathname}
-          isLoggedIn={authenticated}
-          isAdmin={isAdmin()}
-        />
-      )}
+      {/* Navbar */}
+{!isEmployeeRoute && location.pathname !== "/login" && (
+  <Navbar
+    currentPage={location.pathname}
+    isLoggedIn={authenticated}
+    isAdmin={isAdmin()}
+  />
+)}
 
       <div className="flex-1">
 
@@ -80,7 +83,7 @@ function AppContent() {
 
          <Route path="/jobs" element={<Jobs />} />
 
-           <Route path="/employee" element={<Employee />} />
+          <Route path="/employee/*" element={<Employee />} />
 
           <Route
             path="/profile"
@@ -111,7 +114,7 @@ function AppContent() {
 
       </div>
 
-      {location.pathname !== '/login' && <Footer />}
+      {!isEmployeeRoute && location.pathname !== '/login' && <Footer />}
 
       <ScrollToTop />
     </div>
