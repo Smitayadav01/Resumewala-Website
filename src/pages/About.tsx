@@ -89,6 +89,79 @@ export default function About() {
         </div>
       </section>
 
+       {/* ===== FOUNDER SECTION ===== */}
+<section className="py-12 md:py-16 bg-gradient-to-br from-white to-blue-50">
+  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div className="text-center mb-10 md:mb-12">
+      <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3">
+        Meet Our Founder
+      </h2>
+      <p className="text-base md:text-lg text-gray-600">
+        The vision behind Resumewala
+      </p>
+    </div>
+
+    <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
+
+      {/* LEFT → IMAGE */}
+<div className="flex justify-center md:justify-start">
+  <img
+    src={founderImg}
+    alt="Satish Pawar"
+    className="
+      w-64 h-64
+      sm:w-72 sm:h-72
+      md:w-80 md:h-80
+      lg:w-[380px] lg:h-[380px]
+      xl:w-[420px] xl:h-[420px]
+      object-cover
+      rounded-2xl
+      shadow-xl
+      border border-gray-200
+    "
+  />
+</div>
+
+      {/* RIGHT → CONTENT */}
+      <div className="space-y-3 md:space-y-4">
+        <h3 className="text-xl md:text-3xl font-bold text-gray-900">
+          Satish Pawar
+        </h3>
+
+        <p className="text-blue-600 font-semibold text-sm md:text-lg">
+          Founder – Resumewala
+        </p>
+
+        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+          Satish Pawar brings over 17 years of experience in banking and leadership roles, with a strong understanding of how recruiters evaluate and shortlist candidates across industries.
+        </p>
+
+        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+          He started Resumewala with the aim of bridging the gap between recruiters and job seekers. Many capable candidates miss opportunities because their profiles do not effectively reach the right recruiters.
+        </p>
+
+        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+          In many cases, recruiters focus more on experienced candidates due to hiring pressure, limited time, and the cost involved in accessing multiple resume databases. As a result, freshers and deserving candidates are often overlooked.
+        </p>
+
+        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+          At the same time, many job seekers are not aware of suitable opportunities, or their profiles are not presented clearly to highlight their strengths and achievements.
+        </p>
+
+        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+          With his practical exposure to recruitment, Satish guides job seekers to present their profiles in a structured and professional way so recruiters can easily understand their capabilities.
+        </p>
+
+        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+          Resumewala focuses on improving candidate visibility, increasing shortlisting chances, and helping job seekers move closer to the right career opportunities.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
       {/* MISSION */}
       <section className="py-12 sm:py-16 bg-gradient-to-br from-blue-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -277,79 +350,6 @@ export default function About() {
 
         <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed">
           We're here to make that happen, one connection at a time.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-     {/* ===== FOUNDER SECTION ===== */}
-<section className="py-12 md:py-16 bg-gradient-to-br from-white to-blue-50">
-  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-    <div className="text-center mb-10 md:mb-12">
-      <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3">
-        Meet Our Founder
-      </h2>
-      <p className="text-base md:text-lg text-gray-600">
-        The vision behind Resumewala
-      </p>
-    </div>
-
-    <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
-
-      {/* LEFT → IMAGE */}
-<div className="flex justify-center md:justify-start">
-  <img
-    src={founderImg}
-    alt="Satish Pawar"
-    className="
-      w-64 h-64
-      sm:w-72 sm:h-72
-      md:w-80 md:h-80
-      lg:w-[380px] lg:h-[380px]
-      xl:w-[420px] xl:h-[420px]
-      object-cover
-      rounded-2xl
-      shadow-xl
-      border border-gray-200
-    "
-  />
-</div>
-
-      {/* RIGHT → CONTENT */}
-      <div className="space-y-3 md:space-y-4">
-        <h3 className="text-xl md:text-3xl font-bold text-gray-900">
-          Satish Pawar
-        </h3>
-
-        <p className="text-blue-600 font-semibold text-sm md:text-lg">
-          Founder – Resumewala
-        </p>
-
-        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-          Satish Pawar brings over 17 years of experience in banking and leadership roles, with a strong understanding of how recruiters evaluate and shortlist candidates across industries.
-        </p>
-
-        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-          He started Resumewala with the aim of bridging the gap between recruiters and job seekers. Many capable candidates miss opportunities because their profiles do not effectively reach the right recruiters.
-        </p>
-
-        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-          In many cases, recruiters focus more on experienced candidates due to hiring pressure, limited time, and the cost involved in accessing multiple resume databases. As a result, freshers and deserving candidates are often overlooked.
-        </p>
-
-        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-          At the same time, many job seekers are not aware of suitable opportunities, or their profiles are not presented clearly to highlight their strengths and achievements.
-        </p>
-
-        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-          With his practical exposure to recruitment, Satish guides job seekers to present their profiles in a structured and professional way so recruiters can easily understand their capabilities.
-        </p>
-
-        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-          Resumewala focuses on improving candidate visibility, increasing shortlisting chances, and helping job seekers move closer to the right career opportunities.
         </p>
       </div>
 
