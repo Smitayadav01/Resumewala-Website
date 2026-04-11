@@ -86,10 +86,9 @@ const downloadResume = async (req, res) => {
         const { url, fileName, mimeType } = profile.resume;
 
         const response = await axios.get(url, {
-            responseType: "stream",
+            responseType: "arraybuffer", // ✅ important
         });
 
-        // ✅ Always trust Cloudinary first, fallback to DB
         res.setHeader(
             "Content-Type",
             response.headers["content-type"] || mimeType
@@ -100,11 +99,12 @@ const downloadResume = async (req, res) => {
             `attachment; filename="${fileName}"`
         );
 
-        response.data.pipe(res);
+        res.send(Buffer.from(response.data));
 
     } catch (error) {
         console.error("Resume download error:", error);
         res.status(500).json({ message: "Failed to download resume" });
     }
 };
+
 export { getAllProfiles, getProfile, EditProfile, deleteProfile, downloadResume };
