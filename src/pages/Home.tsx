@@ -65,12 +65,14 @@ useEffect(() => {
 
   try {
     const token = localStorage.getItem("token"); // ✅ optional now
+    if(!token){
+      toast.error("User is not loggedin")
+      navigate("")
+    }
 
     // 👇 pass token only if exists
     const prev = localStorage.getItem("guestResumePublicId")
-    console.log("uploaded1");
     const res = await uploadResume(file, token || undefined, prev ?? undefined)
-    console.log("uploeded2");
     if (!res.ok) {
       toast.error("Failed to parse resume");
       setParsing(false);
@@ -78,23 +80,28 @@ useEffect(() => {
     }
 
     const data = await res.json();
+    
 
-setProfile(data.profile);
+    setProfile(data.profile);
+    localStorage.setItem(
+      "guestResumePublicId",
+      data.profile?.resume?.publicId || ""
+    );
 
-setTimeout(() => {
-  setParsing(false);
+    setTimeout(() => {
+      setParsing(false);
 
-  const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-  if (!token) {
-  localStorage.setItem("guestResume", JSON.stringify(data.profile));
+      if (!token) {
+      localStorage.setItem("guestResume", JSON.stringify(data.profile));
 
-  setShowSuccessModal(true); // ✅ show popup instead of direct redirect
-} else {
-  navigate("/profile");
-}
+      setShowSuccessModal(true); // ✅ show popup instead of direct redirect
+    } else {
+      navigate("/login");
+    }
 
-}, 1200);
+    }, 1200);
 
   } catch (err) {
     console.error(err);

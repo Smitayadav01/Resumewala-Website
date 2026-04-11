@@ -148,10 +148,9 @@ useEffect(() => {
 
       const blob = await res.blob();
 
-      // ⭐ get filename from header
       const contentDisposition = res.headers.get("content-disposition");
 
-      let fileName = "resume";
+      let fileName = "resume.pdf"; // ✅ default
 
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?(.+)"?/);
@@ -173,8 +172,7 @@ useEffect(() => {
       window.URL.revokeObjectURL(url);
 
     } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+      console.error(err);
     }
   };
 

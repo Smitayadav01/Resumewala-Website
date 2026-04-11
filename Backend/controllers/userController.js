@@ -245,18 +245,18 @@ export const Register = async (req, res) => {
 
 
     // 5️⃣ Send welcome email to user
-    await sendEmail({
-  to: user.email,
-  subject: "Welcome to Resumewala 🎉",
-  html: welcomeTemplate(user.fullName),
-});
+//     await sendEmail({
+//   to: user.email,
+//   subject: "Welcome to Resumewala 🎉",
+//   html: welcomeTemplate(user.fullName),
+// });
 
-    // 6️⃣ Send admin notification email
-    await sendEmail({
-  to: process.env.ADMIN_EMAIL,
-  subject: "🚀 New User Registered - Resumewala",
-  html: adminNotificationTemplate(user),
-});
+//     // 6️⃣ Send admin notification email
+//     await sendEmail({
+//   to: process.env.ADMIN_EMAIL,
+//   subject: "🚀 New User Registered - Resumewala",
+//   html: adminNotificationTemplate(user),
+// });
 
     // 7️⃣ Send response
     return res.status(201).json({

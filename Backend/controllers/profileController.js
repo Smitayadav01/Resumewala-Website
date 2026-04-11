@@ -10,6 +10,7 @@ import https from "https";
 
 const uploadResume = async (req, res) => {
   try {
+    console.log("HEADERS:", req.headers.authorization);
 
     if (!req.file) {
       return res.status(400).json({
@@ -19,9 +20,29 @@ const uploadResume = async (req, res) => {
     }
 
     // ✅ STEP 1 — extract text
-    const text = await extractResumeText(req.file);
+    let text = "";
 
-    // ✅ STEP 2 — AI parse
+    try {
+      text = await extractResumeText(req.file);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || "Failed to read resume file",
+      });
+    }
+
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: "Only PDF or DOCX files are allowed",
+      });
+    }
     const aiParsed = await parseResumeWithAI(text);
 
     const parsedSkills = aiParsed.skills || [];
@@ -54,26 +75,71 @@ const uploadResume = async (req, res) => {
     };
 
     // ✅ STEP 4 — RETURN ONLY
-    return res.status(200).json({
-      success: true,
-      guest: !req.user,
-      profile: {
+    if (!req.user) {
+  return res.status(200).json({
+    success: true,
+    guest: true,
+    profile: {
+      personal: parsedPersonal,
+      skills: parsedSkills,
+      experience: parsedExperience,
+      education: parsedEducation,
+      resume: resumeData,
+    },
+  });
+}
+
+// ============================
+// ✅ CASE 2: LOGGED-IN USER
+// ============================
+
+const userId = req.user._id;
+console.log("My USer:", userId)
+
+// check if profile exists
+const existingProfile = await Profile.findOne({ userId });
+
+// ⭐ delete old resume if exists
+if (existingProfile?.resume?.publicId) {
+  await cloudinary.uploader.destroy(
+    existingProfile.resume.publicId,
+    { resource_type: "raw" }
+  );
+}
+
+// ✅ create/update profile
+  const updatedProfile = await Profile.findOneAndUpdate(
+    { userId },
+    {
+      $set: {
         personal: parsedPersonal,
         skills: parsedSkills,
         experience: parsedExperience,
         education: parsedEducation,
         resume: resumeData,
       },
-    });
+    },
+    {
+      new: true,
+      upsert: true,
+    }
+  );
+  console.log(updatedProfile)
 
-  } catch (error) {
-    console.error("Resume upload error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Resume parsing failed"
-    });
-  }
-};
+  return res.status(200).json({
+    success: true,
+    guest: false,
+    profile: updatedProfile,
+  });
+
+    } catch (error) {
+      console.error("Resume upload error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Resume parsing failed"
+      });
+    }
+  };
 
 
 /* ================= GET PROFILE ================= */
@@ -100,67 +166,17 @@ const getProfile = async (req, res) => {
 const EditProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-
-    const updates = {};
-
-    /* ---------- VALIDATION ---------- */
-    if (req.body.personal) {
-      const {
-        fullName,
-        email,
-        city,
-        currentStatus,
-        highestQualification
-      } = req.body.personal;
-
-      if (!fullName || !email || !city || !currentStatus || !highestQualification) {
-        return res.status(400).json({
-          success: false,
-          message: "Please fill all required fields (Full Name, Email, City, Current Status, Highest Qualification)"
-        });
-      }
-    }
-
-    /* ---------- PERSONAL (PARTIAL UPDATE) ---------- */
-    if (req.body.personal && typeof req.body.personal === "object") {
-      for (const key in req.body.personal) {
-        updates[`personal.${key}`] = req.body.personal[key];
-      }
-    }
-
-    /* ---------- TOP-LEVEL FIELDS ---------- */
-    const allowedTopLevel = [
-      "skills",
-      "experience",
-      "education",
-      "profileVisible"
-    ];
-
-    for (const key of allowedTopLevel) {
-      if (req.body[key] !== undefined) {
-        updates[key] = req.body[key];
-      }
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ message: "No valid fields to update" });
-    }
-
     const profile = await Profile.findOneAndUpdate(
       { userId },
-      { $set: updates },
-      { new: true, runValidators: true }
+      { $set: req.body },
+      { new: true }
     );
-
     res.status(200).json({ success: true, profile });
-
   } catch (error) {
     console.error("Edit profile error:", error);
     res.status(500).json({ message: "Failed to update profile" });
   }
 };
-
-
 /* ================= DOWNLOAD RESUME ================= */
 
 const downloadResume = async (req, res) => {

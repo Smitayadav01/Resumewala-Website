@@ -151,7 +151,7 @@ useEffect(() => {
   const hydrateProfile = async () => {
 
     const token = localStorage.getItem("token");
-
+    console.log(token)
     // ⭐ CASE-1 → Logged user → DB fetch
     if (token) {
       try {
@@ -162,6 +162,7 @@ useEffect(() => {
         });
 
         const data = await res.json();
+        console.log(data)
 
         if (data?.profile) {
           setProfile(data.profile);
