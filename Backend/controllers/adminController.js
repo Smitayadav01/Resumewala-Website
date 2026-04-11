@@ -83,20 +83,21 @@ const downloadResume = async (req, res) => {
             return res.status(404).json({ message: "Resume not found" });
         }
 
-        const { url, fileName, mimeType } = profile.resume;
+        const { url, fileName } = profile.resume;
 
         const response = await axios.get(url, {
-            responseType: "arraybuffer", // ✅ important
+            responseType: "arraybuffer",
         });
 
-        res.setHeader(
-            "Content-Type",
-            response.headers["content-type"] || mimeType
-        );
+        const safeFileName = encodeURIComponent(fileName);
 
+        // 🔥 FIX 1 (VERY IMPORTANT)
+        res.setHeader("Content-Type", "application/octet-stream");
+
+        // 🔥 FIX 2 (safe filename)
         res.setHeader(
             "Content-Disposition",
-            `attachment; filename="${fileName}"`
+            `attachment; filename*=UTF-8''${safeFileName}`
         );
 
         res.send(Buffer.from(response.data));
