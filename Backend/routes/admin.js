@@ -14,6 +14,6 @@ router.put("/profile/:id", authMiddleware, roleMiddleware(["admin"]), EditProfil
 
 router.delete("/profile/:id", authMiddleware, roleMiddleware(["admin"]), deleteProfile);
 
-router.get("/download-resume/:id", authMiddleware, roleMiddleware(["admin"]), downloadResume);
+router.get("/download-resume/:id", authMiddleware, downloadResume);
 
 export default router;
