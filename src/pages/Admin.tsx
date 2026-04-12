@@ -23,6 +23,8 @@ export default function Admin() {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteCandidateId, setDeleteCandidateId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
   title: '',
   company: '',
@@ -218,7 +220,59 @@ const res = await fetch(url, {
   }
 };
 
+const handleViewResume = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
 
+    const res = await fetch(
+      `${API_URL}/api/admin/download-resume/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to load resume");
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    setPreviewUrl(url); // open modal
+
+  } catch (err: any) {
+    toast.error(err.message);
+  }
+};
+
+const deleteCandidate = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${API_URL}/api/admin/profile/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete");
+    }
+
+    toast.success("Candidate deleted");
+
+    setCandidates(prev => prev.filter(c => c.id !== id));
+    setDeleteCandidateId(null); // close modal
+
+  } catch (err: any) {
+    toast.error(err.message);
+  }
+};
   const deleteJob = async (_id: string) => {
   const confirmDelete = window.confirm("Are you sure you want to delete this job?");
   if (!confirmDelete) return;
@@ -354,7 +408,7 @@ const res = await fetch(url, {
                           <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email</th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Mobile</th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Skills</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Resume</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -379,12 +433,31 @@ const res = await fetch(url, {
                                 )}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
-                              <button onClick={() => downloadResume(candidate.userId)} className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium">
-                                <Download className="h-4 w-4" />
-                                <span>Download</span>
-                              </button>
-                            </td>
+                            <td className="px-6 py-4 flex items-center space-x-3">
+
+                              {/* VIEW */}
+  <button
+    onClick={() => handleViewResume(candidate.id)}
+    className="flex items-center space-x-1 text-green-500 hover:text-green-600"
+  >
+    <span>View</span>
+  </button>
+  <button
+    onClick={() => downloadResume(candidate.id)}
+    className="flex items-center space-x-2 text-blue-500 hover:text-blue-600 font-medium"
+  >
+    <Download className="h-4 w-4" />
+    <span>Download</span>
+  </button>
+
+  <button
+    onClick={() => setDeleteCandidateId(candidate.id)}
+    className="flex items-center space-x-1 text-red-500 hover:text-red-600"
+  >
+    <Trash2 className="h-4 w-4" />
+    <span>Delete</span>
+  </button>
+</td>
                           </tr>
                         ))}
                       </tbody>
@@ -396,6 +469,68 @@ const res = await fetch(url, {
           </div>
         </div>
       </div>
+
+
+{deleteCandidateId && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+
+      <h2 className="text-lg font-bold text-gray-800 mb-3">
+        Confirm Delete
+      </h2>
+
+      <p className="text-gray-600 mb-5">
+        Are you sure you want to delete this candidate? This action cannot be undone.
+      </p>
+
+      <div className="flex justify-end space-x-3">
+        
+        <button
+          onClick={() => setDeleteCandidateId(null)}
+          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={() => deleteCandidate(deleteCandidateId)}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}
+
+
+{previewUrl && (
+  <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+
+    <div className="bg-white rounded-lg w-full max-w-4xl h-[90vh] relative">
+
+      {/* CLOSE BUTTON */}
+      <button
+        onClick={() => setPreviewUrl(null)}
+        className="absolute top-3 right-3 text-gray-600 hover:text-black"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      {/* PDF VIEWER */}
+      <iframe
+        src={previewUrl}
+        className="w-full h-full rounded-lg"
+        title="Resume Preview"
+      />
+
+    </div>
+
+  </div>
+)}
 
       {showJobModal && (
         <div

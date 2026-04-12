@@ -16,4 +16,5 @@ router.delete("/profile/:id", authMiddleware, roleMiddleware(["admin"]), deleteP
 
 router.get("/download-resume/:id", authMiddleware, downloadResume);
 
+
 export default router;

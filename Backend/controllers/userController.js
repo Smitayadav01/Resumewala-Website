@@ -141,11 +141,14 @@ export const GoogleLogin = async (req, res) => {
     } // ✅ THIS WAS MISSING
 
     // Generate token for both new and existing users
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+   const token = jwt.sign(
+  {
+    userId: user._id,
+    role: user.role   // ✅ ADD THIS
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
 
     return res.status(200).json({
       success: true,
@@ -218,10 +221,13 @@ export const Register = async (req, res) => {
     
     // 4️⃣ Generate JWT
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+  {
+    userId: user._id,
+    role: user.role   // ✅ ADD THIS
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
 
 //     // Generate verification token
 // const verifyToken = crypto.randomBytes(32).toString("hex");
@@ -315,10 +321,13 @@ export const Login = async (req, res) => {
 
 
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+  {
+    userId: user._id,
+    role: user.role   // ✅ ADD THIS
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
 
     return res.status(200).json({
       success: true,

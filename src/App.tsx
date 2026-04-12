@@ -19,6 +19,9 @@ import ResetPassword from "./pages/ResetPassword";
 import Employee from "./pages/Employee";
 import ScrollToTop from './components/ScrollToTop';
 import Dashboard from './pages/Dashboard';
+import AdminRoute from "./components/AdminRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 
 
 function AppContent() {
@@ -91,11 +94,22 @@ function AppContent() {
           />
 
           <Route
+           path="/dashboard"
+           element={
+             <ProtectedRoute>
+               <Dashboard />
+             </ProtectedRoute>
+             }
+            />
+
+          <Route
             path="/admin"
             element={
+              
               authenticated && isAdmin()
                 ? <Admin />
                 : <Navigate to="/login" replace />
+                
             }
           />
 
