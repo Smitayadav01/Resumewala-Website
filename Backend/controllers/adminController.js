@@ -219,58 +219,72 @@ const downloadResume = async (req, res) => {
   try {
     const id = req.params.id;
 
+    // 🔹 Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid Profile ID" });
     }
 
+    // 🔹 Fetch profile
     const profile = await Profile.findById(id);
 
-    if (!profile?.resume?.url) {
+    if (!profile || !profile.resume || !profile.resume.url) {
       return res.status(404).json({ message: "Resume not found" });
     }
 
-    const { url, fileName } = profile.resume;
+    let { url, fileName } = profile.resume;
 
+    // 🔥 IMPORTANT FIX (prevents 401 error)
+    // Always force raw type for PDFs
+    if (url.includes("/image/upload/")) {
+      url = url.replace("/image/upload/", "/raw/upload/");
+    }
+
+    console.log("📥 Downloading from:", url);
+
+    // 🔹 Fetch file from Cloudinary
     const response = await axios.get(url, {
       responseType: "arraybuffer",
     });
 
+    // 🔹 Safe filename
     const safeFileName = encodeURIComponent(fileName || "resume.pdf");
 
-    // ✅ For preview inside browser (iframe)
+    // 🔹 Headers for browser preview
     res.setHeader("Content-Type", "application/pdf");
+
+    // 👉 Change to "attachment" if you want force download
     res.setHeader(
       "Content-Disposition",
       `inline; filename*=UTF-8''${safeFileName}`
     );
 
-    res.send(Buffer.from(response.data));
+    // 🔹 Send file
+    return res.send(Buffer.from(response.data));
 
   } catch (error) {
-    console.error("Resume download error:", error);
-    res.status(500).json({ message: "Failed to fetch resume" });
-  }
-};
+    console.error("❌ Resume download error:", error.message);
 
-
-export const getMe = async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
+    // 🔴 Better error handling
+    if (error.response?.status === 401) {
+      return res.status(401).json({
+        message: "File is not public or URL is incorrect",
+      });
     }
 
-    res.json({
-      user: {
-        id: req.user._id,
-        email: req.user.email,
-        role: req.user.role
-      }
-    });
+    if (error.response?.status === 404) {
+      return res.status(404).json({
+        message: "File not found on Cloudinary",
+      });
+    }
 
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({
+      message: "Failed to fetch resume",
+    });
   }
 };
+
+
+
 
 export {
   getAllProfiles,
