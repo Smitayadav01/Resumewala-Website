@@ -1,36 +1,38 @@
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from "react-hot-toast";
+import { lazy, Suspense } from "react";
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Landing from './pages/Landing';
-import Home from './pages/Home';
-import Upload from './pages/Upload';
-import Jobs from './pages/Jobs';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Profile from './pages/Profile';
-import Admin from './pages/Admin';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import { useAuth } from './context/AuthContext';
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Employee from "./pages/Employee";
 import ScrollToTop from './components/ScrollToTop';
-import Dashboard from './pages/Dashboard';
 import AdminRoute from "./components/AdminRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import { useAuth } from './context/AuthContext';
 
+// ✅ Lazy Loaded Pages
+const Home = lazy(() => import('./pages/Home'));
+const Landing = lazy(() => import('./pages/Landing'));
+const Upload = lazy(() => import('./pages/Upload'));
+const Jobs = lazy(() => import('./pages/Jobs'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Admin = lazy(() => import('./pages/Admin'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Employee = lazy(() => import("./pages/Employee"));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 
 function AppContent() {
 
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, isAdmin } = useAuth();
-  const isEmployeeRoute = location.pathname.startsWith("/employee");
 
+  const isEmployeeRoute = location.pathname.startsWith("/employee");
   const authenticated = isAuthenticated();
 
   const handleNavigate = (page: string) => {
@@ -46,7 +48,7 @@ function AppContent() {
       login: '/login',
       terms: '/terms',
       privacy: '/privacy',
-      employee:'/employee',
+      employee: '/employee',
     };
 
     navigate(routes[page] || '/');
@@ -57,77 +59,84 @@ function AppContent() {
 
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* Hide navbar only on login page */}
       {/* Navbar */}
-{!isEmployeeRoute && location.pathname !== "/login" && (
-  <Navbar
-    currentPage={location.pathname}
-    isLoggedIn={authenticated}
-    isAdmin={isAdmin()}
-  />
-)}
+      {!isEmployeeRoute && location.pathname !== "/login" && (
+        <Navbar
+          currentPage={location.pathname}
+          isLoggedIn={authenticated}
+          isAdmin={isAdmin()}
+        />
+      )}
 
       <div className="flex-1">
 
-        <Routes>
+        {/* ✅ Suspense added here */}
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center h-screen bg-white">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-600 text-sm">Loading...</p>
+              </div>
+            </div>
+          }
+        >
 
-          {/* HOME PAGE FIRST */}
-          <Route
-            path="/"
-            element={<Home onNavigate={handleNavigate} />}
-          />
+          <Routes>
 
-          {/* LOGIN / SIGNUP PAGE */}
-          <Route path="/login" element={<Landing />} />
-
-          {/* PROTECTED ROUTES */}
-
-         <Route path="/upload" element={<Upload />} />
-
-         <Route path="/jobs" element={<Jobs />} />
-
-          <Route path="/employee/*" element={<Employee />} />
-
-          <Route
-            path="/profile"
-            element={authenticated ? <Profile /> : <Navigate to="/login" replace />}
-          />
-
-          <Route
-           path="/dashboard"
-           element={
-             <ProtectedRoute>
-               <Dashboard />
-             </ProtectedRoute>
-             }
+            {/* HOME */}
+            <Route
+              path="/"
+              element={<Home onNavigate={handleNavigate} />}
             />
 
-          <Route
-            path="/admin"
-            element={
-              
-              authenticated && isAdmin()
-                ? <Admin />
-                : <Navigate to="/login" replace />
-                
-            }
-          />
+            {/* LOGIN */}
+            <Route path="/login" element={<Landing />} />
 
-          {/* PUBLIC PAGES */}
+            {/* MAIN ROUTES */}
+            <Route path="/upload" element={<Upload />} />
+            <Route path="/jobs" element={<Jobs />} />
 
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+            <Route path="/employee/*" element={<Employee />} />
 
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
+            {/* PROTECTED */}
+            <Route
+              path="/profile"
+              element={authenticated ? <Profile /> : <Navigate to="/login" replace />}
+            />
 
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-        </Routes>
+            <Route
+              path="/admin"
+              element={
+                authenticated && isAdmin()
+                  ? <Admin />
+                  : <Navigate to="/login" replace />
+              }
+            />
 
+            {/* PUBLIC */}
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+          </Routes>
+
+        </Suspense>
       </div>
 
+      {/* Footer */}
       {!isEmployeeRoute && location.pathname !== '/login' && <Footer />}
 
       <ScrollToTop />
