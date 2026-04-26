@@ -16,6 +16,89 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+const REFRESH_COOKIE_NAME = "rw_refresh";
+
+const publicUser = (user) => ({
+  id: user._id,
+  fullName: user.fullName,
+  email: user.email,
+  mobileNumber: user.mobileNumber,
+  role: user.role
+});
+
+const hashToken = (token) =>
+  crypto.createHash("sha256").update(token).digest("hex");
+
+const signAccessToken = (user) =>
+  jwt.sign(
+    {
+      userId: user._id,
+      role: user.role,
+      type: "access"
+    },
+    process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m" }
+  );
+
+const signRefreshToken = (user) =>
+  jwt.sign(
+    {
+      userId: user._id,
+      tokenId: crypto.randomBytes(16).toString("hex"),
+      type: "refresh"
+    },
+    process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET,
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d" }
+  );
+
+const setRefreshCookie = (res, refreshToken) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/api/auth",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+};
+
+const clearRefreshCookie = (res) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res.clearCookie(REFRESH_COOKIE_NAME, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/api/auth"
+  });
+};
+
+const readCookie = (req, name) => {
+  const rawCookie = req.headers.cookie;
+  if (!rawCookie) return null;
+
+  return rawCookie
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .reduce((value, cookie) => {
+      const [key, ...rest] = cookie.split("=");
+      return key === name ? decodeURIComponent(rest.join("=")) : value;
+    }, null);
+};
+
+const issueAuthTokens = async (res, user) => {
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+
+  user.refreshTokenHash = hashToken(refreshToken);
+  await user.save({ validateBeforeSave: false });
+
+  setRefreshCookie(res, refreshToken);
+
+  return accessToken;
+};
+
 export const ForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -132,28 +215,20 @@ export const GoogleLogin = async (req, res) => {
         password: crypto.randomBytes(16).toString("hex"),
       });
 
-      // Send welcome email only for new users
       await sendEmail({
         to: user.email,
-        subject: "Welcome to Resumewala 🎉",
+        subject: "Welcome to Resumewala",
         html: welcomeTemplate(name),
       });
-    } // ✅ THIS WAS MISSING
+    }
 
-    // Generate token for both new and existing users
-   const token = jwt.sign(
-  {
-    userId: user._id,
-    role: user.role   // ✅ ADD THIS
-  },
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
+    const token = await issueAuthTokens(res, user);
 
     return res.status(200).json({
       success: true,
       token,
-      user,
+      accessToken: token,
+      user: publicUser(user),
     });
 
   } catch (error) {
@@ -164,7 +239,6 @@ export const GoogleLogin = async (req, res) => {
     });
   }
 };
-
 export const Register = async (req, res) => {
   try {
     const { fullName, mobileNumber, email, password } = req.body;
@@ -219,15 +293,7 @@ export const Register = async (req, res) => {
 // });
 
     
-    // 4️⃣ Generate JWT
-    const token = jwt.sign(
-  {
-    userId: user._id,
-    role: user.role   // ✅ ADD THIS
-  },
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
+    const token = await issueAuthTokens(res, user);
 
 //     // Generate verification token
 // const verifyToken = crypto.randomBytes(32).toString("hex");
@@ -269,13 +335,8 @@ export const Register = async (req, res) => {
       success: true,
       message: "User registered successfully",
       token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        mobileNumber: user.mobileNumber,
-        role: user.role
-      }
+      accessToken: token,
+      user: publicUser(user)
     });
 
   } catch (error) {
@@ -320,26 +381,14 @@ export const Login = async (req, res) => {
     }
 
 
-    const token = jwt.sign(
-  {
-    userId: user._id,
-    role: user.role   // ✅ ADD THIS
-  },
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
+    const token = await issueAuthTokens(res, user);
 
     return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        mobileNumber: user.mobileNumber,
-        role: user.role
-      }
+      accessToken: token,
+      user: publicUser(user)
     });
 
   } catch (error) {
@@ -349,6 +398,86 @@ export const Login = async (req, res) => {
       message: "Server error"
     });
   }
+};
+
+export const RefreshToken = async (req, res) => {
+  try {
+    const refreshToken = readCookie(req, REFRESH_COOKIE_NAME);
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token missing"
+      });
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET
+    );
+
+    if (decoded.type !== "refresh") {
+      throw new Error("Invalid token type");
+    }
+
+    const user = await User.findById(decoded.userId);
+
+    if (!user || user.refreshTokenHash !== hashToken(refreshToken)) {
+      clearRefreshCookie(res);
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token invalid"
+      });
+    }
+
+    const token = await issueAuthTokens(res, user);
+
+    return res.status(200).json({
+      success: true,
+      token,
+      accessToken: token,
+      user: publicUser(user)
+    });
+  } catch (error) {
+    clearRefreshCookie(res);
+    return res.status(401).json({
+      success: false,
+      message: "Refresh token expired"
+    });
+  }
+};
+
+export const Logout = async (req, res) => {
+  try {
+    const refreshToken = readCookie(req, REFRESH_COOKIE_NAME);
+
+    if (refreshToken) {
+      await User.findOneAndUpdate(
+        { refreshTokenHash: hashToken(refreshToken) },
+        { $unset: { refreshTokenHash: "" } }
+      );
+    }
+
+    clearRefreshCookie(res);
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+    });
+  } catch (error) {
+    clearRefreshCookie(res);
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+    });
+  }
+};
+
+export const Me = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    user: publicUser(req.user)
+  });
 };
 
 
@@ -480,3 +609,5 @@ export const ResendOTP = async (req, res) => {
     });
   }
 };
+
+

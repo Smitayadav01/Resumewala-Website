@@ -10,7 +10,10 @@ const optionalAuth = async (req, res, next) => {
       return next();
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET
+    );
 
     // ✅ FETCH REAL USER FROM DB
     const user = await User.findById(decoded.userId).select("-password");

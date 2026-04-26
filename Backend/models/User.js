@@ -36,6 +36,7 @@ googleId: {
 },
 resetPasswordToken: String,
 resetPasswordExpire: Date,
+refreshTokenHash: String,
 isVerified: {
   type: Boolean,
   default: false

@@ -6,6 +6,7 @@ import { uploadResume } from '../services/profileApi';
 import { useProfile } from '../context/ProfileContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
+import { useAppSelector } from "../store/hooks";
 // import demoVideo from '../assets/demo.mp4';
 
 
@@ -22,6 +23,7 @@ export default function Home({ onNavigate }: HomeProps) {
   const [loading,setLoading] = useState(false); 
   const [parsing, setParsing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const isAuthenticated = useAppSelector((state) => Boolean(state.auth.accessToken));
 const rotatingWords = [
   "Get Discovered",
   "Get Noticed",
@@ -74,13 +76,11 @@ useEffect(() => {
   setUploading(true);
 
   try {
-    const token = localStorage.getItem("token");
-
 const prev = localStorage.getItem("guestResumePublicId");
 
 const res = await uploadResume(
   file,
-  token || undefined,
+  undefined,
   prev ?? undefined
 );
 
@@ -96,16 +96,14 @@ const res = await uploadResume(
     setTimeout(() => {
   setParsing(false);
 
-  const token = localStorage.getItem("token");
-
-  if (!token) {
+  if (!isAuthenticated) {
     // ✅ Guest flow
     localStorage.setItem("guestResume", JSON.stringify(data.profile));
     setShowSuccessModal(true);
   } else {
     // ✅ Logged-in flow
     toast.success("Resume uploaded successfully");
-    navigate("/browse-jobs");
+    navigate("/jobs");
   }
 }, 1200);
   } catch (err) {

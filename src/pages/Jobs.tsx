@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Job } from '../types';
 import browse from '../assets/browse.png';
 import { toast } from "sonner";
+import { authFetch } from '../services/apiClient';
 const API_URL = import.meta.env.VITE_API_URL;
 export default function Jobs() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,12 +29,7 @@ export default function Jobs() {
 
   const fetchAppliedJobs = async () => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    const res = await fetch(`${API_URL}/api/jobs/applied`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await authFetch('/api/jobs/applied');
 
     const data = await res.json();
 
@@ -59,9 +55,9 @@ export default function Jobs() {
 
   const handleApply = async (job: Job, fromModal = false) => {;
   
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
+  const profileRes = await authFetch('/api/profile');
+
+  if (profileRes.status === 401) {
     toast.error('Please login first');
     return;
   }
@@ -77,10 +73,6 @@ export default function Jobs() {
   setApplyingJobId(job._id);
 
   try {
-    const profileRes = await fetch(`${API_URL}/api/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    
     const profileData = await profileRes.json();
 
     if (!profileRes.ok) {
@@ -94,9 +86,8 @@ export default function Jobs() {
     formData.append('education', JSON.stringify(profileData.education || []));
     formData.append('skills', JSON.stringify(profileData.skills || []));
 
-    const res = await fetch(`${API_URL}/api/jobs/apply`, {
+    const res = await authFetch('/api/jobs/apply', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
     

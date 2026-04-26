@@ -1,7 +1,8 @@
 import express from "express";
-import {Login,Register,GoogleLogin} from "../controllers/userController.js";
+import {Login,Register,GoogleLogin,RefreshToken,Logout,Me} from "../controllers/userController.js";
 import { ForgotPassword, ResetPassword,VerifyEmail} from "../controllers/userController.js";
 import { VerifyOTP } from "../controllers/userController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -10,6 +11,12 @@ router.post("/register", Register);
 router.post("/login", Login);
 
 router.post("/google-login", GoogleLogin);
+
+router.post("/refresh", RefreshToken);
+
+router.post("/logout", Logout);
+
+router.get("/me", authMiddleware, Me);
 
 router.post("/forgot-password", ForgotPassword);
 
