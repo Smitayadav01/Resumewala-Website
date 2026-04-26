@@ -39,12 +39,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
 
-        if (storedToken && storedUser) {
+        if (storedToken ) {
             setToken(storedToken);
-            setUser(JSON.parse(storedUser));
-        }
+            
+          }
         setLoading(false);
     }, []);
     
@@ -60,7 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(response.user);
 
     localStorage.setItem("token", response.token);
-    localStorage.setItem("user", JSON.stringify(response.user));
 
     // ⭐ GUEST SYNC (background)
     const guestResume = localStorage.getItem("guestResume");
@@ -119,7 +117,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(response.user);
 
     localStorage.setItem("token", response.token);
-    localStorage.setItem("user", JSON.stringify(response.user));
 
     // ⭐ guest sync background
     const guestResume = localStorage.getItem("guestResume");
