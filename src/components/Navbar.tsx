@@ -52,14 +52,18 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
           {/* Logo */}
           <div
-  className="flex items-center  cursor-pointer"
+  className="flex flex-col sm:flex-row items-center sm:items-center gap-0 sm:gap-2 cursor-pointer leading-none"
   onClick={() => navigate('/')}
 >
   {/* Logo */}
-  <img src={logo} alt="Logo" className="h-18 sm:h-20 w-auto" />
+  <img
+    src={logo}
+    alt="Logo"
+    className="h-16 sm:h-20 w-auto"
+  />
 
   {/* Tagline */}
-  <span className="text-sm sm:text-base text-gray-700 font-medium">
+  <span className="text-[10px] sm:text-sm text-gray-500 font-medium -mt-1 sm:mt-0 text-center sm:text-left">
     India’s Smart Job Portal
   </span>
 </div>
