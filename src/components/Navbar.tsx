@@ -52,12 +52,17 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
           {/* Logo */}
           <div
-            className="flex items-center cursor-pointer"
-            onClick={() => navigate('/')}
-          >
-            <img src={logo} alt="Logo" className="h-24 w-auto" />
-          </div>
+  className="flex items-center  cursor-pointer"
+  onClick={() => navigate('/')}
+>
+  {/* Logo */}
+  <img src={logo} alt="Logo" className="h-18 sm:h-20 w-auto" />
 
+  {/* Tagline */}
+  <span className="text-sm sm:text-base text-gray-700 font-medium">
+    India’s Smart Job Portal
+  </span>
+</div>
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
 
