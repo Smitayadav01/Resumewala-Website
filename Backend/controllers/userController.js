@@ -19,6 +19,7 @@ const generateOTP = () => {
 export const ForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("Email received from frontend:", email);
 
     const user = await User.findOne({ email });
 
@@ -44,6 +45,7 @@ console.log("Email received:", email);
     await user.save();
 
     const resetUrl = `https://resumewala.co.in/reset-password/${resetToken}`;
+    console.log("Sending reset email to:", user.email);
 
     await sendEmail({
   to: user.email,
@@ -197,26 +199,26 @@ export const Register = async (req, res) => {
       password
     });
 
-//     const otp = generateOTP();
+    const otp = generateOTP();
 
-// user.emailOTP = otp;
-// user.emailOTPExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+user.emailOTP = otp;
+user.emailOTPExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-// await user.save();
+await user.save();
 
-// await sendEmail({
-//   to: user.email,
-//   subject: "Verify Your Email - OTP",
-//   html: `
-//     <div style="font-family:Arial;padding:20px">
-//       <h2>Email Verification</h2>
-//       <p>Hello ${user.fullName},</p>
-//       <p>Your OTP for email verification is:</p>
-//       <h1 style="letter-spacing:5px;">${otp}</h1>
-//       <p>This OTP expires in 10 minutes.</p>
-//     </div>
-//   `
-// });
+await sendEmail({
+  to: user.email,
+  subject: "Verify Your Email - OTP",
+  html: `
+    <div style="font-family:Arial;padding:20px">
+      <h2>Email Verification</h2>
+      <p>Hello ${user.fullName},</p>
+      <p>Your OTP for email verification is:</p>
+      <h1 style="letter-spacing:5px;">${otp}</h1>
+      <p>This OTP expires in 10 minutes.</p>
+    </div>
+  `
+});
 
     
     // 4️⃣ Generate JWT
@@ -229,40 +231,40 @@ export const Register = async (req, res) => {
   { expiresIn: "7d" }
 );
 
-//     // Generate verification token
-// const verifyToken = crypto.randomBytes(32).toString("hex");
+    // Generate verification token
+const verifyToken = crypto.randomBytes(32).toString("hex");
 
-// user.emailVerifyToken = crypto
-//   .createHash("sha256")
-//   .update(verifyToken)
-//   .digest("hex");
+user.emailVerifyToken = crypto
+  .createHash("sha256")
+  .update(verifyToken)
+  .digest("hex");
 
-// user.emailVerifyExpire = Date.now() + 24 * 60 * 60 * 1000;
+user.emailVerifyExpire = Date.now() + 24 * 60 * 60 * 1000;
 
-// await user.save();
+await user.save();
 
-// const verifyUrl = `http://localhost:5173/verify-email/${verifyToken}`;
+const verifyUrl = `http://localhost:5173/verify-email/${verifyToken}`;
 
-// await sendEmail({
-//   to: user.email,
-//   subject: "Verify Your Email",
-//   html: verifyEmailTemplate(user.fullName, verifyUrl),
-// });
+await sendEmail({
+  to: user.email,
+  subject: "Verify Your Email",
+  html: verifyEmailTemplate(user.fullName, verifyUrl),
+});
 
 
     // 5️⃣ Send welcome email to user
-//     await sendEmail({
-//   to: user.email,
-//   subject: "Welcome to Resumewala 🎉",
-//   html: welcomeTemplate(user.fullName),
-// });
+    await sendEmail({
+  to: user.email,
+  subject: "Welcome to Resumewala 🎉",
+  html: welcomeTemplate(user.fullName),
+});
 
-//     // 6️⃣ Send admin notification email
-//     await sendEmail({
-//   to: process.env.ADMIN_EMAIL,
-//   subject: "🚀 New User Registered - Resumewala",
-//   html: adminNotificationTemplate(user),
-// });
+    // 6️⃣ Send admin notification email
+    await sendEmail({
+  to: process.env.ADMIN_EMAIL,
+  subject: "🚀 New User Registered - Resumewala",
+  html: adminNotificationTemplate(user),
+});
 
     // 7️⃣ Send response
     return res.status(201).json({
