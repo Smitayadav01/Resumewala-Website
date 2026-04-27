@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, AlertCircle, Loader } from 'lucide-react';
+import { authFetch } from '../services/apiClient';
 
 export default function UploadResume() {
   const navigate = useNavigate();
@@ -62,19 +63,14 @@ export default function UploadResume() {
   const handleUpload = async () => {
   if (!file) return;
 
-  const token = localStorage.getItem("token");
-
   const formData = new FormData();
   formData.append("resume", file);
 
   try {
     setIsLoading(true);
 
-    const res = await fetch("https://resumewala.co.in/api/resume/upload", {
+    const res = await authFetch("/api/profile/upload-resume", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       body: formData,
     });
 

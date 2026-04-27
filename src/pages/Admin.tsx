@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2, Users, Briefcase, Download, X } from 'lucide-react';
 import { Job } from '../types';
 import { toast } from 'sonner';
+import { authFetch } from '../services/apiClient';
 const API_URL = import.meta.env.VITE_API_URL;
 
 
@@ -94,13 +95,10 @@ useEffect(() => {
     const fetchCandidates = async () => {
       try {
         setLoadingCandidates(true);
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_URL}/api/admin/profiles`, {
+        const res = await authFetch('/api/admin/profiles', {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
           },
-          
         });
 
         const data = await res.json();
@@ -133,16 +131,7 @@ useEffect(() => {
 
   const downloadResume = async (id: string) => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(
-        `${API_URL}/api/admin/download-resume/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await authFetch(`/api/admin/download-resume/${id}`);
 
       if (!res.ok) {
         throw new Error("Failed to download resume");
@@ -222,16 +211,7 @@ const res = await fetch(url, {
 
 const handleViewResume = async (id: string) => {
   try {
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(
-      `${API_URL}/api/admin/download-resume/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const res = await authFetch(`/api/admin/download-resume/${id}`);
 
     if (!res.ok) {
       throw new Error("Failed to load resume");
@@ -249,13 +229,8 @@ const handleViewResume = async (id: string) => {
 
 const deleteCandidate = async (id: string) => {
   try {
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(`${API_URL}/api/admin/profile/${id}`, {
+    const res = await authFetch(`/api/admin/profile/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
 
     const data = await res.json();

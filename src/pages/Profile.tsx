@@ -1,4 +1,3 @@
-const API_URL = import.meta.env.VITE_API_URL;
 import { useEffect, useState } from 'react';
 import {
   User,
@@ -17,6 +16,7 @@ import {
 import { useProfile } from '../context/ProfileContext';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../services/apiClient';
 
 interface ProfileProps {
 
@@ -149,40 +149,26 @@ const calculateAge = (dob: string) => {
 useEffect(() => {
 
   const hydrateProfile = async () => {
+    const guest = localStorage.getItem("guestResume");
 
-    const token = localStorage.getItem("token");
-    console.log(token)
-    // ⭐ CASE-1 → Logged user → DB fetch
-    if (token) {
+    if (!guest) {
       try {
-        const res = await fetch(`${API_URL}/api/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const res = await authFetch('/api/profile');
         const data = await res.json();
-        console.log(data)
 
         if (data?.profile) {
           setProfile(data.profile);
+          return;
         }
-
       } catch (err) {
         console.log("Profile fetch failed");
       }
-
-      return;
     }
-
-    // ⭐ CASE-2 → Guest hydration
-    const guest = localStorage.getItem("guestResume");
 
     if (guest) {
       const parsed = JSON.parse(guest);
       setProfile(parsed);
     }
-
   };
 
   hydrateProfile();
@@ -272,16 +258,13 @@ useEffect(() => {
     setActiveSection(activeSection === key ? null : key);
 
   const saveSection = async (section: SectionKey, data: any) => {
-    const token = localStorage.getItem("token");
-
     const payload: any = {};
     payload[section] = data;
 
-    const res = await fetch(`${API_URL}/api/profile`, {
+    const res = await authFetch('/api/profile', {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
@@ -1063,3 +1046,4 @@ const Card = ({ children }: any) => <div className="border rounded-lg p-4 mb-4">
 const AddBtn = ({ onClick }: any) => <button onClick={onClick} className="text-blue-600 mt-3 flex gap-1"><Plus /> Add</button>;
 const SaveBtn = ({ onClick }: any) => <button onClick={onClick} className="bg-blue-600 text-white px-6 py-2 rounded-lg flex gap-2 mt-4"><Save /> Save</button>;
 const Form = ({ children }: any) => <div className="bg-gray-50 border rounded-lg p-4 space-y-4">{children}</div>;
+

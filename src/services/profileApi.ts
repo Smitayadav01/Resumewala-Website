@@ -1,3 +1,5 @@
+import { authFetch } from "./apiClient";
+
 export const uploadResume = async (
   file: File,
   token?: string,
@@ -12,15 +14,13 @@ export const uploadResume = async (
     formData.append("previousPublicId", previousPublicId);
   }
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const headers: any = {};
 
   if (token && token !== "null") {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  return fetch(`${API_URL}/api/profile/upload-resume`, {
+  return authFetch("/api/profile/upload-resume", {
     method: "POST",
     headers,
     body: formData,

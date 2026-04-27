@@ -6,8 +6,9 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { GoogleLogin } from "@react-oauth/google";
+import { googleLoginUser } from "../store/authSlice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
-const API_URL = import.meta.env.VITE_API_URL;
 export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,6 +25,8 @@ export default function Landing() {
   });
 
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector((state) => Boolean(state.auth.accessToken));
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({
@@ -75,10 +78,10 @@ export default function Landing() {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("token")) {
-      navigate("/home");
+    if (isAuthenticated) {
+      navigate("/");
     }
-  }, [])
+  }, [isAuthenticated, navigate])
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -152,18 +155,11 @@ export default function Landing() {
 <div className="mb-6">
   <GoogleLogin
     onSuccess={async (credentialResponse) => {
-      const res = await fetch(`${API_URL}/api/auth/google-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ credential: credentialResponse.credential })
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+      try {
+        await dispatch(googleLoginUser(credentialResponse.credential)).unwrap();
         navigate("/");
+      } catch (error: any) {
+        toast.error(error.message || "Google Login Failed");
       }
     }}
     onError={() => {
