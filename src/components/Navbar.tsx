@@ -45,25 +45,25 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 sm:py-0">
 
         {/* Top Bar */}
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14 sm:h-16">
 
           {/* Logo */}
-          <div
-  className="flex flex-col sm:flex-row items-center sm:items-center gap-0 sm:gap-2 cursor-pointer leading-none"
+         <div
+  className="flex items-center cursor-pointer"
   onClick={() => navigate('/')}
 >
   {/* Logo */}
   <img
     src={logo}
     alt="Logo"
-    className="h-16 sm:h-20 w-auto"
+    className="h-12 sm:h-16 w-auto"
   />
 
   {/* Tagline */}
-  <span className="text-[10px] sm:text-sm text-gray-500 font-medium -mt-1 sm:mt-0 text-center sm:text-left">
+  <span className="text-[11px] sm:text-sm text-gray-500 font-medium whitespace-nowrap">
     India’s Smart Job Portal
   </span>
 </div>
