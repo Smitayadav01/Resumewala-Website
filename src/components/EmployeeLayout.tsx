@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from "../assets/logo.png";
+import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
   Briefcase,
@@ -20,6 +21,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const { logout } = useAuth();
 
  const navigation = [
   { name: 'Dashboard', href: '/employee', icon: LayoutDashboard },
@@ -87,7 +89,10 @@ const Layout = ({ children }: LayoutProps) => {
                 <p className="text-xs text-gray-500 truncate">admin@acme.com</p>
               </div>
             </div>
-            <button className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+            <button
+              onClick={logout}
+              className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <LogOut className="w-4 h-4 mr-3 text-gray-500" />
               Logout
             </button>
