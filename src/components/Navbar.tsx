@@ -1,8 +1,9 @@
 import { Briefcase, User, LogOut, Menu, X } from 'lucide-react';
-import logo from '../assets/logo.png';
+import logo from "../assets/logo.webp";
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
+import { useEmployerAuth } from '../context/EmployerAuthContext';
 
 interface NavbarProps {
   currentPage: string;
@@ -17,7 +18,14 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   const { logout, isAuthenticated } = useAuth();
   const authenticated = isAuthenticated();
 
+  const employerAuth = useEmployerAuth();
+  const employerLoggedIn = !!employerAuth?.employer;
+
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isEmployerRoute = location.pathname.startsWith('/employer');
 
   const handleLogout = () => {
     setMobileOpen(false);
@@ -41,6 +49,8 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
     navigate(routes[page] || '/');
   };
+
+ 
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -68,51 +78,105 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   </span>
 </div>
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-6">
+  <div className="hidden md:flex items-center space-x-6">
 
-            {/* Always visible */}
-            {authenticated && <NavBtn label="Home" page="home" />}
-            <NavBtn label="Browse Jobs" page="jobs" />
+  {isEmployerRoute ? (
+    <>
+      <button
+        onClick={() => navigate('/employer/dashboard')}
+        className="nav-btn font-medium text-gray-700"
+      >
+        Dashboard
+      </button>
 
-            {authenticated ? (
-              <>
-                {isAdmin ? (
-                  <NavBtn label="Admin Panel" page="admin" />
-                ) : (
-                  <button
-                    onClick={() => go('profile')}
-                    className={`flex items-center space-x-2 nav-btn ${
-                      currentPage === 'profile' ? 'text-blue-500' : ''
-                    }`}
-                  >
-                    <User className="h-5 w-5" />
-                    <span>My Profile</span>
-                  </button>
-                )}
+      <button
+        onClick={() => navigate('/employer/post-job')}
+        className="nav-btn font-medium text-gray-700"
+      >
+        Post Job
+      </button>
 
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 nav-btn hover:text-red-500"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Logout</span>
-                </button>
-              </>
-            ) : (
-              <>
-                <NavBtn label="About Us" page="about" />
-                <NavBtn label="Contact" page="contact" />
+      <button
+        onClick={() => navigate('/employer/manage-jobs')}
+        className="nav-btn font-medium text-gray-700"
+      >
+        Manage Jobs
+      </button>
 
-                <button
-                  onClick={() => go('login')}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Login / Sign Up
-                </button>
-              </>
-            )}
+      <button
+        onClick={() => navigate('/employer/applicants')}
+        className="nav-btn font-medium text-gray-700"
+      >
+        Applicants
+      </button>
 
-          </div>
+      <button
+        onClick={() => navigate('/employer/profile')}
+        className="nav-btn font-medium text-gray-700"
+      >
+        Company Profile
+      </button>
+
+      <button
+        onClick={() => {
+          employerAuth.logout();
+          navigate('/employer/login');
+        }}
+        className="flex items-center gap-2 text-red-500 font-medium"
+      >
+        <LogOut className="h-4 w-4" />
+        Logout
+      </button>
+    </>
+  ) : (
+    <>
+      {/* Existing Candidate Menu */}
+
+      {authenticated && <NavBtn label="Home" page="home" />}
+      <NavBtn label="Browse Jobs" page="jobs" />
+
+      {authenticated ? (
+        <>
+          {isAdmin ? (
+            <NavBtn label="Admin Panel" page="admin" />
+          ) : (
+            <button
+              onClick={() => go('profile')}
+              className={`flex items-center space-x-2 nav-btn ${
+                currentPage === 'profile' ? 'text-blue-500' : ''
+              }`}
+            >
+              <User className="h-5 w-5" />
+              <span>My Profile</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-2 nav-btn hover:text-red-500"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Logout</span>
+          </button>
+        </>
+      ) : (
+        <>
+          <NavBtn label="About Us" page="about" />
+          <NavBtn label="Contact" page="contact" />
+
+          <button
+            onClick={() => go('login')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Login / Sign Up
+          </button>
+        </>
+      )}
+    </>
+  )}
+
+</div>
+
 
           {/* Mobile Menu Button */}
           <button

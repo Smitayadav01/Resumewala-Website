@@ -11,6 +11,18 @@ const jobSchema = new mongoose.Schema({
   requirements: [{ type: String }],
   salary: { type: String },
   jobType: { type: String, default: "Full-time" },
+  // Status
+  status: {
+    type: String,
+    enum: ['Draft', 'Active', 'Closed'],
+    default: 'Draft',
+  },
+
+  // Counts
+  applicationsCount: { type: Number, default: 0 },
+
+  // Admin approval
+  isAdminApproved: { type: Boolean, default: true }, // set false if approval needed
   postedDate: { type: Date, default: Date.now }
 },{timestamps:true});
 

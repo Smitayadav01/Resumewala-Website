@@ -1,3 +1,9 @@
+import dns from "dns";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+console.log("DNS:", dns.getServers());
+
+
 import express from "express";
 import connectDB from "./config/db.js";
 import userRouter from './routes/userRouter.js'

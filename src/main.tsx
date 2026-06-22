@@ -9,6 +9,7 @@ import { AuthProvider } from './context/AuthContext';
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { EmployerAuthProvider } from "./context/EmployerAuthContext";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -17,9 +18,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <Toaster position='top-right' richColors />
           <AuthProvider>
+             <EmployerAuthProvider>
             <ProfileProvider>
               <App />
             </ProfileProvider>
+            </EmployerAuthProvider>
           </AuthProvider>
         </BrowserRouter>
       </GoogleOAuthProvider>

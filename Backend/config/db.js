@@ -1,15 +1,25 @@
+import dns from "dns";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import mongoose from "mongoose";
-import dotenv from 'dotenv';
-dotenv.config()
+import dotenv from "dotenv";
+
+dotenv.config();
+
+console.log("MONGO_URI =", process.env.MONGO_URI);
 
 const connectDB = async () => {
-    try{
-       await mongoose.connect(process.env.MONGO_URI,{dbName:"ResumeWala"})
-       console.log("Connected to DB")
-    }catch(e){
-        console.error("Error connecting to database",e);
-        process.exit(1);
-    }
-}
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      dbName: "ResumeWala",
+    });
+
+    console.log("Connected to DB");
+  } catch (e) {
+    console.error("Error connecting to database", e);
+    process.exit(1);
+  }
+};
 
 export default connectDB;

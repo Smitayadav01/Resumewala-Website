@@ -48,10 +48,10 @@ export default function Jobs() {
 }, []);
 
   const filteredJobs = jobs.filter((job) =>
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  (job.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+  (job.company || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+  (job.location || '').toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   const handleApply = async (job: Job, fromModal = false) => {;
   
