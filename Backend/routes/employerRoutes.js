@@ -24,7 +24,7 @@ import {
 } from "../controllers/applicationController.js";
 
 import { updateProfile, uploadLogo } from "../controllers/employerProfileController.js";
-import { createOrder, verifyPayment, getPaymentHistory } from "../controllers/paymentController.js";
+// import { createOrder, verifyPayment, getPaymentHistory } from "../controllers/paymentController.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -89,9 +89,9 @@ router.get("/applicants/all", getEmployerAllApplicants);
 router.get("/jobs/:jobId/applicants", getApplicants);
 router.patch("/applications/:id/status", updateApplicationStatus);
 
-router.post("/payment/create-order", createOrder);
-router.post("/payment/verify", verifyPayment);
-router.get("/payment/history", getPaymentHistory);
+// router.post("/payment/create-order", createOrder);
+// router.post("/payment/verify", verifyPayment);
+// router.get("/payment/history", getPaymentHistory);
 
 
 
