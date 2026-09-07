@@ -11,6 +11,8 @@ import {
   resetPasswordTemplate,
   adminNotificationTemplate
 } from "../utils/emailTemplates.js";
+import { sendCapiEvent } from "../utils/metaCapi.js";
+
 
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -332,23 +334,53 @@ await sendEmail({
   html: adminNotificationTemplate(user),
 });
 
-    // 7️⃣ Send response
+
+// ✅ Send CompleteRegistration to Meta Conversions API (server-side)
+    // try {
+    //   await sendCapiEvent({
+    //     eventName: "CompleteRegistration",
+    //     email: user.email,
+    //     phone: String(user.mobileNumber || ""),
+    //     clientIp: req.headers["x-forwarded-for"] || req.socket.remoteAddress || "",
+    //     clientUserAgent: req.headers["user-agent"] || "",
+    //     eventSourceUrl: `${process.env.FRONTEND_URL}/login`,
+    //   });
+    // } catch (capiErr) {
+    //   // Don't fail registration if CAPI fails
+    //   console.error("[Meta CAPI] Failed to send event:", capiErr);
+    // }
+
+
+// ✅ Only call CAPI if token is configured
+if (process.env.META_ACCESS_TOKEN) {
+  try {
+    await sendCapiEvent({
+      eventName: "CompleteRegistration",
+      email: user.email,
+      phone: String(user.mobileNumber || ""),
+      clientIp: req.headers["x-forwarded-for"] || req.socket.remoteAddress || "",
+      clientUserAgent: req.headers["user-agent"] || "",
+      eventSourceUrl: `${process.env.FRONTEND_URL}/login`,
+    });
+  } catch (capiErr) {
+    console.error("[Meta CAPI] Failed:", capiErr);
+  }
+}
+
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
       token,
       accessToken: token,
       user: publicUser(user)
-    });
+       });
 
   } catch (error) {
     console.error("Register error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error"
-    });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 export const Login = async (req, res) => {
   try {

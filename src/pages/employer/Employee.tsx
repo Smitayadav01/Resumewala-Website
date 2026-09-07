@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 
-import Layout from "../components/EmployeeLayout";
-import ProtectedRoute from "../components/ProtectedRoute";
+import Layout from "../../components/employer/EmployerLayout";
+import ProtectedRoute from "../../components/ProtectedRoute";
 
 // Auth Pages
 import EmployerLogin from "./EmployerLogin";
@@ -11,13 +11,13 @@ import EmployerRegister from "./EmployerRegister";
 // import VerifyEmployerEmail from "./VerifyEmployerEmail";
 
 // Dashboard Pages
-import Dashboard from "./Dashboard";
-import Jobs from "./Jobs";
+import Dashboard from "../Dashboard";
+import Jobs from "../Jobs";
 // import JobForm from "./JobForm";
 // import JobDetails from "./JobDetails";
-import Candidates from "./Candidates";
-import Analytics from "./Analytics";
-import Settings from "./Settings";
+import Candidates from "../Candidates";
+import Analytics from "../Analytics";
+import Settings from "../Settings";
 import EmployerProfile from "./EmployerProfile";
 // import PaymentHistory from "./PaymentHistory";
 

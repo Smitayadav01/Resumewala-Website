@@ -1,124 +1,103 @@
-import { authFetch } from "./apiClient";
+import axios from "axios";
 
-const get = (url: string) =>
-  authFetch(url, {
-    method: "GET",
-  });
+// Always appends /api regardless of what VITE_API_URL contains
+const BASE = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api`;
 
-const post = (url: string, data?: any) =>
-  authFetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: data ? JSON.stringify(data) : undefined,
-  });
+const getToken = () => localStorage.getItem("employerToken");
 
-const put = (url: string, data?: any) =>
-  authFetch(url, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: data ? JSON.stringify(data) : undefined,
-  });
+const api = axios.create({ baseURL: BASE });
 
-const del = (url: string) =>
-  authFetch(url, {
-    method: "DELETE",
-  });
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-// ─── AUTH ──────────────────────────────────────
-export const employerRegister = (data: object) =>
-  post("/employer/register", data);
-
-export const employerLogin = (data: {
-  email: string;
-  password: string;
-}) => post("/employer/login", data);
-
-export const employerForgotPassword = (email: string) =>
-  post("/employer/forgot-password", { email });
-
-export const employerResetPassword = (
-  token: string,
-  password: string
-) => post(`/employer/reset-password/${token}`, { password });
+// ─── Auth ─────────────────────────────────────────────────────
+export const registerEmployer = (data: object) =>
+  api.post("/employer/register", data).then((r) => r.data);
 
 export const verifyEmployerEmail = (token: string) =>
-  get(`/employer/verify-email/${token}`);
+  api.get(`/employer/verify-email/${token}`).then((r) => r.data);
 
-// ─── PROFILE & DASHBOARD ───────────────────────
-export const getEmployerProfile = () =>
-  get("/employer/profile");
+export const loginEmployer = (data: object) =>
+  api.post("/employer/login", data).then((r) => r.data);
 
-export const getEmployerDashboard = () =>
-  get("/employer/dashboard");
+export const forgotEmployerPassword = (email: string) =>
+  api.post("/employer/forgot-password", { email }).then((r) => r.data);
 
-// ─── JOBS ──────────────────────────────────────
+export const resetEmployerPassword = (token: string, password: string) =>
+  api.post(`/employer/reset-password/${token}`, { password }).then((r) => r.data);
+
+export const getEmployerMe = () =>
+  api.get("/employer/me").then((r) => r.data);
+
+// ─── Dashboard ────────────────────────────────────────────────
+export const getDashboardStats = () =>
+  api.get("/employer/dashboard/stats").then((r) => r.data);
+
+// ─── Profile ──────────────────────────────────────────────────
+export const updateEmployerProfile = (data: object) =>
+  api.put("/employer/profile", data).then((r) => r.data);
+
+export const uploadEmployerLogo = (formData: FormData) =>
+  api.post("/employer/profile/logo", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  }).then((r) => r.data);
+
+// ─── Jobs ─────────────────────────────────────────────────────
 export const createJob = (data: object) =>
-  post("/employer/jobs", data);
+  api.post("/employer/jobs", data).then((r) => r.data);
 
+// Update getMyJobs to handle creditInfo in response
 export const getMyJobs = () =>
-  get("/employer/jobs");
+  api.get("/employer/jobs").then((r) => {
+    // Backend now returns { jobs, creditInfo }
+    // Return just jobs array for backward compat, but also export creditInfo
+    return r.data;
+  });
+
+// Add new function for credit info
+export const getEmployerCreditInfo = () =>
+  api.get("/employer/jobs").then((r) => r.data.creditInfo);
+
 
 export const getJobById = (id: string) =>
-  get(`/employer/jobs/${id}`);
+  api.get(`/employer/jobs/${id}`).then((r) => r.data);
 
 export const updateJob = (id: string, data: object) =>
-  put(`/employer/jobs/${id}`, data);
+  api.put(`/employer/jobs/${id}`, data).then((r) => r.data);
 
 export const deleteJob = (id: string) =>
-  del(`/employer/jobs/${id}`);
+  api.delete(`/employer/jobs/${id}`).then((r) => r.data);
 
 export const duplicateJob = (id: string) =>
-  post(`/employer/jobs/${id}/duplicate`);
+  api.post(`/employer/jobs/${id}/duplicate`).then((r) => r.data);
 
-// ─── PUBLIC JOBS ───────────────────────────────
-export const getPublicJobs = () =>
-  get("/employer/jobs/public");
+// ─── Applicants ───────────────────────────────────────────────
 
-export const getPublicJobById = (id: string) =>
-  get(`/employer/jobs/public/${id}`);
+export const getAllApplicants = (params?: object) =>
+  api.get("/employer/applicants/all", { params }).then((r) => r.data);
 
-// ─── APPLICATIONS ──────────────────────────────
-export const getJobApplicants = (jobId: string) =>
-  get(`/employer/jobs/${jobId}/applicants`);
+export const getApplicants = (jobId: string, params?: object) =>
+  api.get(`/employer/jobs/${jobId}/applicants`, { params }).then((r) => r.data);
 
-export const updateApplicationStatus = (
-  appId: string,
-  status: string,
-  notes?: string
-) =>
-  put(`/employer/applications/${appId}/status`, {
-    status,
-    notes,
-  });
+export const updateApplicationStatus = (appId: string, status: string) =>
+  api.patch(`/employer/applications/${appId}/status`, { status }).then((r) => r.data);
 
-export const getAllApplications = () =>
-  get("/employer/applications");
-
-export const applyToJob = (jobId: string) =>
-  post(`/employer/jobs/${jobId}/apply`);
-
-export const getCandidateApplications = () =>
-  get("/employer/my-applications");
-
-// ─── PAYMENTS ──────────────────────────────────
+// ─── Payment ──────────────────────────────────────────────────
 export const createPaymentOrder = (plan: string) =>
-  post("/employer/payment/create-order", { plan });
+  api.post("/employer/payment/create-order", { plan }).then((r) => r.data);
 
 export const verifyPayment = (data: object) =>
-  post("/employer/payment/verify", data);
+  api.post("/employer/payment/verify", data).then((r) => r.data);
 
 export const getPaymentHistory = () =>
-  get("/employer/payment/history");
+  api.get("/employer/payment/history").then((r) => r.data);
 
+// ─── Public jobs (candidates browsing) ───────────────────────
+export const getPublicJobs = (params?: object) =>
+  api.get("/jobs", { params }).then((r) => r.data);
 
-export const updateEmployerProfile = (data: FormData) =>
-  authFetch("/employer/profile", {
-    method: "PUT",
-    body: data,
-  });
-
-  
+export const applyForJob = (jobId: string, data: object) =>
+  api.post(`/jobs/${jobId}/apply`, data).then((r) => r.data);

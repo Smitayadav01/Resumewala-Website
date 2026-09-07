@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { useAppSelector } from "../store/hooks";
 // import demoVideo from '../assets/demo.mp4';
+import { trackViewContent } from "../utils/metaPixel";
 
 
 interface HomeProps {
@@ -15,6 +16,11 @@ interface HomeProps {
 }
 
 export default function Home({ onNavigate }: HomeProps) {
+
+useEffect(() => {
+    trackViewContent("Home Page");
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const { setProfile } = useProfile();
@@ -33,6 +39,7 @@ const rotatingWords = [
 
 const [wordIndex, setWordIndex] = useState(0);
 
+
 useEffect(() => {
   const interval = setInterval(() => {
     setWordIndex((prev) => (prev + 1) % rotatingWords.length);
@@ -50,6 +57,7 @@ useEffect(() => {
     return () => clearTimeout(timer);
   }
 }, [showSuccessModal, navigate]);
+
 
  const handleFileSelect = async (file: File) => {
   if (!file || uploading) return;
@@ -228,6 +236,45 @@ const res = await uploadResume(
           </div>
         </div>
       </section>
+
+
+{/* Add this section inside your Home component JSX */}
+{/* ── Resume Services CTA ──────────────────────────────── */}
+{/* <section className="py-14 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+  <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+    <div>
+      <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-3 py-1 text-xs font-semibold mb-3">
+        ✨ New Service
+      </div>
+      <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+        Get Your Resume <span className="text-yellow-300">ATS-Ready</span>
+      </h2>
+      <p className="text-blue-100 text-sm sm:text-base max-w-lg leading-relaxed">
+        90% of resumes are rejected by ATS software before a human ever reads them.
+        Our experts rewrite your resume to pass filters and land you interviews.
+        Starting at just <strong className="text-yellow-300">₹99</strong>.
+      </p>
+      <div className="flex flex-wrap gap-3 mt-4">
+        {['ATS-Optimised', '36–48hr Delivery', 'Expert Writers', 'Free Revision'].map((tag) => (
+          <span key={tag} className="bg-white/15 text-white text-xs px-3 py-1 rounded-full">
+            ✓ {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+    <div className="flex flex-col gap-3 flex-shrink-0">
+      <button
+        onClick={() => navigate('/resume-services')}
+        className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-8 py-4 rounded-xl text-base transition shadow-lg whitespace-nowrap"
+      >
+        Fix My Resume →
+      </button>
+      <p className="text-blue-200 text-xs text-center">
+        Starting at ₹99 · No subscription needed
+      </p>
+    </div>
+  </div>
+</section> */}
 
       <section id="features" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

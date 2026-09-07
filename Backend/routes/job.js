@@ -1,6 +1,16 @@
 import express from "express";
 import multer from "multer";
-import { createJob, getJobs, deleteJob, updateJob } from "../controllers/jobController.js";
+import {
+  createJob,
+  getJobs,
+  deleteJob,
+  updateJob,
+  applyJob,
+  getMyJobs,
+  getJobById,
+  duplicateJob,
+  getPublicJobs,
+} from "../controllers/jobController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import CandidateModel from "../models/CandidateModel.js";
 import Job from "../models/job.js";
@@ -8,7 +18,7 @@ import ProfileModel from "../models/Profile.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { jobAppliedAdminTemplate, jobAppliedUserTemplate } from "../utils/emailTemplates.js";
 import UserModel from "../models/User.js";
-
+import { protectEmployer } from "../middlewares/employerAuthMiddleware.js";
 
 const router = express.Router();
 
@@ -24,7 +34,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// ----------------- JOB ROUTES -----------------
+// ----------------- PHASE 1 JOB ROUTES (unchanged) -----------------
 
 // Create Job
 router.post("/", createJob);
@@ -32,8 +42,7 @@ router.post("/", createJob);
 // Get All Jobs
 router.get("/", getJobs);
 
-// ✅ APPLY ROUTE MUST BE BEFORE /:id routes
-// Otherwise Express reads "apply" as an :id param and it never hits this handler
+// Apply Route
 router.post(
   "/apply",
   authMiddleware,
@@ -50,9 +59,8 @@ router.post(
         });
       }
 
-      const profile  = await ProfileModel.findOne({userId})
+      const profile = await ProfileModel.findOne({ userId });
 
-      // Check if job exists
       const job = await Job.findById(jobId);
       if (!job) {
         return res.status(404).json({
@@ -61,12 +69,7 @@ router.post(
         });
       }
 
-      // Check if user already applied
-      const existing = await CandidateModel.findOne({
-        jobId,
-        userId,
-      });
-
+      const existing = await CandidateModel.findOne({ jobId, userId });
       if (existing) {
         return res.status(400).json({
           success: false,
@@ -74,7 +77,6 @@ router.post(
         });
       }
 
-      // Create Candidate document
       const candidate = await CandidateModel.create({
         jobId,
         userId,
@@ -85,18 +87,19 @@ router.post(
         resumeUrl: profile.resume?.url || null,
       });
 
-      // after candidate is created, fetch user info for email
+      // ✅ THIS IS THE FIX — increment both count fields
+      await Job.findByIdAndUpdate(jobId, {
+        $inc: { applicantsCount: 1, applicationsCount: 1 }
+      });
+
       const user = await UserModel.findById(userId);
 
-      //Email to user
-      
       await sendEmail({
         to: user.email,
         subject: `✅ Application Submitted - ${job.title} at ${job.company}`,
         html: jobAppliedUserTemplate(user.fullName, job.title, job.company),
       });
 
-      // Email to admin
       await sendEmail({
         to: process.env.ADMIN_EMAIL,
         subject: `📋 New Application - ${job.title} at ${job.company}`,
@@ -119,31 +122,30 @@ router.post(
   }
 );
 
-
 router.get("/applied", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-
     const applications = await CandidateModel.find({ userId }).select("jobId");
-
-    const jobIds = applications.map(app => app.jobId.toString());
-
-    res.status(200).json({
-      success: true,
-      jobIds
-    });
-
+    const jobIds = applications.map((app) => app.jobId.toString());
+    res.status(200).json({ success: true, jobIds });
   } catch (error) {
     console.error("Fetch applied jobs error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch applied jobs"
-    });
+    res.status(500).json({ success: false, message: "Failed to fetch applied jobs" });
   }
 });
 
-// ✅ /:id routes come AFTER /apply
+// Phase 1 /:id routes
 router.put("/:id", updateJob);
 router.delete("/:id", deleteJob);
+
+// ----------------- PHASE 2 JOB ROUTES (new) -----------------
+
+// Public job listing for candidates browsing
+router.get("/public", getPublicJobs);
+
+// Employer-specific job routes (protected)
+router.get("/employer/myjobs", protectEmployer, getMyJobs);
+router.get("/employer/:id", protectEmployer, getJobById);
+router.post("/employer/:id/duplicate", protectEmployer, duplicateJob);
 
 export default router;

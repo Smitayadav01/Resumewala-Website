@@ -1,29 +1,27 @@
-const jwt = require('jsonwebtoken');
-const Employer = require('../models/Employer');
+import jwt from "jsonwebtoken";
+import Employer from "../models/Employer.js";
 
-const requireEmployerAuth = async (req, res, next) => {
+export const protectEmployer = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ success: false, message: 'Unauthorized. Please log in.' });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token, authorization denied." });
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (decoded.role !== 'employer') {
-      return res.status(403).json({ success: false, message: 'Access denied. Not an employer account.' });
+    if (decoded.role !== "employer") {
+      return res.status(403).json({ message: "Access denied. Employer only." });
     }
 
-    const employer = await Employer.findById(decoded.id).select('-password');
-    if (!employer) return res.status(401).json({ success: false, message: 'Employer not found.' });
-    if (employer.isBlocked) return res.status(403).json({ success: false, message: 'Your account has been suspended.' });
+    const employer = await Employer.findById(decoded.id).select("-password");
+    if (!employer) return res.status(401).json({ message: "Employer not found." });
+    if (employer.isBlocked) return res.status(403).json({ message: "Account is blocked." });
 
     req.employer = employer;
     next();
   } catch (err) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
+    res.status(401).json({ message: "Invalid token." });
   }
 };
-
-module.exports = { requireEmployerAuth };

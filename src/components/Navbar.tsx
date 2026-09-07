@@ -1,9 +1,8 @@
-import { Briefcase, User, LogOut, Menu, X } from 'lucide-react';
+import { User, LogOut, Menu, X } from 'lucide-react';
 import logo from "../assets/logo.webp";
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate,useLocation } from 'react-router-dom';
-import { useEmployerAuth } from '../context/EmployerAuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface NavbarProps {
   currentPage: string;
@@ -14,18 +13,10 @@ interface NavbarProps {
 export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps) {
 
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const { logout, isAuthenticated } = useAuth();
   const authenticated = isAuthenticated();
-
-  const employerAuth = useEmployerAuth();
-  const employerLoggedIn = !!employerAuth?.employer;
-
-
   const navigate = useNavigate();
   const location = useLocation();
-
-  const isEmployerRoute = location.pathname.startsWith('/employer');
 
   const handleLogout = () => {
     setMobileOpen(false);
@@ -34,9 +25,7 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   };
 
   const go = (page: string) => {
-
     setMobileOpen(false);
-
     const routes: Record<string, string> = {
       home: '/',
       jobs: '/jobs',
@@ -44,13 +33,12 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
       admin: '/admin',
       about: '/about',
       contact: '/contact',
-      login: '/login'
+      login: '/login',
+      employer: '/employer/login',
+      // resumeServices: '/resume-services',
     };
-
     navigate(routes[page] || '/');
   };
-
- 
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -61,122 +49,62 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
         <div className="flex justify-between items-center h-14 sm:h-16">
 
           {/* Logo */}
-         <div
-  className="flex items-center cursor-pointer"
-  onClick={() => navigate('/')}
->
-  {/* Logo */}
-  <img
-    src={logo}
-    alt="Logo"
-    className="h-12 sm:h-16 w-auto"
-  />
+          <div
+            className="flex items-center cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <img src={logo} alt="Logo" className="h-12 sm:h-16 w-auto" />
+            <span className="text-[11px] sm:text-sm text-gray-500 font-medium whitespace-nowrap">
+              India's Smart Job Portal
+            </span>
+          </div>
 
-  {/* Tagline */}
-  <span className="text-[11px] sm:text-sm text-gray-500 font-medium whitespace-nowrap">
-    India’s Smart Job Portal
-  </span>
-</div>
           {/* Desktop Menu */}
-  <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-6">
+            {authenticated && <NavBtn label="Home" page="home" />}
+             <NavBtn label="Post a Job for Free" page="employer" />
+             <NavBtn label="Browse Jobs" page="jobs" />
+           
 
-  {isEmployerRoute ? (
-    <>
-      <button
-        onClick={() => navigate('/employer/dashboard')}
-        className="nav-btn font-medium text-gray-700"
-      >
-        Dashboard
-      </button>
+            {authenticated ? (
+              <>
+                {isAdmin ? (
+                  <NavBtn label="Admin Panel" page="admin" />
+                ) : (
+                  <button
+                    onClick={() => go('profile')}
+                    className={`flex items-center space-x-2 nav-btn ${
+                      currentPage === 'profile' ? 'text-blue-500' : ''
+                    }`}
+                  >
+                    <User className="h-5 w-5" />
+                    <span>My Profile</span>
+                  </button>
+                )}
 
-      <button
-        onClick={() => navigate('/employer/post-job')}
-        className="nav-btn font-medium text-gray-700"
-      >
-        Post Job
-      </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 nav-btn hover:text-red-500"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <NavBtn label="About Us" page="about" />
+                <NavBtn label="Contact" page="contact" />
+                {/* <NavBtn label="Resume Help" page="resumeServices" /> */}
 
-      <button
-        onClick={() => navigate('/employer/manage-jobs')}
-        className="nav-btn font-medium text-gray-700"
-      >
-        Manage Jobs
-      </button>
-
-      <button
-        onClick={() => navigate('/employer/applicants')}
-        className="nav-btn font-medium text-gray-700"
-      >
-        Applicants
-      </button>
-
-      <button
-        onClick={() => navigate('/employer/profile')}
-        className="nav-btn font-medium text-gray-700"
-      >
-        Company Profile
-      </button>
-
-      <button
-        onClick={() => {
-          employerAuth.logout();
-          navigate('/employer/login');
-        }}
-        className="flex items-center gap-2 text-red-500 font-medium"
-      >
-        <LogOut className="h-4 w-4" />
-        Logout
-      </button>
-    </>
-  ) : (
-    <>
-      {/* Existing Candidate Menu */}
-
-      {authenticated && <NavBtn label="Home" page="home" />}
-      <NavBtn label="Browse Jobs" page="jobs" />
-
-      {authenticated ? (
-        <>
-          {isAdmin ? (
-            <NavBtn label="Admin Panel" page="admin" />
-          ) : (
-            <button
-              onClick={() => go('profile')}
-              className={`flex items-center space-x-2 nav-btn ${
-                currentPage === 'profile' ? 'text-blue-500' : ''
-              }`}
-            >
-              <User className="h-5 w-5" />
-              <span>My Profile</span>
-            </button>
-          )}
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-2 nav-btn hover:text-red-500"
-          >
-            <LogOut className="h-5 w-5" />
-            <span>Logout</span>
-          </button>
-        </>
-      ) : (
-        <>
-          <NavBtn label="About Us" page="about" />
-          <NavBtn label="Contact" page="contact" />
-
-          <button
-            onClick={() => go('login')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Login / Sign Up
-          </button>
-        </>
-      )}
-    </>
-  )}
-
-</div>
-
+                <button
+                  onClick={() => go('login')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Login / Sign Up
+                </button>
+              </>
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -191,13 +119,11 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
       {/* Mobile Menu */}
       {mobileOpen && (
-
         <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
-
           <div className="flex flex-col p-4 space-y-3">
 
-            {/* Always visible */}
             <MobileBtn label="Home" page="home" />
+            {/* <MobileBtn label="Resume Help" page="resumeServices" /> */}
             <MobileBtn label="Browse Jobs" page="jobs" />
 
             {authenticated ? (
@@ -236,13 +162,11 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
 
           </div>
         </div>
-
       )}
     </nav>
   );
 
   /* Desktop Button */
-
   function NavBtn({ label, page }: { label: string; page: string }) {
     return (
       <button
@@ -257,7 +181,6 @@ export default function Navbar({ currentPage, isLoggedIn, isAdmin }: NavbarProps
   }
 
   /* Mobile Button */
-
   function MobileBtn({
     label,
     page,

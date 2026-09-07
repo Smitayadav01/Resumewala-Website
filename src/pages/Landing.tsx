@@ -8,8 +8,14 @@ import { toast } from "sonner";
 import { GoogleLogin } from "@react-oauth/google";
 import { googleLoginUser } from "../store/authSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { trackViewContent } from "../utils/metaPixel";
+import { trackCompleteRegistration } from "../utils/metaPixel";
 
 export default function Landing() {
+useEffect(() => {
+    trackViewContent("Registration Page");
+  }, []);
+
   const [isLogin, setIsLogin] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading,setLoading] = useState(false)
@@ -91,17 +97,28 @@ export default function Landing() {
     return;
   }
 
-  const res = await register(
-    signupData.email,
-    signupData.fullName,
-    signupData.mobileNumber,
-    signupData.password,
-  );
+ setLoading(true);
+    try {
+      const res = await register(
+        signupData.email,
+        signupData.fullName,
+        signupData.mobileNumber,
+        signupData.password,
+      );
 
-  if (!res.success) {
-    toast.error("Registration failed");
-  }
-};
+      if (!res.success) {
+        toast.error(res.message || "Registration failed");
+      } else {
+        // ✅ Fire Meta Pixel CompleteRegistration on success
+        trackCompleteRegistration();
+        toast.success("Account created successfully!");
+      }
+    } catch (err) {
+      toast.error("Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  }; 
 
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50">

@@ -1,9 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, AlertCircle, Loader } from 'lucide-react';
 import { authFetch } from '../services/apiClient';
+import { trackViewContent } from "../utils/metaPixel";
+import { trackCompleteRegistration } from "../utils/metaPixel";
 
 export default function UploadResume() {
+
+useEffect(() => {
+    trackViewContent("Resume Upload Page");
+  }, []);
+
+
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -79,6 +87,9 @@ export default function UploadResume() {
     if (!res.ok) {
       throw new Error(data.message);
     }
+
+    // ✅ Fire Meta Pixel CompleteRegistration after successful resume upload
+      trackCompleteRegistration();
 
     // store parsed data to context
     navigate("/profile");

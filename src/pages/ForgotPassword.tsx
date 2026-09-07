@@ -2,10 +2,14 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
+interface Props {
+  employerMode?: boolean;
+}
 
-export default function ForgotPassword() {
+export default function ForgotPassword({ employerMode }: Props) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -15,17 +19,19 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+      const endpoint = employerMode
+        ? `${API_URL}/api/employer/forgot-password`
+        : `${API_URL}/api/auth/forgot-password`;
+
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success || res.ok) {
         toast.success("Password reset email sent");
         setEmail("");
       } else {
@@ -45,7 +51,9 @@ export default function ForgotPassword() {
           Forgot Password
         </h2>
         <p className="text-gray-600 text-center mb-6">
-          Enter your email to receive reset link
+          {employerMode
+            ? "Enter your employer email to receive a reset link"
+            : "Enter your email to receive reset link"}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -69,19 +77,19 @@ export default function ForgotPassword() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-60"
           >
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
 
         <p
-          onClick={() => navigate("/")}
+          onClick={() => navigate(employerMode ? "/employer/login" : "/")}
           className="text-center text-blue-600 mt-6 cursor-pointer hover:underline"
         >
           Back to Login
         </p>
-      </div>.
+      </div>
     </div>
   );
 }
