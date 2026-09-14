@@ -15,23 +15,34 @@ const employerSchema = new mongoose.Schema(
     industryType: { type: String, default: "" },
     companySize: { type: String, default: "" },
 
+    // ── Email verification ─────────────────────────────────
     isEmailVerified: { type: Boolean, default: false },
-    emailVerificationToken: { type: String },
-    emailVerificationExpires: { type: Date },
+    emailVerificationToken: { type: String, default: null },
+    emailVerificationExpires: { type: Date, default: null },
 
-    isApproved: { type: Boolean, default: true },
+    // ── Resend rate limiting ───────────────────────────────
+    emailResendCount: { type: Number, default: 0 },
+    lastResendAt: { type: Date, default: null },
+
+    // ── Admin approval ─────────────────────────────────────
+    isApproved: { type: Boolean, default: false },
+    approvedAt: { type: Date, default: null },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+
+    isRejected: { type: Boolean, default: false },
+    rejectedAt: { type: Date, default: null },
+    rejectionReason: { type: String, default: "" },
+
     isBlocked: { type: Boolean, default: false },
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false }, // verified badge
 
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date },
+    // ── Password reset ─────────────────────────────────────
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null },
 
+    // ── Subscription ───────────────────────────────────────
     subscription: {
-      plan: {
-        type: String,
-        enum: ["none", "basic", "standard", "premium"],
-        default: "none",
-      },
+      plan: { type: String, enum: ["none", "basic", "standard", "premium"], default: "none" },
       jobCredits: { type: Number, default: 0 },
       expiresAt: { type: Date, default: null },
       razorpayPaymentId: { type: String, default: "" },
@@ -41,7 +52,6 @@ const employerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Mongoose 7+ supports async pre hooks without next()
 employerSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);

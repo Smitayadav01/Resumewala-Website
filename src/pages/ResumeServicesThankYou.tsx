@@ -40,7 +40,7 @@ export default function ResumeServicesThankYou() {
 
         <div className="flex flex-col gap-3">
           <a
-            href="https://wa.me/91"
+            href="https://wa.me/917506836835"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2"

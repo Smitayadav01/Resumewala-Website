@@ -21,61 +21,76 @@ import {
   Clock,
   Shield,
 } from "lucide-react";
+import resumeSample1 from "../assets/resume-sample-1.png";
+import resumeSample2 from "../assets/resume-sample-2.png";
+import resumeSample3 from "../assets/resume-sample-3.png";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+/* =========================================================
+   RAZORPAY TYPES
+========================================================= */
+
+interface RazorpayPaymentResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+
+  theme?: {
+    color?: string;
+  };
+
+  handler: (response: RazorpayPaymentResponse) => void | Promise<void>;
+
+  modal?: {
+    ondismiss?: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+}
+
+interface Window {
+  Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
+}
+
 
 // Replace this with your actual WhatsApp number
 const WHATSAPP_URL = "https://wa.me/917506836835";
 
 const PACKAGES = [
   {
-    id: "basic",
-    name: "Basic",
-    price: "₹99",
-    tagline: "Get recruiter-ready fast",
-    badge: "",
-    color: "border-gray-200",
-    btnClass:
-      "border border-gray-300 text-gray-700 hover:bg-gray-50",
-    features: [
-      "ATS-optimised formatting",
-      "Clean professional layout",
-      "PDF delivery within 48 hrs",
-      "1 free minor revision",
-    ],
-  },
-  {
     id: "professional",
-    name: "Professional",
-    price: "₹199",
-    tagline: "Most popular — complete overhaul",
-    badge: "Most Popular",
+    name: "Professional Resume",
+    price: "₹499",
+    tagline: "Complete ATS-optimised resume makeover",
+    badge: "Best Value",
     color: "border-blue-500",
     btnClass: "bg-blue-600 text-white hover:bg-blue-700",
     features: [
-      "Everything in Basic",
+      "ATS-optimised formatting",
+      "Professional resume design",
       "Keyword enhancement for your target role",
       "Impact-driven bullet points",
       "Section-by-section review",
       "2 free revisions",
-      "Delivered within 36 hrs",
-    ],
-  },
-  {
-    id: "Premium",
-    name: "Premium Optimisation",
-    price: "₹299",
-    tagline: "Get noticed by recruiters on LinkedIn",
-    badge: "",
-    color: "border-indigo-400",
-    btnClass: "bg-indigo-600 text-white hover:bg-indigo-700",
-    features: [
-      "Optimised LinkedIn headline",
-      "About section rewrite",
-      "Experience section enhancement",
-      "Skills & endorsements strategy",
-      "Recruiter search keyword mapping",
-      "Delivered within 48 hrs",
+      "Delivered within 36–48 hrs",
     ],
   },
 ];
@@ -159,6 +174,7 @@ export default function ResumeServices() {
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -266,6 +282,39 @@ export default function ResumeServices() {
     setSubmitting(true);
 
     try {
+      // Load Razorpay Checkout if it is not already available.
+      if (!window.Razorpay) {
+        await new Promise<void>((resolve, reject) => {
+          const existingScript = document.querySelector(
+            'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+          );
+
+          if (existingScript) {
+            existingScript.addEventListener("load", () => resolve());
+            existingScript.addEventListener("error", () =>
+              reject(new Error("Unable to load Razorpay Checkout."))
+            );
+            return;
+          }
+
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.async = true;
+
+          script.onload = () => resolve();
+          script.onerror = () =>
+            reject(new Error("Unable to load Razorpay Checkout."));
+
+          document.body.appendChild(script);
+        });
+      }
+
+      if (!window.Razorpay) {
+        throw new Error("Razorpay Checkout is unavailable.");
+      }
+
+      // Send the customer details + optional resume to the backend.
+      // The backend decides the actual price: ₹499.
       const data = new FormData();
 
       Object.entries(form).forEach(([key, value]) => {
@@ -276,6 +325,8 @@ export default function ResumeServices() {
         data.append("resume", file);
       }
 
+      // STEP 1:
+      // Create ResumeOrder + Razorpay order on the backend.
       const response = await fetch(
         `${API_URL}/api/resume/order`,
         {
@@ -292,21 +343,144 @@ export default function ResumeServices() {
         result = {};
       }
 
-      if (!response.ok) {
+      if (!response.ok || !result?.success) {
         throw new Error(
           result?.message ||
-            `Unable to submit order (${response.status})`
+            `Unable to create order (${response.status})`
         );
       }
 
-      toast.success("Order submitted successfully!");
+      if (
+        !result?.orderId ||
+        !result?.razorpay?.orderId ||
+        !result?.razorpay?.keyId
+      ) {
+        throw new Error(
+          "Invalid payment details received from the server."
+        );
+      }
 
-      setForm(INITIAL_FORM);
-      removeFile();
+      // STEP 2:
+      // Open Razorpay Checkout for the backend-created ₹499 order.
+      const razorpayOptions = {
+        key: result.razorpay.keyId,
 
-      navigate("/resume-services/thank-you");
+        amount: result.razorpay.amount,
+
+        currency: result.razorpay.currency,
+
+        name: result.razorpay.name,
+
+        description: result.razorpay.description,
+
+        order_id: result.razorpay.orderId,
+
+        prefill: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          contact: form.mobile.trim(),
+        },
+
+        theme: {
+          color: "#2563eb",
+        },
+
+        // STEP 3:
+        // Razorpay calls this after successful payment.
+        handler: async (paymentResponse: RazorpayPaymentResponse) => {
+          try {
+            // STEP 4:
+            // Send Razorpay payment details to backend.
+            const verifyResponse = await fetch(
+              `${API_URL}/api/resume/order/verify`,
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type": "application/json",
+                },
+
+                body: JSON.stringify({
+                  orderId: result.orderId,
+
+                  razorpay_order_id:
+                    paymentResponse.razorpay_order_id,
+
+                  razorpay_payment_id:
+                    paymentResponse.razorpay_payment_id,
+
+                  razorpay_signature:
+                    paymentResponse.razorpay_signature,
+                }),
+              }
+            );
+
+            let verifyResult: any = {};
+
+            try {
+              verifyResult = await verifyResponse.json();
+            } catch {
+              verifyResult = {};
+            }
+
+            if (
+              !verifyResponse.ok ||
+              !verifyResult?.success
+            ) {
+              throw new Error(
+                verifyResult?.message ||
+                  "Payment verification failed."
+              );
+            }
+
+            // Payment is now verified by our backend.
+            toast.success(
+              "Payment successful! Your resume order is confirmed."
+            );
+
+            setForm(INITIAL_FORM);
+            removeFile();
+
+            navigate("/resume-services/thank-you", {
+              state: {
+                package: "professional",
+                amount: 499,
+                orderId: result.orderId,
+              },
+            });
+          } catch (error) {
+            console.error(
+              "Payment verification error:",
+              error
+            );
+
+            setSubmitting(false);
+
+            toast.error(
+              error instanceof Error
+                ? error.message
+                : "Payment verification failed. Please contact support."
+            );
+          }
+        },
+
+        modal: {
+          ondismiss: () => {
+            setSubmitting(false);
+            toast.info(
+              "Payment window closed. Your order was not confirmed."
+            );
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(razorpayOptions);
+
+      razorpay.open();
     } catch (error) {
-      console.error("Order error:", error);
+      console.error("Resume order/payment error:", error);
+
+      setSubmitting(false);
 
       const message =
         error instanceof Error
@@ -314,8 +488,6 @@ export default function ResumeServices() {
           : "Something went wrong. Please try again.";
 
       toast.error(message);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -500,95 +672,140 @@ export default function ResumeServices() {
       </section>
 
       {/* PACKAGES */}
-      <section
-        className="bg-gray-50 px-4 py-16"
-        id="packages"
-      >
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Choose Your Package
-            </h2>
+<section
+  className="bg-gray-50 px-4 py-16"
+  id="packages"
+>
+  <div className="mx-auto max-w-5xl">
+   
+   {/* SAMPLE RESUMES */}
+<section className="bg-white px-4 py-16">
+  <div className="mx-auto max-w-6xl">
 
-            <p className="mt-3 text-gray-500">
-              Select the service that best matches your career needs.
+    <div className="mb-10 text-center">
+      <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+        Sample Resumes
+      </h2>
+
+      <p className="mx-auto mt-3 max-w-2xl text-gray-500">
+        Take a look at some of the professional, ATS-friendly resume
+        designs we create.
+      </p>
+    </div>
+
+    <div className="grid gap-6 md:grid-cols-3">
+
+  {/* Resume 1 */}
+  <button
+    type="button"
+    onClick={() => setSelectedImage(resumeSample1)}
+    className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+  >
+    <img
+      src={resumeSample1}
+      alt="Sample professional resume 1"
+      className="h-auto w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+    />
+  </button>
+
+  {/* Resume 2 */}
+  <button
+    type="button"
+    onClick={() => setSelectedImage(resumeSample2)}
+    className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+  >
+    <img
+      src={resumeSample2}
+      alt="Sample professional resume 2"
+      className="h-auto w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+    />
+  </button>
+
+  {/* Resume 3 */}
+  <button
+    type="button"
+    onClick={() => setSelectedImage(resumeSample3)}
+    className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+  >
+    <img
+      src={resumeSample3}
+      alt="Sample professional resume 3"
+      className="h-auto w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+    />
+  </button>
+
+</div>
+  </div>
+</section>
+    {/* Single ₹499 Plan */}
+    <div className="mx-auto max-w-md">
+      {PACKAGES.map((pkg) => (
+        <div
+          key={pkg.id}
+          className={`relative flex flex-col rounded-2xl border-2 bg-white p-7 shadow-xl ${pkg.color}`}
+        >
+          {pkg.badge && (
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-blue-600 px-4 py-1 text-xs font-bold text-white">
+              {pkg.badge}
+            </div>
+          )}
+
+          <div className="mb-5 text-center">
+            <h3 className="text-2xl font-bold text-gray-900">
+              {pkg.name}
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              {pkg.tagline}
             </p>
+
+            <div className="mt-4">
+              <span className="text-5xl font-bold text-gray-900">
+                {pkg.price}
+              </span>
+
+              <span className="ml-1 text-sm text-gray-400">
+                one-time
+              </span>
+            </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
-            {PACKAGES.map((pkg) => (
-              <div
-                key={pkg.id}
-                className={`relative flex flex-col rounded-2xl border-2 bg-white p-6 shadow-sm ${
-                  pkg.color
-                } ${
-                  pkg.id === "professional"
-                    ? "md:scale-105 md:shadow-xl"
-                    : ""
-                }`}
+          <ul className="mb-7 flex-1 space-y-3">
+            {pkg.features.map((feature) => (
+              <li
+                key={feature}
+                className="flex items-start gap-2.5 text-sm text-gray-700"
               >
-                {pkg.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-blue-600 px-4 py-1 text-xs font-bold text-white">
-                    {pkg.badge}
-                  </div>
-                )}
-
-                <div className="mb-5">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    {pkg.name}
-                  </h3>
-
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    {pkg.tagline}
-                  </p>
-
-                  <div className="mt-3">
-                    <span className="text-4xl font-bold text-gray-900">
-                      {pkg.price}
-                    </span>
-
-                    <span className="ml-1 text-sm text-gray-400">
-                      one-time
-                    </span>
-                  </div>
-                </div>
-
-                <ul className="mb-6 flex-1 space-y-2.5">
-                  {pkg.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-start gap-2.5 text-sm text-gray-700"
-                    >
-                      <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setForm((prev) => ({
-                      ...prev,
-                      package: pkg.id,
-                    }));
-
-                    setTimeout(scrollToForm, 100);
-                  }}
-                  className={`w-full rounded-xl py-3 text-sm font-semibold transition ${pkg.btnClass}`}
-                >
-                  Order {pkg.name}
-                </button>
-              </div>
+                <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
+                {feature}
+              </li>
             ))}
-          </div>
+          </ul>
 
-          <p className="mt-6 text-center text-xs text-gray-400">
-            Secure payments · Confidential information · Support
-            available for every order
-          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setForm((prev) => ({
+                ...prev,
+                package: pkg.id,
+              }));
+
+              setTimeout(scrollToForm, 100);
+            }}
+            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+          >
+            Order Now — ₹499
+          </button>
         </div>
-      </section>
+      ))}
+    </div>
+
+    <p className="mt-6 text-center text-xs text-gray-400">
+      Secure payments · Confidential information · Support available
+      for every order
+    </p>
+  </div>
+</section>
 
       {/* BEFORE / AFTER */}
       <section className="bg-white px-4 py-16">
@@ -748,8 +965,8 @@ export default function ResumeServices() {
             </h2>
 
             <p className="mt-2 text-gray-500">
-              Fill in your details and our team will contact you
-              regarding the next steps.
+              Fill in your details, upload your resume, and pay securely online.
+              Your Professional Resume service is ₹499.
             </p>
           </div>
 
@@ -758,39 +975,23 @@ export default function ResumeServices() {
             className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
           >
             {/* Package selector */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Select Package *
-              </label>
+           {/* Selected Package */}
+<div className="rounded-xl border-2 border-blue-500 bg-blue-50 p-4">
+  <div className="flex items-center justify-between">
+    <div>
+      <p className="text-sm font-semibold text-gray-700">
+        Selected Package
+      </p>
+      <p className="mt-1 text-lg font-bold text-blue-700">
+        Professional Resume
+      </p>
+    </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {PACKAGES.map((pkg) => (
-                  <button
-                    key={pkg.id}
-                    type="button"
-                    onClick={() =>
-                      setForm((prev) => ({
-                        ...prev,
-                        package: pkg.id,
-                      }))
-                    }
-                    className={`rounded-xl border-2 px-2 py-3 text-center transition ${
-                      form.package === pkg.id
-                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="text-xs font-bold">
-                      {pkg.name}
-                    </div>
-
-                    <div className="mt-0.5 text-lg font-extrabold">
-                      {pkg.price}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+    <div className="text-2xl font-extrabold text-gray-900">
+      ₹499
+    </div>
+  </div>
+</div>
 
             {/* Fields */}
             <div className="grid gap-5 sm:grid-cols-2">
@@ -1050,9 +1251,8 @@ export default function ResumeServices() {
           </h2>
 
           <p className="mb-8 text-lg text-blue-100">
-            Choose your resume package and start building a stronger
-            professional profile. Packages start at ₹99.
-          </p>
+  Get a professionally written, ATS-optimised resume for just ₹499.
+</p>
 
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <button
@@ -1060,7 +1260,7 @@ export default function ResumeServices() {
               onClick={scrollToForm}
               className="rounded-xl bg-yellow-400 px-8 py-4 text-base font-bold text-gray-900 shadow-lg transition hover:bg-yellow-300"
             >
-              Order Now — Starting ₹99
+              Order Now — ₹499
             </button>
 
             <a
@@ -1077,23 +1277,636 @@ export default function ResumeServices() {
       </section>
 
       {/* STICKY WHATSAPP */}
-      <a
-        href={WHATSAPP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-green-500 p-4 text-white shadow-2xl transition hover:bg-green-600"
-        title="Chat on WhatsApp"
-        aria-label="Chat with Resumewala on WhatsApp"
-      >
-        <MessageCircle className="h-6 w-6" />
+<a
+  href={WHATSAPP_URL}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="group fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-green-500 p-4 text-white shadow-2xl transition hover:bg-green-600"
+  title="Chat on WhatsApp"
+  aria-label="Chat with Resumewala on WhatsApp"
+>
+  <MessageCircle className="h-6 w-6" />
 
-        <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-medium transition-all duration-300 group-hover:max-w-xs">
-          Chat with us
-        </span>
-      </a>
-    </div>
+  <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-medium transition-all duration-300 group-hover:max-w-xs">
+    Chat with us
+  </span>
+</a>
+
+
+{/* FULL SCREEN IMAGE PREVIEW */}
+{selectedImage && (
+  <div
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+    onClick={() => setSelectedImage(null)}
+  >
+    {/* Close Button */}
+    <button
+      type="button"
+      onClick={() => setSelectedImage(null)}
+      className="absolute right-5 top-5 z-[101] flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+      aria-label="Close image preview"
+    >
+      <X className="h-6 w-6" />
+    </button>
+
+    {/* Full Image */}
+    <img
+      src={selectedImage}
+      alt="Full size resume preview"
+      onClick={(e) => e.stopPropagation()}
+      className="max-h-[95vh] max-w-[95vw] rounded-lg object-contain shadow-2xl"
+    />
+  </div>
+)}
+
+</div>
+
   );
 }
+
+
+
+
+
+
+
+
+
+// import { useEffect, useRef, useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { toast } from 'sonner';
+// import {
+//   CheckCircle2, XCircle, Clock, Award, RefreshCw, Star,
+//   ArrowRight, Upload, FileText, Sparkles, ShieldCheck,
+//   MessageSquareText, ChevronDown, Linkedin, FileCheck2,
+// } from 'lucide-react';
+// import { trackViewContent } from '../utils/metaPixel';
+
+// const API_URL = import.meta.env.VITE_API_URL;
+
+// type PackageKey = 'basic' | 'linkedin' | 'professional';
+
+// interface PackagePlan {
+//   key: PackageKey;
+//   name: string;
+//   price: number;
+//   tagline: string;
+//   popular?: boolean;
+//   features: string[];
+// }
+
+// const PACKAGES: PackagePlan[] = [
+//   {
+//     key: 'basic',
+//     name: 'Basic Rewrite',
+//     price: 99,
+//     tagline: 'A clean, ATS-ready resume that gets past the filters.',
+//     features: [
+//       'ATS-friendly formatting',
+//       'Keyword optimisation for your target role',
+//       '1 free revision',
+//       'Delivery in 48 hours',
+//     ],
+//   },
+//   {
+//     key: 'professional',
+//     name: 'Professional + Cover Letter',
+//     price: 199,
+//     tagline: 'Our most complete package — resume, cover letter and more.',
+//     popular: true,
+//     features: [
+//       'Everything in Basic Rewrite',
+//       'Tailored cover letter',
+//       '2 free revisions',
+//       'Priority delivery in 36 hours',
+//       'LinkedIn summary included',
+//     ],
+//   },
+//   {
+//     key: 'linkedin',
+//     name: 'LinkedIn Makeover',
+//     price: 299,
+//     tagline: 'Get found by recruiters searching on LinkedIn.',
+//     features: [
+//       'Compelling headline & summary rewrite',
+//       'Keyword-optimised for recruiter search',
+//       'Skills & experience polish',
+//       'Delivery in 48 hours',
+//     ],
+//   },
+// ];
+
+// const REJECTION_REASONS = [
+//   {
+//     icon: XCircle,
+//     title: 'Keyword mismatch',
+//     desc: "Your resume doesn't use the exact terms the ATS is scanning for, so it never reaches a human.",
+//   },
+//   {
+//     icon: FileText,
+//     title: 'Poor formatting',
+//     desc: 'Tables, columns and graphics that look great to you can be unreadable to parsing software.',
+//   },
+//   {
+//     icon: MessageSquareText,
+//     title: 'Generic content',
+//     desc: "Vague bullet points that don't show impact fail to stand out to recruiters or algorithms.",
+//   },
+// ];
+
+// const STEPS = [
+//   { title: 'Choose your package', desc: 'Pick Basic, Professional, or the LinkedIn Makeover based on what you need.' },
+//   { title: 'Share your details', desc: 'Tell us your target role and upload your current resume, if you have one.' },
+//   { title: 'Our experts get to work', desc: 'A professional writer rewrites and optimises your resume for ATS and recruiters.' },
+//   { title: 'Get your new resume', desc: 'Receive your polished resume within 36–48 hours, with a free revision included.' },
+// ];
+
+// const FAQS = [
+//   {
+//     q: "What if I don't have an existing resume?",
+//     a: "No problem — you can skip the upload and just tell us about your experience and target role in the form. Our writers will build your resume from scratch.",
+//   },
+//   {
+//     q: 'How fast will I get my resume back?',
+//     a: 'Basic and LinkedIn Makeover orders are delivered within 48 hours. Professional package orders get priority delivery in 36 hours.',
+//   },
+//   {
+//     q: 'What if I need changes after delivery?',
+//     a: 'Every package includes at least one free revision. Just reply on WhatsApp or email with what you would like changed.',
+//   },
+//   {
+//     q: 'Is my information kept private?',
+//     a: 'Yes. Your details and resume are only used to prepare your order and are never shared with employers without your consent.',
+//   },
+// ];
+
+// export default function ResumeServices() {
+//   useEffect(() => {
+//     trackViewContent('Resume Services Page');
+//   }, []);
+
+//   const navigate = useNavigate();
+//   const formRef = useRef<HTMLDivElement | null>(null);
+//   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+//   const [selectedPackage, setSelectedPackage] = useState<PackageKey>('professional');
+//   const [openFaq, setOpenFaq] = useState<number | null>(null);
+//   const [submitting, setSubmitting] = useState(false);
+//   const [resumeFile, setResumeFile] = useState<File | null>(null);
+
+//   const [form, setForm] = useState({
+//     name: '',
+//     email: '',
+//     mobile: '',
+//     targetRole: '',
+//     experience: '',
+//     message: '',
+//   });
+
+//   const scrollToForm = (pkg?: PackageKey) => {
+//     if (pkg) setSelectedPackage(pkg);
+//     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+//   };
+
+//   const handleChange = (
+//     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+//   ) => setForm({ ...form, [e.target.name]: e.target.value });
+
+//   const handleFileSelect = (file: File | null) => {
+//     if (!file) { setResumeFile(null); return; }
+
+//     const allowedTypes = [
+//       'application/pdf',
+//       'application/msword',
+//       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+//     ];
+//     if (!allowedTypes.includes(file.type)) {
+//       toast.error('Please upload a PDF, DOC or DOCX file');
+//       return;
+//     }
+//     const maxSize = 5 * 1024 * 1024;
+//     if (file.size > maxSize) {
+//       toast.error('File size must be less than 5MB');
+//       return;
+//     }
+//     setResumeFile(file);
+//   };
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+
+//     if (!form.name.trim() || !form.email.trim() || !form.mobile.trim() || !form.targetRole.trim()) {
+//       toast.error('Please fill in your name, email, mobile and target role');
+//       return;
+//     }
+
+//     setSubmitting(true);
+//     try {
+//       const fd = new FormData();
+//       fd.append('name', form.name.trim());
+//       fd.append('email', form.email.trim());
+//       fd.append('mobile', form.mobile.trim());
+//       fd.append('targetRole', form.targetRole.trim());
+//       fd.append('experience', form.experience.trim());
+//       fd.append('message', form.message.trim());
+//       fd.append('package', selectedPackage);
+//       if (resumeFile) fd.append('resumeFile', resumeFile);
+
+//       const res = await fetch(`${API_URL}/api/resume/orders`, {
+//         method: 'POST',
+//         body: fd,
+//       });
+//       const data = await res.json();
+//       if (!res.ok) throw new Error(data.message || 'Failed to submit your order');
+
+//       toast.success('Order received! Our team will reach out shortly.');
+//       navigate('/resume-services/thank-you', { state: { package: selectedPackage } });
+//     } catch (err: any) {
+//       toast.error(err.message || 'Something went wrong. Please try again.');
+//     } finally {
+//       setSubmitting(false);
+//     }
+//   };
+
+//   const activePlan = PACKAGES.find((p) => p.key === selectedPackage)!;
+
+//   return (
+//     <div className="bg-white">
+
+//       {/* ── Hero ── */}
+//       <section className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-blue-700 to-sky-600 text-white pt-14 pb-20 px-4">
+//         <div className="max-w-5xl mx-auto text-center">
+//           <div className="inline-flex items-center gap-2 bg-white/15 rounded-full px-4 py-1.5 text-xs font-semibold mb-5">
+//             <Sparkles className="h-3.5 w-3.5" /> Written by resume experts
+//           </div>
+//           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-5">
+//             Get Your Resume <span className="text-yellow-300">ATS-Ready</span>
+//           </h1>
+//           <p className="text-blue-100 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+//             90% of resumes are rejected by ATS software before a human ever reads them.
+//             Our experts rewrite your resume to pass filters and land you interviews —
+//             starting at just <strong className="text-yellow-300">₹99</strong>.
+//           </p>
+
+//           <div className="flex flex-wrap justify-center gap-3 mt-6">
+//             {['ATS-Optimised', '36–48hr Delivery', 'Expert Writers', 'Free Revision'].map((tag) => (
+//               <span key={tag} className="bg-white/15 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1">
+//                 <CheckCircle2 className="h-3.5 w-3.5" /> {tag}
+//               </span>
+//             ))}
+//           </div>
+
+//           <button
+//             onClick={() => scrollToForm()}
+//             className="mt-8 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-8 py-4 rounded-xl text-base transition shadow-lg inline-flex items-center gap-2"
+//           >
+//             Fix My Resume <ArrowRight className="h-4 w-4" />
+//           </button>
+//         </div>
+//       </section>
+
+//       {/* ── Why resumes get rejected ── */}
+//       <section className="py-16 bg-gray-50">
+//         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+//           <div className="text-center mb-12">
+//             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+//               Why Most Resumes Get Rejected
+//             </h2>
+//             <p className="text-gray-600 max-w-xl mx-auto">
+//               It's rarely about your experience — it's about how your resume is written.
+//             </p>
+//           </div>
+//           <div className="grid md:grid-cols-3 gap-6">
+//             {REJECTION_REASONS.map(({ icon: Icon, title, desc }) => (
+//               <div key={title} className="bg-white p-7 rounded-2xl shadow-sm border border-gray-100">
+//                 <div className="bg-rose-50 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+//                   <Icon className="h-6 w-6 text-rose-500" />
+//                 </div>
+//                 <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
+//                 <p className="text-gray-600 text-sm leading-relaxed">{desc}</p>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* ── Pricing ── */}
+//       <section id="pricing" className="py-16 bg-white">
+//         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+//           <div className="text-center mb-12">
+//             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+//               Choose Your Package
+//             </h2>
+//             <p className="text-gray-600 max-w-xl mx-auto">
+//               No subscriptions. Pay once, get a resume that works.
+//             </p>
+//           </div>
+
+//           <div className="grid md:grid-cols-3 gap-6 items-stretch">
+//             {PACKAGES.map((plan) => (
+//               <div
+//                 key={plan.key}
+//                 className={`relative flex flex-col rounded-2xl p-7 border-2 transition ${
+//                   plan.popular
+//                     ? 'border-indigo-500 shadow-xl scale-[1.02]'
+//                     : 'border-gray-200 shadow-sm hover:border-indigo-200'
+//                 }`}
+//               >
+//                 {plan.popular && (
+//                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+//                     <Star className="h-3 w-3 fill-white" /> Most Popular
+//                   </span>
+//                 )}
+
+//                 <div className="flex items-center gap-2 mb-2">
+//                   {plan.key === 'linkedin' ? (
+//                     <Linkedin className="h-5 w-5 text-sky-600" />
+//                   ) : (
+//                     <FileCheck2 className="h-5 w-5 text-indigo-600" />
+//                   )}
+//                   <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+//                 </div>
+//                 <p className="text-sm text-gray-500 mb-4">{plan.tagline}</p>
+
+//                 <div className="mb-5">
+//                   <span className="text-3xl font-bold text-gray-900">₹{plan.price}</span>
+//                   <span className="text-sm text-gray-400"> one-time</span>
+//                 </div>
+
+//                 <ul className="space-y-2.5 mb-7 flex-1">
+//                   {plan.features.map((f) => (
+//                     <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
+//                       <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+//                       {f}
+//                     </li>
+//                   ))}
+//                 </ul>
+
+//                 <button
+//                   onClick={() => scrollToForm(plan.key)}
+//                   className={`w-full py-3 rounded-xl font-semibold text-sm transition ${
+//                     plan.popular
+//                       ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+//                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+//                   }`}
+//                 >
+//                   Choose {plan.name.split(' ')[0]}
+//                 </button>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* ── How it works ── */}
+//       <section className="py-16 bg-gradient-to-br from-indigo-50 to-white">
+//         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+//           <div className="text-center mb-12">
+//             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">How It Works</h2>
+//             <p className="text-gray-600">Four simple steps to a resume that gets you interviews</p>
+//           </div>
+
+//           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+//             {STEPS.map((step, i) => (
+//               <div key={step.title} className="relative">
+//                 <div className="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm mb-4">
+//                   {i + 1}
+//                 </div>
+//                 <h4 className="font-bold text-gray-900 mb-1.5">{step.title}</h4>
+//                 <p className="text-gray-600 text-sm leading-relaxed">{step.desc}</p>
+//               </div>
+//             ))}
+//           </div>
+
+//           <div className="flex flex-wrap justify-center gap-8 mt-14 text-center">
+//             <div className="flex items-center gap-2 text-gray-700">
+//               <Clock className="h-5 w-5 text-indigo-600" />
+//               <span className="text-sm font-medium">36–48hr turnaround</span>
+//             </div>
+//             <div className="flex items-center gap-2 text-gray-700">
+//               <RefreshCw className="h-5 w-5 text-indigo-600" />
+//               <span className="text-sm font-medium">Free revision included</span>
+//             </div>
+//             <div className="flex items-center gap-2 text-gray-700">
+//               <Award className="h-5 w-5 text-indigo-600" />
+//               <span className="text-sm font-medium">Written by hiring experts</span>
+//             </div>
+//             <div className="flex items-center gap-2 text-gray-700">
+//               <ShieldCheck className="h-5 w-5 text-indigo-600" />
+//               <span className="text-sm font-medium">Your data stays private</span>
+//             </div>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* ── Order form ── */}
+//       <section ref={formRef} className="py-16 bg-gray-50">
+//         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+//           <div className="text-center mb-10">
+//             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+//               Get Started
+//             </h2>
+//             <p className="text-gray-600">
+//               Tell us a bit about yourself — we'll take care of the rest.
+//             </p>
+//           </div>
+
+//           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-10">
+
+//             {/* Package selector */}
+//             <div className="mb-8">
+//               <label className="block text-sm font-semibold text-gray-700 mb-3">Selected package</label>
+//               <div className="grid sm:grid-cols-3 gap-3">
+//                 {PACKAGES.map((plan) => (
+//                   <button
+//                     type="button"
+//                     key={plan.key}
+//                     onClick={() => setSelectedPackage(plan.key)}
+//                     className={`text-left p-4 rounded-xl border-2 transition ${
+//                       selectedPackage === plan.key
+//                         ? 'border-indigo-500 bg-indigo-50'
+//                         : 'border-gray-200 hover:border-gray-300'
+//                     }`}
+//                   >
+//                     <p className="font-semibold text-gray-900 text-sm">{plan.name}</p>
+//                     <p className="text-indigo-600 font-bold text-sm mt-0.5">₹{plan.price}</p>
+//                   </button>
+//                 ))}
+//               </div>
+//             </div>
+
+//             <form onSubmit={handleSubmit} className="space-y-5">
+//               <div className="grid sm:grid-cols-2 gap-5">
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Full name *</label>
+//                   <input
+//                     type="text" name="name" value={form.name} onChange={handleChange} required
+//                     placeholder="Your full name"
+//                     className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Mobile number *</label>
+//                   <input
+//                     type="tel" name="mobile" value={form.mobile} onChange={handleChange} required
+//                     placeholder="10-digit mobile number"
+//                     className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//                   />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address *</label>
+//                 <input
+//                   type="email" name="email" value={form.email} onChange={handleChange} required
+//                   placeholder="you@example.com"
+//                   className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//                 />
+//               </div>
+
+//               <div className="grid sm:grid-cols-2 gap-5">
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Target role *</label>
+//                   <input
+//                     type="text" name="targetRole" value={form.targetRole} onChange={handleChange} required
+//                     placeholder="e.g. Software Engineer"
+//                     className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Experience</label>
+//                   <input
+//                     type="text" name="experience" value={form.experience} onChange={handleChange}
+//                     placeholder="e.g. 2 years / Fresher"
+//                     className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//                   />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
+//                   Anything else we should know?
+//                 </label>
+//                 <textarea
+//                   name="message" value={form.message} onChange={handleChange} rows={3}
+//                   placeholder="Tell us about your career goals, companies you're targeting, or anything specific you'd like included..."
+//                   className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+//                 />
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
+//                   Upload existing resume <span className="text-gray-400 font-normal">(optional)</span>
+//                 </label>
+//                 <div
+//                   onClick={() => fileInputRef.current?.click()}
+//                   onDragOver={(e) => e.preventDefault()}
+//                   onDrop={(e) => {
+//                     e.preventDefault();
+//                     handleFileSelect(e.dataTransfer.files[0] || null);
+//                   }}
+//                   className="border-2 border-dashed border-gray-300 hover:border-indigo-400 rounded-xl p-6 text-center cursor-pointer transition bg-gray-50"
+//                 >
+//                   <input
+//                     ref={fileInputRef}
+//                     type="file"
+//                     accept=".pdf,.doc,.docx"
+//                     className="hidden"
+//                     onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+//                   />
+//                   <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+//                   {resumeFile ? (
+//                     <p className="text-sm text-gray-700 font-medium">{resumeFile.name}</p>
+//                   ) : (
+//                     <>
+//                       <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
+//                       <p className="text-xs text-gray-400 mt-1">PDF, DOC or DOCX — up to 5MB</p>
+//                     </>
+//                   )}
+//                 </div>
+//               </div>
+
+//               <button
+//                 type="submit"
+//                 disabled={submitting}
+//                 className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-base transition flex items-center justify-center gap-2"
+//               >
+//                 {submitting ? (
+//                   <>
+//                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+//                     Submitting...
+//                   </>
+//                 ) : (
+//                   <>
+//                     Get Started with {activePlan.name} — ₹{activePlan.price}
+//                     <ArrowRight className="h-4 w-4" />
+//                   </>
+//                 )}
+//               </button>
+//               <p className="text-xs text-center text-gray-400">
+//                 Our team will reach out on WhatsApp or email to confirm payment and details.
+//               </p>
+//             </form>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* ── FAQ ── */}
+//       <section className="py-16 bg-white">
+//         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+//           <div className="text-center mb-10">
+//             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+//               Frequently Asked Questions
+//             </h2>
+//           </div>
+//           <div className="space-y-3">
+//             {FAQS.map((faq, i) => (
+//               <div key={faq.q} className="border border-gray-200 rounded-xl overflow-hidden">
+//                 <button
+//                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
+//                   className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left bg-white hover:bg-gray-50 transition"
+//                 >
+//                   <span className="font-semibold text-gray-900 text-sm sm:text-base">{faq.q}</span>
+//                   <ChevronDown
+//                     className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}
+//                   />
+//                 </button>
+//                 {openFaq === i && (
+//                   <div className="px-5 pb-4 text-sm text-gray-600 leading-relaxed">
+//                     {faq.a}
+//                   </div>
+//                 )}
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* ── Bottom CTA ──
+//       <section className="py-14 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-center">
+//         <div className="max-w-2xl mx-auto">
+//           <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+//             Ready to get more interview calls?
+//           </h2>
+//           <p className="text-blue-100 mb-6">
+//             Join job seekers who've upgraded their resume with Resumewala.
+//           </p>
+//           <button
+//             onClick={() => scrollToForm()}
+//             className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-8 py-4 rounded-xl text-base transition shadow-lg inline-flex items-center gap-2"
+//           >
+//             Fix My Resume <ArrowRight className="h-4 w-4" />
+//           </button>
+//         </div>
+//       </section> */}
+
+//     </div>
+//   );
+// }
+
+
+
+
 
 
 

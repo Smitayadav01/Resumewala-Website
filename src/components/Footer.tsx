@@ -27,7 +27,7 @@ const Footer = () => {
     { name: 'Contact', href: '/contact' },
     { name: 'Privacy Policy', href: '/privacy' },
     { name: 'Terms & Conditions', href: '/terms' },
-    // {name:'Resume Writing', href:'/resume-services'},
+    {name:'Resume Writing', href:'/resume-services'},
   ];
 
   return (
