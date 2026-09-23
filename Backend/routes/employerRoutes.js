@@ -28,6 +28,7 @@ import {
 
 import { updateProfile, uploadLogo } from "../controllers/employerProfileController.js";
 import { createOrder, verifyPayment, getPaymentHistory } from "../controllers/paymentController.js";
+import { INDUSTRIES } from "../utils/industries.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -91,5 +92,12 @@ router.patch("/applications/:id/status", updateApplicationStatus);
 router.post("/payment/create-order", createOrder);
 router.post("/payment/verify", verifyPayment);
 router.get("/payment/history", getPaymentHistory);
+
+
+// ✅ Public endpoint — frontend fetches this to populate dropdown
+// No auth needed — it's just a static list
+router.get("/industries", (req, res) => {
+  res.json({ industries: INDUSTRIES });
+});
 
 export default router;

@@ -272,14 +272,6 @@ export const getDashboardStats = async (req, res) => {
       totalApplications,
       recentApplications,
       jobsWithCounts: jobs,
-      creditInfo: {
-        totalPosted,
-        freeLimit: FREE_JOB_LIMIT,
-        freeRemaining: Math.max(0, FREE_JOB_LIMIT - totalPosted),
-        hasPaidPlan,
-        paidCredits: sub?.plan === "premium" ? "Unlimited" : (sub?.jobCredits || 0),
-        plan: sub?.plan || "none",
-      },
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });

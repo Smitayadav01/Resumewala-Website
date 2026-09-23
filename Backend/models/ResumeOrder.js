@@ -2,138 +2,44 @@ import mongoose from "mongoose";
 
 const resumeOrderSchema = new mongoose.Schema(
   {
-    // ==========================================
-    // CUSTOMER DETAILS
-    // ==========================================
-
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    email: {
-      type: String,
-      required: true,
-      lowercase: true,
-      trim: true,
-    },
-
-    mobile: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    experience: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
-    targetRole: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    message: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
-    // ==========================================
-    // RESUME PACKAGE
-    // ==========================================
-
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true },
+    mobile: { type: String, required: true },
+    experience: { type: String, default: "" },
+    targetRole: { type: String, required: true },
     package: {
       type: String,
-      enum: ["professional"],
+      enum: ["basic", "professional", "linkedin"],
       default: "professional",
-      required: true,
     },
+    message: { type: String, default: "" },
+    // ✅ Cloudinary fields — replaces local file storage
+    resumeUrl: { type: String, default: "" },      // Cloudinary secure_url
+    resumePublicId: { type: String, default: "" },  // for later deletion if needed
+    resumeFileName: { type: String, default: "" },  // original filename for display
 
-    // ==========================================
-    // UPLOADED RESUME
-    // ==========================================
+    resumeFile: { type: String, default: "" },
 
-    resumeFile: {
-      type: String,
-      default: "",
-    },
-
-    // ==========================================
-    // ORDER STATUS
-    // ==========================================
-
-    status: {
-      type: String,
-
-      enum: [
-        "new",
-        "contacted",
-        "in_progress",
-        "delivered",
-        "cancelled",
-      ],
-
-      default: "new",
-    },
-
-    adminNotes: {
-      type: String,
-      default: "",
-    },
-
-    // ==========================================
-    // PAYMENT
-    // ==========================================
-
+    // Payment
+    amount: { type: Number, default: 99 },           // ✅ ₹99
+    razorpayOrderId: { type: String, default: "" },
+    razorpayPaymentId: { type: String, default: "" },
+    razorpaySignature: { type: String, default: "" },
     paymentStatus: {
       type: String,
-
-      enum: [
-        "pending",
-        "paid",
-        "refunded",
-      ],
-
+      enum: ["pending", "paid", "failed"],
       default: "pending",
     },
 
-    // Amount in INR
-    amount: {
-      type: Number,
-      default: 499,
-    },
-
-    // ==========================================
-    // RAZORPAY DETAILS
-    // ==========================================
-
-    razorpayOrderId: {
+    // Admin
+    status: {
       type: String,
-      default: "",
+      enum: ["new", "contacted", "in_progress", "delivered", "cancelled"],
+      default: "new",
     },
-
-    razorpayPaymentId: {
-      type: String,
-      default: "",
-    },
-
-    razorpaySignature: {
-      type: String,
-      default: "",
-    },
+    adminNotes: { type: String, default: "" },
   },
-
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-export default mongoose.model(
-  "ResumeOrder",
-  resumeOrderSchema
-);
+export default mongoose.model("ResumeOrder", resumeOrderSchema);

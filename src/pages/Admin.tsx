@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '../services/apiClient';
+import { INDUSTRIES } from '../utils/industries';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -19,6 +20,7 @@ interface AdminJob {
   company?: string;
   location: string;
   experience?: string;
+  industryCategory?: string;
   experienceRequired?: string;
   salary?: string;
   salaryMin?: number;
@@ -54,6 +56,7 @@ interface Candidate {
   resumeUrl: string;
   userId: string;
   createdAt?: string;
+  isIncomplete?: boolean;
 }
 
 interface Employer {
@@ -70,18 +73,21 @@ interface Employer {
   subscription: { plan: string; jobCredits?: number; expiresAt?: string };
   createdAt: string;
 }
-
-interface Payment {
+interface UnifiedPayment {
   _id: string;
+  type: 'employer_subscription' | 'resume_order';
+  typeLabel: string;       // "Employer Plan" | "Resume Writing"
+  name: string;            // company name OR customer name
+  email: string;
+  subLabel: string;        // recruiter name OR target job role
   plan: string;
   amount: number;
-  status: string;
-  createdAt: string;
+  status: 'success' | 'pending' | 'failed';
   razorpayOrderId: string;
   razorpayPaymentId: string;
-  jobCredits: number;
-  validityDays: number;
-  employer: { companyName: string; email: string; recruiterName: string };
+  jobCredits: number | null;
+  validityDays: number | null;
+  createdAt: string;
 }
 
 type TabKey =
@@ -370,11 +376,11 @@ function ResumeOrderCard({
     cancelled: 'red',
   };
 
-  const PACKAGE_LABELS: Record<string, string> = {
-    basic: 'Basic – ₹499',
-    professional: 'Professional – ₹999',
-    linkedin: 'LinkedIn – ₹699',
-  };
+ const PACKAGE_LABELS: Record<string, string> = {
+  basic: 'Basic – ₹99',
+  professional: 'Fresher / Early-Career Resume – ₹99',
+  linkedin: 'LinkedIn – ₹99',
+};
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
@@ -404,16 +410,27 @@ function ResumeOrderCard({
             </p>
           )}
 
-          {order.resumeFile && (
-            <a
-              href={`${import.meta.env.VITE_API_URL}/uploads/${order.resumeFile}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:underline mb-2"
-            >
-              <FileText className="h-3.5 w-3.5" /> View uploaded resume
-            </a>
-          )}
+          {order.resumeUrl ? (
+  <a
+    href={order.resumeUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:underline mb-2"
+  >
+    <FileText className="h-3.5 w-3.5" /> View uploaded resume
+  </a>
+) : order.resumeFile ? (
+  <a
+    href={`${import.meta.env.VITE_API_URL}/uploads/${order.resumeFile}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:underline mb-2"
+  >
+    <FileText className="h-3.5 w-3.5" /> View uploaded resume 
+  </a>
+) : (
+  <p className="text-xs text-gray-400 mb-2">No resume uploaded</p>
+)}
 
           {showNotes && (
             <div className="mt-3">
@@ -498,7 +515,7 @@ export default function Admin() {
   const [formData, setFormData] = useState({
     title: '', company: '', location: '', experience: '',
     qualification: '', description: '', requirements: '',
-    salary: '', jobType: 'Full-time',
+    salary: '', jobType: 'Full-time',industryCategory: '',
   });
 
   // Candidates
@@ -508,6 +525,8 @@ export default function Admin() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [candidateSearch, setCandidateSearch] = useState('');
   const [candidateSkillFilter, setCandidateSkillFilter] = useState('all');
+  const [candidateCompletenessFilter, setCandidateCompletenessFilter] =
+  useState<'all' | 'complete' | 'incomplete'>('all');
   const [candidateSort, setCandidateSort] = useState<'newest' | 'oldest' | 'name'>('newest');
 
   // Employers
@@ -523,7 +542,7 @@ export default function Admin() {
   const [loadingPendingJobs, setLoadingPendingJobs] = useState(false);
 
   // Payments
-  const [payments, setPayments] = useState<Payment[]>([]);
+   const [payments, setPayments] = useState<UnifiedPayment[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [paymentSearch, setPaymentSearch] = useState('');
@@ -585,27 +604,28 @@ export default function Admin() {
   };
 
   const fetchCandidates = async () => {
-    try {
-      setLoadingCandidates(true);
-      const res = await authFetch('/api/admin/profiles');
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed');
-      setCandidates((data.profiles || []).map((p: any) => ({
-        id: p._id,
-        userId: p.userId,
-        fullName: p.personal?.fullName || '',
-        email: p.personal?.email || '',
-        mobile: p.personal?.mobileNumbers || '',
-        skills: p.skills || [],
-        resumeUrl: p.resumeUrl || '#',
-        createdAt: p.createdAt || p.personal?.createdAt || undefined,
-      })));
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoadingCandidates(false);
-    }
-  };
+  try {
+    setLoadingCandidates(true);
+    const res = await authFetch('/api/admin/profiles');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed');
+    setCandidates((data.profiles || []).map((p: any) => ({
+      id: p._id,
+      userId: p.userId,
+      fullName: p.personal?.fullName || '',
+      email: p.personal?.email || '',
+      mobile: p.personal?.mobileNumbers || '',
+      skills: p.skills || [],
+      resumeUrl: p.resumeUrl || '#',
+      createdAt: p.createdAt,
+      isIncomplete: p.isIncomplete ?? (!p.personal?.fullName || !p.personal?.email),
+    })));
+  } catch (err: any) {
+    toast.error(err.message);
+  } finally {
+    setLoadingCandidates(false);
+  }
+};
 
   const fetchEmployers = async () => {
     try {
@@ -629,15 +649,22 @@ export default function Admin() {
   };
 
   const fetchPayments = async () => {
-    try {
-      setLoadingPayments(true);
-      const q = paymentFilter !== 'all' ? `?status=${paymentFilter}` : '';
-      const res = await authFetch(`/api/admin/payments${q}`);
-      const data = await res.json();
-      setPayments(data.payments || []);
-    } catch { toast.error('Failed to load payments'); }
-    finally { setLoadingPayments(false); }
-  };
+  try {
+    setLoadingPayments(true);
+    const params = new URLSearchParams();
+    if (paymentFilter !== 'all') params.set('status', paymentFilter);
+    if (paymentSearch) params.set('search', paymentSearch);
+ 
+    const res = await authFetch(`/api/admin/payments?${params.toString()}`);
+    const data = await res.json();
+    setPayments(data.payments || []);
+  } catch {
+    toast.error('Failed to load payments');
+  } finally {
+    setLoadingPayments(false);
+  }
+};
+
 
   const fetchApplications = async () => {
     try {
@@ -661,7 +688,7 @@ export default function Admin() {
   useEffect(() => { fetchJobs(); fetchCandidates(); }, []);
   useEffect(() => { if (activeTab === 'employers') fetchEmployers(); }, [activeTab, employerFilter]);
   useEffect(() => { if (activeTab === 'pendingJobs') fetchPendingJobs(); }, [activeTab]);
-  useEffect(() => { if (activeTab === 'payments') fetchPayments(); }, [activeTab, paymentFilter]);
+  useEffect(() => { if (activeTab === 'payments') fetchPayments(); }, [activeTab, paymentFilter,paymentSearch]);
   useEffect(() => { if (activeTab === 'applications') fetchApplications(); }, [activeTab]);
   useEffect(() => { if (activeTab === 'dashboard') { fetchPendingJobs(); fetchPayments(); } }, [activeTab]);
 
@@ -801,13 +828,14 @@ export default function Admin() {
         requirements: (job.requirements || job.keySkills || []).join(', '),
         salary: job.salary || '',
         jobType: job.jobType || job.employmentType || 'Full-time',
+        industryCategory: job.industryCategory || '',
       });
     } else {
       setEditingJob(null);
       setFormData({
         title: '', company: '', location: '', experience: '',
         qualification: '', description: '', requirements: '',
-        salary: '', jobType: 'Full-time',
+        salary: '', jobType: 'Full-time',industryCategory: '',
       });
     }
     setShowJobModal(true);
@@ -869,27 +897,32 @@ export default function Admin() {
   }, [candidates]);
 
   const visibleCandidates = useMemo(() => {
-    let list = [...candidates];
-    if (candidateSearch) {
-      const q = candidateSearch.toLowerCase();
-      list = list.filter((c) =>
-        c.fullName?.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q) ||
-        c.mobile?.toLowerCase().includes(q) ||
-        c.skills.some((s) => s.toLowerCase().includes(q))
-      );
-    }
-    if (candidateSkillFilter !== 'all') {
-      list = list.filter((c) => c.skills.includes(candidateSkillFilter));
-    }
-    list.sort((a, b) => {
-      if (candidateSort === 'name') return a.fullName.localeCompare(b.fullName);
-      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return candidateSort === 'newest' ? tb - ta : ta - tb;
-    });
-    return list;
-  }, [candidates, candidateSearch, candidateSkillFilter, candidateSort]);
+  let list = [...candidates];
+  if (candidateSearch) {
+    const q = candidateSearch.toLowerCase();
+    list = list.filter((c) =>
+      c.fullName?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.mobile?.toLowerCase().includes(q) ||
+      c.skills.some((s) => s.toLowerCase().includes(q))
+    );
+  }
+  if (candidateSkillFilter !== 'all') {
+    list = list.filter((c) => c.skills.includes(candidateSkillFilter));
+  }
+  if (candidateCompletenessFilter === 'complete') {
+    list = list.filter((c) => !c.isIncomplete);
+  } else if (candidateCompletenessFilter === 'incomplete') {
+    list = list.filter((c) => c.isIncomplete);
+  }
+  list.sort((a, b) => {
+    if (candidateSort === 'name') return a.fullName.localeCompare(b.fullName);
+    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return candidateSort === 'newest' ? tb - ta : ta - tb;
+  });
+  return list;
+}, [candidates, candidateSearch, candidateSkillFilter, candidateCompletenessFilter, candidateSort]);
 
   const filteredEmployers = useMemo(() => {
     if (!employerSearch) return employers;
@@ -901,26 +934,15 @@ export default function Admin() {
     );
   }, [employers, employerSearch]);
 
-  const filteredPayments = useMemo(() => {
-    return payments.filter((p) => {
-      if (!paymentSearch) return true;
-      const q = paymentSearch.toLowerCase();
-      return (
-        p.employer?.companyName?.toLowerCase().includes(q) ||
-        p.employer?.email?.toLowerCase().includes(q) ||
-        p.plan?.toLowerCase().includes(q) ||
-        p.razorpayPaymentId?.toLowerCase().includes(q)
-      );
-    });
-  }, [payments, paymentSearch]);
+  const filteredPayments = payments;
 
   const paymentStats = {
-    total: payments.length,
-    success: payments.filter(p => p.status === 'success').length,
-    pending: payments.filter(p => p.status === 'pending').length,
-    failed: payments.filter(p => p.status === 'failed').length,
-    revenue: payments.filter(p => p.status === 'success').reduce((s, p) => s + p.amount, 0),
-  };
+  total: payments.length,
+  success: payments.filter(p => p.status === 'success').length,
+  pending: payments.filter(p => p.status === 'pending').length,
+  failed: payments.filter(p => p.status === 'failed').length,
+  revenue: payments.filter(p => p.status === 'success').reduce((s, p) => s + p.amount, 0),
+};
 
   // ── Nav config ───────────────────────────────────────────────
   const navItems: { key: TabKey; label: string; icon: React.ReactNode; badge?: number }[] = [
@@ -1037,6 +1059,7 @@ export default function Admin() {
                       ))}
                     </div>
                   )}
+                  
                 </div>
 
                 <div className="bg-white border border-slate-200 rounded-xl p-5">
@@ -1048,8 +1071,8 @@ export default function Admin() {
                       {payments.slice(0, 5).map((p) => (
                         <div key={p._id} className="flex items-center justify-between text-sm border-b border-slate-100 last:border-0 py-2">
                           <div className="min-w-0">
-                            <p className="font-medium text-slate-800 truncate">{p.employer?.companyName || 'Unknown'}</p>
-                            <p className="text-xs text-slate-500">{fmtDate(p.createdAt)} · {p.plan}</p>
+                            <p className="font-medium text-slate-800 truncate">{p.name || 'Unknown'}</p>
+                            <p className="text-xs text-slate-500">{fmtDate(p.createdAt)} · {p.typeLabel} · {p.plan}</p>
                           </div>
                           <span className="text-sm font-semibold text-slate-700 flex-shrink-0 ml-3">
                             ₹{p.amount.toLocaleString('en-IN')}
@@ -1104,14 +1127,28 @@ export default function Admin() {
                             {job.employer?.companyName || job.company || '—'}
                           </p>
 
-                          <div className="grid sm:grid-cols-3 gap-2 text-xs text-slate-500">
-                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>
-                            <span>{job.experience || job.experienceRequired || '—'}</span>
-                            <span className="flex items-center gap-1">
-                              <IndianRupee className="h-3 w-3" />
-                              {job.salary || (job.salaryMin ? `${(job.salaryMin / 100000).toFixed(1)}L` : '—')}
-                            </span>
-                          </div>
+                          <div className="grid sm:grid-cols-4 gap-2 text-xs text-slate-500">
+  <span className="flex items-center gap-1">
+    <MapPin className="h-3 w-3" />
+    {job.location}
+  </span>
+
+  {job.industryCategory && (
+    <div>
+      <span className="font-medium">Industry:</span>{" "}
+      {job.industryCategory}
+    </div>
+  )}
+
+  <span>
+    {job.experience || job.experienceRequired || '—'}
+  </span>
+
+  <span className="flex items-center gap-1">
+    <IndianRupee className="h-3 w-3" />
+    {job.salary || (job.salaryMin ? `${(job.salaryMin / 100000).toFixed(1)}L` : '—')}
+  </span>
+</div>
                         </div>
 
                         <div className="flex gap-1 flex-shrink-0">
@@ -1171,27 +1208,41 @@ export default function Admin() {
           {/* ── CANDIDATES TAB ───────────────────────────────── */}
           {activeTab === 'candidates' && (
             <div>
-              <SectionHeader title="Registered candidates" subtitle={`${visibleCandidates.length} of ${candidates.length} shown`}>
-                <SearchInput value={candidateSearch} onChange={setCandidateSearch} placeholder="Search name, email, mobile, skill..." />
-                <select
-                  value={candidateSkillFilter}
-                  onChange={(e) => setCandidateSkillFilter(e.target.value)}
-                  className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                >
-                  <option value="all">All skills</option>
-                  {candidateSkillOptions.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => setCandidateSort(candidateSort === 'newest' ? 'oldest' : candidateSort === 'oldest' ? 'name' : 'newest')}
-                  className="flex items-center gap-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 whitespace-nowrap"
-                  title="Change sort order"
-                >
-                  <ArrowUpDown className="h-3.5 w-3.5" />
-                  {candidateSort === 'newest' ? 'Newest first' : candidateSort === 'oldest' ? 'Oldest first' : 'Name A–Z'}
-                </button>
-              </SectionHeader>
+              <SectionHeader
+  title="Registered candidates"
+  subtitle={`${visibleCandidates.length} of ${candidates.length} shown · ${candidates.filter(c => c.isIncomplete).length} incomplete profiles`}
+>
+  <SearchInput value={candidateSearch} onChange={setCandidateSearch} placeholder="Search name, email, mobile, skill..." />
+  <div className="flex gap-1.5">
+    <FilterPill active={candidateCompletenessFilter === 'all'} onClick={() => setCandidateCompletenessFilter('all')}>
+      All
+    </FilterPill>
+    <FilterPill active={candidateCompletenessFilter === 'complete'} onClick={() => setCandidateCompletenessFilter('complete')}>
+      Complete
+    </FilterPill>
+    <FilterPill active={candidateCompletenessFilter === 'incomplete'} onClick={() => setCandidateCompletenessFilter('incomplete')}>
+      Incomplete
+    </FilterPill>
+  </div>
+  <select
+    value={candidateSkillFilter}
+    onChange={(e) => setCandidateSkillFilter(e.target.value)}
+    className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+  >
+    <option value="all">All skills</option>
+    {candidateSkillOptions.map((s) => (
+      <option key={s} value={s}>{s}</option>
+    ))}
+  </select>
+  <button
+    onClick={() => setCandidateSort(candidateSort === 'newest' ? 'oldest' : candidateSort === 'oldest' ? 'name' : 'newest')}
+    className="flex items-center gap-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 whitespace-nowrap"
+    title="Change sort order"
+  >
+    <ArrowUpDown className="h-3.5 w-3.5" />
+    {candidateSort === 'newest' ? 'Newest first' : candidateSort === 'oldest' ? 'Oldest first' : 'Name A–Z'}
+  </button>
+</SectionHeader>
 
               {loadingCandidates ? (
                 <LoadingBlock label="Loading candidates…" />
@@ -1213,58 +1264,62 @@ export default function Admin() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {visibleCandidates.map((candidate) => (
-                        <tr key={candidate.id} className="hover:bg-slate-50 transition">
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-semibold text-xs flex-shrink-0">
-                                {(candidate.fullName || '?')[0]?.toUpperCase()}
-                              </div>
-                              <span className="font-medium text-slate-800">{candidate.fullName || 'Unnamed'}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 text-slate-600">
-                            <div className="flex flex-col gap-0.5 text-xs">
-                              <span className="flex items-center gap-1"><Mail className="h-3 w-3 text-slate-400" />{candidate.email}</span>
-                              <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-slate-400" />{candidate.mobile}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex flex-wrap gap-1 max-w-[220px]">
-                              {candidate.skills.slice(0, 3).map((skill) => (
-                                <Badge key={skill} tone="blue">{skill}</Badge>
-                              ))}
-                              {candidate.skills.length > 3 && (
-                                <span className="text-slate-400 text-xs">+{candidate.skills.length - 3}</span>
-                              )}
-                              {candidate.skills.length === 0 && <span className="text-slate-300 text-xs">—</span>}
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
-                            {timeAgo(candidate.createdAt)}
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => handleViewResume(candidate.id)}
-                                className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 text-xs font-medium"
-                              >
-                                <Eye className="h-3.5 w-3.5" /> View
-                              </button>
-                              <button
-                                onClick={() => downloadResume(candidate.id)}
-                                className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-xs font-medium"
-                              >
-                                <Download className="h-3.5 w-3.5" /> Download
-                              </button>
-                              <button
-                                onClick={() => setDeleteCandidateId(candidate.id)}
-                                className="flex items-center gap-1 text-rose-500 hover:text-rose-600 text-xs font-medium"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" /> Delete
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                       <tr key={candidate.id} className={`hover:bg-slate-50 transition ${candidate.isIncomplete ? 'bg-amber-50/50' : ''}`}>
+  <td className="px-5 py-4">
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-semibold text-xs flex-shrink-0">
+        {(candidate.fullName || '?')[0]?.toUpperCase()}
+      </div>
+      <div>
+        <span className="font-medium text-slate-800">
+          {candidate.fullName || 'No name provided'}
+        </span>
+        {candidate.isIncomplete && (
+          <div className="mt-0.5"><Badge tone="yellow">Incomplete profile</Badge></div>
+        )}
+      </div>
+    </div>
+  </td>
+  <td className="px-5 py-4 text-slate-600">
+    <div className="flex flex-col gap-0.5 text-xs">
+      <span className="flex items-center gap-1">
+        <Mail className="h-3 w-3 text-slate-400" />
+        {candidate.email || <span className="text-slate-300">Not provided</span>}
+      </span>
+      <span className="flex items-center gap-1">
+        <Phone className="h-3 w-3 text-slate-400" />
+        {candidate.mobile || <span className="text-slate-300">Not provided</span>}
+      </span>
+    </div>
+  </td>
+  <td className="px-5 py-4">
+    <div className="flex flex-wrap gap-1 max-w-[220px]">
+      {candidate.skills.slice(0, 3).map((skill) => (
+        <Badge key={skill} tone="blue">{skill}</Badge>
+      ))}
+      {candidate.skills.length > 3 && (
+        <span className="text-slate-400 text-xs">+{candidate.skills.length - 3}</span>
+      )}
+      {candidate.skills.length === 0 && <span className="text-slate-300 text-xs">—</span>}
+    </div>
+  </td>
+  <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
+    {timeAgo(candidate.createdAt)}
+  </td>
+  <td className="px-5 py-4">
+    <div className="flex items-center gap-3">
+      <button onClick={() => handleViewResume(candidate.id)} className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 text-xs font-medium">
+        <Eye className="h-3.5 w-3.5" /> View
+      </button>
+      <button onClick={() => downloadResume(candidate.id)} className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-xs font-medium">
+        <Download className="h-3.5 w-3.5" /> Download
+      </button>
+      <button onClick={() => setDeleteCandidateId(candidate.id)} className="flex items-center gap-1 text-rose-500 hover:text-rose-600 text-xs font-medium">
+        <Trash2 className="h-3.5 w-3.5" /> Delete
+      </button>
+    </div>
+  </td>
+</tr>
                       ))}
                     </tbody>
                   </table>
@@ -1420,7 +1475,7 @@ export default function Admin() {
                 <SearchInput value={paymentSearch} onChange={setPaymentSearch} placeholder="Search company, email, plan, payment ID..." />
               </div>
 
-              {loadingPayments ? (
+            {loadingPayments ? (
                 <LoadingBlock label="Loading payments…" />
               ) : filteredPayments.length === 0 ? (
                 <EmptyState icon={<CreditCard className="h-5 w-5" />} title="No payment records found" />
@@ -1431,19 +1486,24 @@ export default function Admin() {
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h3 className="font-semibold text-slate-900">{p.employer?.companyName || 'Unknown'}</h3>
+                            <h3 className="font-semibold text-slate-900">{p.name || 'Unknown'}</h3>
+                            <Badge tone={p.type === 'resume_order' ? 'purple' : 'indigo'}>
+                              {p.typeLabel}
+                            </Badge>
                             <Badge tone={p.plan === 'premium' ? 'purple' : p.plan === 'standard' ? 'blue' : 'slate'}>
                               {p.plan} plan
                             </Badge>
                           </div>
                           <p className="text-sm text-slate-600 mb-1">
-                            {p.employer?.recruiterName} · {p.employer?.email}
+                            {p.subLabel ? `${p.subLabel} · ` : ''}{p.email}
                           </p>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
                             <span className="font-semibold text-slate-700">₹{p.amount.toLocaleString('en-IN')}</span>
                             <span>{fmtDate(p.createdAt)}</span>
-                            <span>Credits: {p.jobCredits === 99999 ? '∞' : p.jobCredits}</span>
-                            <span>Validity: {p.validityDays} days</span>
+                            {p.jobCredits != null && (
+                              <span>Credits: {p.jobCredits === 99999 ? '∞' : p.jobCredits}</span>
+                            )}
+                            {p.validityDays != null && <span>Validity: {p.validityDays} days</span>}
                             {p.razorpayPaymentId && <span className="font-mono">ID: {p.razorpayPaymentId}</span>}
                           </div>
                         </div>
@@ -1720,6 +1780,27 @@ export default function Admin() {
                     <option>Internship</option>
                   </select>
                 </div>
+
+                <div>
+  <label className="block text-sm font-medium text-slate-700 mb-1">
+    Industry
+  </label>
+
+  <select
+    name="industryCategory"
+    value={formData.industryCategory}
+    onChange={handleChange}
+    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+  >
+    <option value="">Select Industry (optional)</option>
+
+    {INDUSTRIES.map((ind) => (
+      <option key={ind} value={ind}>
+        {ind}
+      </option>
+    ))}
+  </select>
+</div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Required skills (comma-separated)</label>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate} from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell,
@@ -12,6 +13,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const COLORS = ["#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c"];
 
 export default function EmployerAnalytics() {
+  const navigate = useNavigate();
   const { employer } = useEmployer();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

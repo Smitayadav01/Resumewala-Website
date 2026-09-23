@@ -66,7 +66,6 @@ const ai = new GoogleGenAI({
 });
 
 export async function parseResumeWithAI(resumeText) {
-  
 
   const prompt = `
 Extract structured resume information from the text below.
@@ -77,15 +76,16 @@ Return ONLY valid JSON matching this structure:
   "personal": {
     "fullName": "",
     "email": "",
+    "mobile": "",
     "city": "",
     "currentJobTitle": "",
     "totalExperience": "",
     "currentCTC": "",
     "dob": "",
     "gender": "",
-    "highestQualification":"",
-    "college":"",
-    "yearOfPassing":"",
+    "highestQualification": "",
+    "college": "",
+    "yearOfPassing": ""
   },
   "skills": [],
   "experience": [
@@ -108,6 +108,10 @@ Return ONLY valid JSON matching this structure:
   ]
 }
 
+If a phone number is present in the resume, extract it in "mobile" as digits only,
+without country code prefixes like +91 or spaces/dashes. If not found, leave it as
+an empty string.
+
 Resume text:
 ${resumeText}
 `;
@@ -120,7 +124,7 @@ ${resumeText}
       temperature: 0.2,
     },
   });
-  
+
   function extractJSON(text) {
     return text
       .replace(/```json/g, "")

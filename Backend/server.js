@@ -52,7 +52,6 @@ app.use("/api/employer", employerRoutes);
 app.use("/api/admin", adminEmployerRoutes);
 app.use("/api/resume", resumeOrderRoutes);
 
-
 cron.schedule("30 2 * * *", () => {
   console.log("[Cron] Running daily summary...");
   sendDailySummary();          

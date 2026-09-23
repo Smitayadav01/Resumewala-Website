@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { INDUSTRIES } from "../utils/industries.js";
 
 const jobSchema = new mongoose.Schema(
   {
@@ -34,7 +35,14 @@ const jobSchema = new mongoose.Schema(
 
     // ─── Phase 2 Employer Job Fields ──────────────────────────
     experienceRequired: { type: String, default: "" },
-    industryCategory: { type: String, default: "" },
+    industryCategory: {
+  type: String,
+  enum: {
+    values: [...INDUSTRIES, ""],   // allow empty string for optional
+    message: "Invalid industry category.",
+  },
+  default: "",
+},
     employmentType: {
       type: String,
       enum: ["Full Time", "Part Time", "Contract", ""],

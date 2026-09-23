@@ -1,8 +1,10 @@
 import Employer from "../models/Employer.js";
 import Payment from "../models/Payment.js";
+import ResumeOrder from "../models/ResumeOrder.js";
 import Job from "../models/job.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
+// ─── Employers ────────────────────────────────────────────────
 export const getAllEmployers = async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
@@ -13,9 +15,7 @@ export const getAllEmployers = async (req, res) => {
       query.isRejected = false;
       query.isBlocked = false;
     }
-    if (status === "unverified") {
-      query.isEmailVerified = false;
-    }
+    if (status === "unverified") query.isEmailVerified = false;
     if (status === "approved") query.isApproved = true;
     if (status === "rejected") query.isRejected = true;
     if (status === "blocked") query.isBlocked = true;
@@ -33,25 +33,19 @@ export const getAllEmployers = async (req, res) => {
   }
 };
 
-// ── PATCH /api/admin/employers/:id/approve ────────────────────
 export const approveEmployer = async (req, res) => {
   try {
     const employer = await Employer.findById(req.params.id);
     if (!employer) return res.status(404).json({ message: "Employer not found." });
 
-    // ✅ Cannot approve if email not verified
     if (!employer.isEmailVerified) {
       return res.status(400).json({
         message: "Cannot approve this employer — their email is not yet verified.",
         code: "EMAIL_NOT_VERIFIED",
       });
     }
-
-    // ✅ Cannot approve a blocked employer without unblocking first
     if (employer.isBlocked) {
-      return res.status(400).json({
-        message: "Cannot approve a blocked employer. Please unblock first.",
-      });
+      return res.status(400).json({ message: "Cannot approve a blocked employer. Please unblock first." });
     }
 
     employer.isApproved = true;
@@ -91,7 +85,6 @@ export const approveEmployer = async (req, res) => {
   }
 };
 
-// ── PATCH /api/admin/employers/:id/reject ─────────────────────
 export const rejectEmployer = async (req, res) => {
   try {
     const { reason } = req.body;
@@ -161,27 +154,116 @@ export const verifyEmployer = async (req, res) => {
   }
 };
 
+// ─── Unified Payments Feed ──────────────────────────────────
+// Merges Employer subscription payments (Payment model) with
+// Resume Writing order payments (ResumeOrder model) into ONE
+// feed so the admin "Payments" tab shows every real transaction
+// on the platform, tagged by type.
 export const getAllPayments = async (req, res) => {
   try {
-    const { status, page = 1, limit = 50 } = req.query;
-    const query = status ? { status } : {};
-    const total = await Payment.countDocuments(query);
-    const payments = await Payment.find(query)
+    const { status, page = 1, limit = 50, search = "" } = req.query;
+
+    // ── 1. Employer subscription payments ──────────────────
+    const empQuery = status ? { status } : {};
+    const employerPayments = await Payment.find(empQuery)
       .populate("employer", "companyName email recruiterName")
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
-    res.json({ payments, total });
+      .lean();
+
+    const normalizedEmployerPayments = employerPayments.map((p) => ({
+      _id: p._id,
+      type: "employer_subscription",
+      typeLabel: "Employer Plan",
+      name: p.employer?.companyName || "Unknown",
+      email: p.employer?.email || "",
+      subLabel: p.employer?.recruiterName || "",
+      plan: p.plan,
+      amount: p.amount,
+      status: mapEmployerStatus(p.status), // success | pending | failed
+      razorpayOrderId: p.razorpayOrderId,
+      razorpayPaymentId: p.razorpayPaymentId,
+      jobCredits: p.jobCredits,
+      validityDays: p.validityDays,
+      createdAt: p.createdAt,
+    }));
+
+    // ── 2. Resume writing order payments ────────────────────
+    const resumeQuery = {};
+    if (status) resumeQuery.paymentStatus = mapToResumeStatus(status);
+
+    const resumeOrders = await ResumeOrder.find(resumeQuery).lean();
+
+    const normalizedResumeOrders = resumeOrders.map((o) => ({
+      _id: o._id,
+      type: "resume_order",
+      typeLabel: "Resume Writing",
+      name: o.name,
+      email: o.email,
+      subLabel: o.targetRole || "",
+      plan: o.package,
+      amount: o.amount,
+      status: mapResumeStatus(o.paymentStatus), // success | pending | failed
+      razorpayOrderId: o.razorpayOrderId,
+      razorpayPaymentId: o.razorpayPaymentId,
+      jobCredits: null,
+      validityDays: null,
+      createdAt: o.createdAt,
+    }));
+
+    // ── 3. Merge, filter, sort, paginate ────────────────────
+    let merged = [...normalizedEmployerPayments, ...normalizedResumeOrders];
+
+    if (search) {
+      const q = search.toLowerCase();
+      merged = merged.filter(
+        (p) =>
+          p.name?.toLowerCase().includes(q) ||
+          p.email?.toLowerCase().includes(q) ||
+          p.plan?.toLowerCase().includes(q) ||
+          p.razorpayPaymentId?.toLowerCase().includes(q)
+      );
+    }
+
+    merged.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    const total = merged.length;
+    const paginated = merged.slice(
+      (Number(page) - 1) * Number(limit),
+      Number(page) * Number(limit)
+    );
+
+    res.json({ payments: paginated, total, page: Number(page) });
   } catch (err) {
+    console.error("getAllPayments error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Employer Payment model already uses success/pending/failed
+function mapEmployerStatus(status) {
+  if (["success", "pending", "failed"].includes(status)) return status;
+  return status === "paid" ? "success" : status;
+}
+
+// ResumeOrder model uses paid/pending/failed — normalize to success/pending/failed
+function mapResumeStatus(paymentStatus) {
+  if (paymentStatus === "paid") return "success";
+  return paymentStatus || "pending";
+}
+
+// Reverse-map admin filter (success/pending/failed) to ResumeOrder's field values
+function mapToResumeStatus(status) {
+  if (status === "success") return "paid";
+  return status; // pending / failed pass through as-is
+}
 
 export const getPendingJobs = async (req, res) => {
   try {
     const jobs = await Job.find({ postedBy: "employer", status: "pending", isAdminApproved: false })
       .populate("employer", "companyName email recruiterName companyLogo")
-      .sort({ createdAt: -1 }).lean();
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ jobs });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -196,6 +278,7 @@ export const approveJob = async (req, res) => {
       { new: true }
     ).populate("employer", "companyName email recruiterName");
     if (!job) return res.status(404).json({ message: "Employer job not found." });
+
     if (job.employer?.email) {
       await sendEmail({
         to: job.employer.email,
@@ -220,6 +303,7 @@ export const rejectJob = async (req, res) => {
       { new: true }
     ).populate("employer", "companyName email recruiterName");
     if (!job) return res.status(404).json({ message: "Not found." });
+
     if (job.employer?.email) {
       await sendEmail({
         to: job.employer.email,
@@ -240,6 +324,7 @@ export const setEmployerPlan = async (req, res) => {
     const { plan, jobCredits, validityDays } = req.body;
     const validPlans = ["none", "basic", "standard", "premium"];
     if (!validPlans.includes(plan)) return res.status(400).json({ message: "Invalid plan." });
+
     const DEFAULTS = {
       none: { credits: 0, days: 0 },
       basic: { credits: 5, days: 30 },
@@ -249,12 +334,22 @@ export const setEmployerPlan = async (req, res) => {
     const credits = jobCredits ?? DEFAULTS[plan].credits;
     const days = validityDays ?? DEFAULTS[plan].days;
     const expiresAt = plan === "none" ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+
     const employer = await Employer.findByIdAndUpdate(
       req.params.id,
-      { subscription: { plan, jobCredits: credits, expiresAt, razorpayPaymentId: "admin-assigned", razorpayOrderId: "admin-assigned" } },
+      {
+        subscription: {
+          plan,
+          jobCredits: credits,
+          expiresAt,
+          razorpayPaymentId: "admin-assigned",
+          razorpayOrderId: "admin-assigned",
+        },
+      },
       { new: true }
     ).select("-password");
     if (!employer) return res.status(404).json({ message: "Not found." });
+
     res.json({ message: `Plan set to ${plan}.`, employer });
   } catch (err) {
     res.status(500).json({ message: "Server error" });

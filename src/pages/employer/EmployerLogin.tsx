@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { loginEmployer } from "../../services/employerApi";
 import { useEmployer } from "../../context/EmployerContext";
 import toast from "react-hot-toast";
@@ -237,21 +238,39 @@ export default function EmployerLogin() {
         )}
 
         {/* Footer links */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          New employer?{" "}
-          <Link
-            to="/employer/register"
-            className="text-blue-600 font-medium hover:underline"
-          >
-            Register here
-          </Link>
-        </p>
-        <p className="text-center text-xs text-gray-400 mt-2">
-          Job seeker?{" "}
-          <Link to="/login" className="hover:underline">
-            Login here
-          </Link>
-        </p>
+        {/* Footer links */}
+<div className="mt-6 flex flex-col items-center gap-2">
+
+  {/* Back to Home */}
+  <button
+    type="button"
+    onClick={() => navigate("/")}
+    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition"
+  >
+    <ArrowLeft className="h-4 w-4" />
+    Back to Home
+  </button>
+
+  {/* Employer registration */}
+  <p className="text-sm text-gray-500">
+    New employer?{" "}
+    <Link
+      to="/employer/register"
+      className="text-blue-600 font-medium hover:underline"
+    >
+      Register here
+    </Link>
+  </p>
+
+  {/* Job seeker login */}
+  <p className="text-xs text-gray-400">
+    Job seeker?{" "}
+    <Link to="/login" className="hover:underline">
+      Login here
+    </Link>
+  </p>
+
+</div>
       </div>
     </div>
   );

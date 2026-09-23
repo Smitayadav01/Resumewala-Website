@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { updateEmployerProfile, uploadEmployerLogo } from "../../services/employerApi";
 import { useEmployer } from "../../context/EmployerContext";
 import toast from "react-hot-toast";
@@ -8,6 +9,7 @@ const INDUSTRIES = ["Technology", "Finance", "Healthcare", "Education", "Manufac
 
 export default function EmployerProfile() {
   const { employer, refreshEmployer } = useEmployer();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [logoLoading, setLogoLoading] = useState(false);
@@ -41,18 +43,23 @@ useEffect(() => {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await updateEmployerProfile(form);
-      await refreshEmployer();
-      toast.success("Profile updated successfully!");
-    } catch {
-      toast.error("Failed to update profile.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    await updateEmployerProfile(form);
+    await refreshEmployer();
+
+    toast.success("Profile updated successfully!");
+
+    // Redirect to employer dashboard
+    navigate("/employer/dashboard");
+  } catch {
+    toast.error("Failed to update profile.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;

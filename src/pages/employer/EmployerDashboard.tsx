@@ -11,14 +11,6 @@ interface Stats {
   totalApplications: number;
   recentApplications: any[];
   jobsWithCounts: any[];
-  creditInfo?: {
-    totalPosted: number;
-    freeLimit: number;
-    freeRemaining: number;
-    hasPaidPlan: boolean;
-    paidCredits: number | string;
-    plan: string;
-  };
 }
 
 
@@ -35,13 +27,13 @@ const StatCard = ({ label, value, icon, color }: any) => (
 );
 
 export default function EmployerDashboard() {
-  const { employer, refreshEmployer } = useEmployer();
+  const { employer} = useEmployer();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
     setLoading(true);
-    refreshEmployer();
+
     getDashboardStats()
       .then((data) => setStats(data))
       .catch(() => toast.error("Failed to load dashboard."))
@@ -101,31 +93,6 @@ export default function EmployerDashboard() {
           </Link>
         </div>
 
-        {/* Subscription Banner */}
-        {/* <div className={`mb-6 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 ${
-          !hasPlan ? "bg-amber-50 border border-amber-200" : "bg-green-50 border border-green-200"
-        }`}>
-          <div>
-            <p className={`font-semibold text-sm ${!hasPlan ? "text-amber-800" : "text-green-800"}`}>
-              {!hasPlan ? "⚠️ No active plan" : `✅ ${sub?.plan?.toUpperCase()} Plan Active`}
-            </p>
-            <p className={`text-xs mt-0.5 ${!hasPlan ? "text-amber-600" : "text-green-600"}`}>
-              {!hasPlan
-                ? "Purchase a plan to unlock full applicant details (email, phone, resume)."
-                : `Job Credits: ${creditsLeft} · Expires: ${subExpiry}`}
-            </p>
-          </div>
-          <Link
-            to="/employer/plans"
-            className={`text-xs font-semibold px-4 py-2 rounded-lg ${
-              !hasPlan
-                ? "bg-amber-600 text-white hover:bg-amber-700"
-                : "bg-green-600 text-white hover:bg-green-700"
-            }`}
-          >
-            {!hasPlan ? "Choose Plan" : "Upgrade Plan"}
-          </Link>
-        </div> */}
 
         {/* Stats */}
         {loading ? (
@@ -153,73 +120,6 @@ export default function EmployerDashboard() {
             />
           </div>
         )}
-
-{/* // Add this component inside EmployerDashboard, after stats cards: */}
-{/* Credit Info Banner */}
-{stats?.creditInfo && (
-  <div className={`mb-6 rounded-xl p-4 border ${
-    stats.creditInfo.freeRemaining > 0
-      ? "bg-blue-50 border-blue-200"
-      : stats.creditInfo.hasPaidPlan
-      ? "bg-green-50 border-green-200"
-      : "bg-red-50 border-red-200"
-  }`}>
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div>
-        <p className={`font-semibold text-sm ${
-          stats.creditInfo.freeRemaining > 0 ? "text-blue-800"
-          : stats.creditInfo.hasPaidPlan ? "text-green-800"
-          : "text-red-800"
-        }`}>
-          {stats.creditInfo.freeRemaining > 0
-            ? `🆓 ${stats.creditInfo.freeRemaining} free job post${stats.creditInfo.freeRemaining !== 1 ? "s" : ""} remaining`
-            : stats.creditInfo.hasPaidPlan
-            ? `💳 ${stats.creditInfo.plan.toUpperCase()} Plan — ${stats.creditInfo.paidCredits === "Unlimited" ? "Unlimited" : `${stats.creditInfo.paidCredits} credits`} remaining`
-            : "⚠️ No job posts remaining"}
-        </p>
-        <p className={`text-xs mt-0.5 ${
-          stats.creditInfo.freeRemaining > 0 ? "text-blue-600"
-          : stats.creditInfo.hasPaidPlan ? "text-green-600"
-          : "text-red-600"
-        }`}>
-          {stats.creditInfo.freeRemaining > 0
-            ? `${stats.creditInfo.totalPosted} of ${stats.creditInfo.freeLimit} free posts used`
-            : stats.creditInfo.hasPaidPlan
-            ? "Purchase more credits when needed"
-            : "You've used all 2 free posts. Purchase a plan to continue posting."}
-        </p>
-      </div>
-      {!stats.creditInfo.hasPaidPlan && (
-        <Link
-          to="/employer/plans"
-          className="text-xs font-semibold px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
-        >
-          {stats.creditInfo.freeRemaining > 0 ? "View Plans" : "Buy Plan →"}
-        </Link>
-      )}
-    </div>
-
-    {/* Progress bar for free posts */}
-    {stats.creditInfo.freeRemaining >= 0 && !stats.creditInfo.hasPaidPlan && (
-      <div className="mt-3">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Free posts used</span>
-          <span>{Math.min(stats.creditInfo.totalPosted, stats.creditInfo.freeLimit)}/{stats.creditInfo.freeLimit}</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
-          <div
-            className={`h-1.5 rounded-full transition-all ${
-              stats.creditInfo.freeRemaining === 0 ? "bg-red-500" : "bg-blue-500"
-            }`}
-            style={{
-              width: `${Math.min(100, (Math.min(stats.creditInfo.totalPosted, stats.creditInfo.freeLimit) / stats.creditInfo.freeLimit) * 100)}%`
-            }}
-          />
-        </div>
-      </div>
-    )}
-  </div>
-)}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

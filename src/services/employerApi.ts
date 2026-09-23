@@ -46,16 +46,18 @@ export const uploadEmployerLogo = (formData: FormData) =>
   }).then((r) => r.data);
 
 // ─── Jobs ─────────────────────────────────────────────────────
-export const createJob = (data: object) =>
-  api.post("/employer/jobs", data).then((r) => r.data);
-
-// Update getMyJobs to handle creditInfo in response
+// Update getMyJobs
 export const getMyJobs = () =>
   api.get("/employer/jobs").then((r) => {
-    // Backend now returns { jobs, creditInfo }
-    // Return just jobs array for backward compat, but also export creditInfo
-    return r.data;
+    const data = r.data;
+    // Backend now returns { jobs } object
+    if (Array.isArray(data)) return { jobs: data };
+    return data;
   });
+
+// createJob — unchanged, just returns job
+export const createJob = (payload: object) =>
+  api.post("/employer/jobs", payload).then((r) => r.data);
 
 // Add new function for credit info
 export const getEmployerCreditInfo = () =>

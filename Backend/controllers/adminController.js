@@ -113,17 +113,54 @@
 
 
 
+
 import Profile from "../models/Profile.js";
+import User from "../models/User.js";
 import mongoose from "mongoose";
 import axios from "axios";
 
 /* =========================
-   GET ALL PROFILES
+   GET ALL PROFILES (Admin)
 ========================= */
 const getAllProfiles = async (req, res) => {
   try {
-    const profiles = await Profile.find();
-    res.status(200).json({ success: true, profiles });
+    // ✅ Profile has no mobile field — populate userId to get mobileNumber from User
+    const profiles = await Profile.find()
+      .populate("userId", "fullName email mobileNumber")
+      .lean();
+
+    const formatted = profiles.map((p) => {
+      const personal = p.personal || {};
+      const user = p.userId || {};
+
+      const fullName = personal.fullName || user.fullName || "";
+      const email = personal.email || user.email || "";
+
+      // ✅ mobileNumber lives on User (schema type Number) — never on Profile
+      const mobile =
+        personal.mobile ||                 // future AI-extracted resume phone, if present
+        (user.mobileNumber != null ? String(user.mobileNumber) : "");
+
+      const hasResume = !!p.resume?.url;
+      const isIncomplete = !fullName || !email;
+
+      return {
+        _id: p._id,
+        userId: user._id || p.userId,
+        personal: {
+          fullName,
+          email,
+          mobileNumbers: mobile,
+        },
+        skills: p.skills || [],
+        resumeUrl: p.resume?.url || "",
+        hasResume,
+        isIncomplete,
+        createdAt: p.createdAt,
+      };
+    });
+
+    res.status(200).json({ success: true, profiles: formatted });
   } catch (error) {
     console.error("Get all profiles error:", error);
     res.status(500).json({ message: "Failed to retrieve profiles" });
@@ -141,7 +178,10 @@ const getProfile = async (req, res) => {
       return res.status(400).json({ message: "Invalid Profile ID" });
     }
 
-    const profile = await Profile.findById(id);
+    const profile = await Profile.findById(id).populate(
+      "userId",
+      "fullName email mobileNumber"
+    );
 
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
@@ -169,7 +209,7 @@ const EditProfile = async (req, res) => {
     const profile = await Profile.findByIdAndUpdate(
       id,
       { $set: req.body },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!profile) {
@@ -219,12 +259,10 @@ const downloadResume = async (req, res) => {
   try {
     const id = req.params.id;
 
-    // 🔹 Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid Profile ID" });
     }
 
-    // 🔹 Fetch profile
     const profile = await Profile.findById(id);
 
     if (!profile || !profile.resume || !profile.resume.url) {
@@ -233,38 +271,29 @@ const downloadResume = async (req, res) => {
 
     let { url, fileName } = profile.resume;
 
-    // 🔥 IMPORTANT FIX (prevents 401 error)
-    // Always force raw type for PDFs
     if (url.includes("/image/upload/")) {
       url = url.replace("/image/upload/", "/raw/upload/");
     }
 
     console.log("📥 Downloading from:", url);
 
-    // 🔹 Fetch file from Cloudinary
     const response = await axios.get(url, {
       responseType: "arraybuffer",
     });
 
-    // 🔹 Safe filename
     const safeFileName = encodeURIComponent(fileName || "resume.pdf");
 
-    // 🔹 Headers for browser preview
     res.setHeader("Content-Type", "application/pdf");
-
-    // 👉 Change to "attachment" if you want force download
     res.setHeader(
       "Content-Disposition",
       `inline; filename*=UTF-8''${safeFileName}`
     );
 
-    // 🔹 Send file
     return res.send(Buffer.from(response.data));
 
   } catch (error) {
     console.error("❌ Resume download error:", error.message);
 
-    // 🔴 Better error handling
     if (error.response?.status === 401) {
       return res.status(401).json({
         message: "File is not public or URL is incorrect",
@@ -282,9 +311,6 @@ const downloadResume = async (req, res) => {
     });
   }
 };
-
-
-
 
 export {
   getAllProfiles,

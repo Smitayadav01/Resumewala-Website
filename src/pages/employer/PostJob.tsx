@@ -1,19 +1,30 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { createJob, updateJob, getJobById } from "../../services/employerApi";
 import toast from "react-hot-toast";
+import { INDUSTRIES } from "../../utils/industries";
 
 const INITIAL_FORM = {
-  title: "", location: "", experienceRequired: "", industryCategory: "",
-  employmentType: "", workMode: "", description: "", keySkills: "",
-  numberOfOpenings: 1, expiryDate: "",
-  salaryMin: "", salaryMax: "", educationQualification: "", interviewProcess: "", agePreference: "",
-  status: "Draft",
+  title: "",
+  location: "",
+  employmentType: "",
+  workMode: "",
+  experienceRequired: "",
+  industryCategory: "",    // ✅ add this
+  keySkills: "",
+  numberOfOpenings: "1",
+  salaryMin: "",
+  salaryMax: "",
+  educationQualification: "",
+  description: "",
+  interviewProcess: "",
+  agePreference: "",
+  expiryDate: "",
 };
 
 const EMPLOYMENT_TYPES = ["Full Time", "Part Time", "Contract"];
 const WORK_MODES = ["Onsite", "Hybrid", "Remote"];
-const INDUSTRIES = ["Technology", "Finance", "Healthcare", "Education", "Manufacturing", "Retail", "Media", "Consulting", "Real Estate", "Other"];
 
 export default function PostJob() {
   const { id } = useParams();
@@ -44,16 +55,27 @@ export default function PostJob() {
     setForm({ ...form, [e.target.name]: e.target.value });
 
  const handleSave = async (status: "pending" | "Draft") => {
-  if (!form.title || !form.location || !form.description || !form.employmentType || !form.workMode) {
+  if (
+    !form.title ||
+    !form.location ||
+    !form.description ||
+    !form.employmentType ||
+    !form.workMode ||
+    !form.industryCategory
+  ) {
     toast.error("Please fill all required fields.");
     return;
   }
+
   setLoading(true);
   try {
     const payload = {
       ...form,
       status,
-      keySkills: form.keySkills.split(",").map((s) => s.trim()).filter(Boolean),
+      keySkills: form.keySkills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
       numberOfOpenings: Number(form.numberOfOpenings),
       salaryMin: form.salaryMin ? Number(form.salaryMin) : null,
       salaryMax: form.salaryMax ? Number(form.salaryMax) : null,
@@ -63,41 +85,26 @@ export default function PostJob() {
       await updateJob(id!, payload);
       toast.success("Job updated successfully!");
     } else {
-      const data = await createJob(payload);
-
+      await createJob(payload);
       if (status === "pending") {
-        const isFree = data.isFreePost;
-        const remaining = data.creditsRemaining;
-
-        if (isFree) {
-          toast.success(
-            `✅ Job submitted for approval! ${remaining} free post${remaining !== 1 ? "s" : ""} remaining.`,
-            { duration: 5000 }
-          );
-        } else {
-          toast.success("✅ Job submitted for admin approval!");
-        }
+        toast.success(
+          "✅ Job submitted for admin approval. You will be notified once it goes live.",
+          { duration: 5000 }
+        );
       } else {
         toast.success("Draft saved successfully.");
       }
     }
     navigate("/employer/jobs");
   } catch (err: any) {
-    const msg = err.response?.data?.message || "Failed to save job.";
-    const requiresPlan = err.response?.data?.requiresPlan;
-
-    if (requiresPlan) {
-      toast.error(msg, { duration: 6000 });
-      // Redirect to plans after short delay
-      setTimeout(() => navigate("/employer/plans"), 2000);
-    } else {
-      toast.error(msg);
-    }
+    // ✅ No credit check error — just show the message
+    toast.error(
+      err.response?.data?.message || "Failed to save job. Please try again."
+    );
   } finally {
     setLoading(false);
   }
 };
-
   if (fetching) return (
     <div className="flex items-center justify-center h-64">
       <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -111,13 +118,21 @@ export default function PostJob() {
           <h1 className="text-xl font-bold text-gray-900">{isEdit ? "Edit Job" : "Post a New Job"}</h1>
           <p className="text-sm text-gray-500">Fields marked with * are required</p>
         </div>
-        <button onClick={() => navigate("/employer/jobs")} className="text-sm text-gray-500 hover:text-gray-700">← Back</button>
+        {/* <button onClick={() => navigate("/employer/jobs")} className="text-sm text-gray-500 hover:text-gray-700">← Back</button> */}
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
 
         {/* Mandatory Fields */}
         <div>
+           <button
+    type="button"
+    onClick={() => navigate("/employer/dashboard")}
+    className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition mb-5"
+  >
+    <ArrowLeft className="h-4 w-4" />
+    Back to Home
+  </button>
           <h2 className="font-semibold text-gray-800 mb-4 pb-2 border-b">Job Details *</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
@@ -137,14 +152,6 @@ export default function PostJob() {
               </div>
             ))}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Industry Category *</label>
-              <select name="industryCategory" value={form.industryCategory} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select Industry</option>
-                {INDUSTRIES.map((i) => <option key={i}>{i}</option>)}
-              </select>
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type *</label>
@@ -154,6 +161,27 @@ export default function PostJob() {
                 {EMPLOYMENT_TYPES.map((t) => <option key={t}>{t}</option>)}
               </select>
             </div>
+
+            {/* Industry Category */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Industry / Sector <span className="text-red-500">*</span>
+  </label>
+  <select
+    name="industryCategory"
+    value={form.industryCategory}
+    onChange={handleChange}
+    required
+    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+  >
+    <option value="">Select Industry</option>
+    {INDUSTRIES.map((industry) => (
+      <option key={industry} value={industry}>
+        {industry}
+      </option>
+    ))}
+  </select>
+</div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Work Mode *</label>

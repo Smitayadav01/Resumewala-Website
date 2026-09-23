@@ -9,52 +9,42 @@ const ProfileSchema = new mongoose.Schema(
     },
 
     /* ---------------- PERSONAL INFO ---------------- */
-   personal: {
-  fullName: {
-    type: String,
-    required: [true, "Full Name is required"]
-  },
-  gender: String,
-  dob: String,
-  age: String,
+    personal: {
+      // ✅ Kept required — AI can reliably extract these from most resumes
+      fullName: {
+        type: String,
+        required: [true, "Full Name is required"],
+      },
+      email: {
+        type: String,
+        required: [true, "Email is required"],
+      },
 
-  city: {
-    type: String,
-    required: [true, "City is required"]
-  },
+      // ✅ New — AI-extracted phone number from resume, when found
+      mobile: String,
 
-  email: {
-    type: String,
-    required: [true, "Email is required"]
-  },
+      gender: String,
+      dob: String,
+      age: String,
 
-  currentStatus: {
-    type: String,
-    required: [true, "Current Status is required"]
-  },
+      // ✅ No longer required — AI cannot reliably infer these from resume text
+      city: String,
+      currentStatus: String,
+      highestQualification: String,
 
-  totalExperience: String,
-
-  currentJobTitle: String,
-  companyName: String,
-  industry: String,
-  designation: String,
-
-  currentCTC: String,
-  location: String,
-  preferredLocation: String,
-
-  employmentType: String,
-  workMode: String,
-
-  highestQualification: {
-    type: String,
-    required: [true, "Highest Qualification is required"]
-  },
-
-  college: String,
-  yearOfPassing: String,
-},
+      totalExperience: String,
+      currentJobTitle: String,
+      companyName: String,
+      industry: String,
+      designation: String,
+      currentCTC: String,
+      location: String,
+      preferredLocation: String,
+      employmentType: String,
+      workMode: String,
+      college: String,
+      yearOfPassing: String,
+    },
 
     /* ---------------- RESUME ---------------- */
     resume: {
@@ -62,7 +52,7 @@ const ProfileSchema = new mongoose.Schema(
       publicId: String,
       fileName: String,
       mimeType: String,
-      uploadedAt: Date
+      uploadedAt: Date,
     },
 
     /* ---------------- EXPERIENCE ---------------- */

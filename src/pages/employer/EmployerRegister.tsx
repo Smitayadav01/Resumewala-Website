@@ -1,7 +1,6 @@
-
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { registerEmployer } from "../../services/employerApi";
 import toast from "react-hot-toast";
 
@@ -87,6 +86,14 @@ export default function EmployerRegister() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-auto p-8">
+        <button
+    type="button"
+    onClick={() => navigate("/")}
+    className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition mb-5"
+  >
+    <ArrowLeft className="h-4 w-4" />
+    Back to Home
+  </button>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Create Employer Account</h1>
           <p className="text-gray-500 text-sm mt-1">Start hiring on Resumewala — it's free to register</p>

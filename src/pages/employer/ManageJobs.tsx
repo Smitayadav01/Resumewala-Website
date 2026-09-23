@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { getMyJobs, deleteJob, duplicateJob, updateJob } from "../../services/employerApi";
 import toast from "react-hot-toast";
 
@@ -22,49 +23,25 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function ManageJobs() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
-  const [creditInfo, setCreditInfo] = useState<any>(null);
 
 const fetchJobs = () => {
   getMyJobs()
     .then((data) => {
-      // Handle both old array response and new object response
+      // Handle both array and object response
       if (Array.isArray(data)) {
         setJobs(data);
       } else {
         setJobs(data.jobs || []);
-        setCreditInfo(data.creditInfo || null);
       }
     })
     .catch(() => toast.error("Failed to load jobs."))
     .finally(() => setLoading(false));
 };
 
-// Add credit banner at top of ManageJobs return, before filter tabs:
-{creditInfo && (
-  <div className={`mb-4 rounded-xl p-3 border text-sm flex items-center justify-between gap-3 ${
-    creditInfo.freeRemaining > 0
-      ? "bg-blue-50 border-blue-200 text-blue-800"
-      : creditInfo.hasPaidPlan
-      ? "bg-green-50 border-green-200 text-green-800"
-      : "bg-red-50 border-red-200 text-red-800"
-  }`}>
-    <span className="font-medium">
-      {creditInfo.freeRemaining > 0
-        ? `🆓 ${creditInfo.freeRemaining} free post${creditInfo.freeRemaining !== 1 ? "s" : ""} remaining`
-        : creditInfo.hasPaidPlan
-        ? `💳 ${creditInfo.paidCredits === "Unlimited" ? "Unlimited" : creditInfo.paidCredits} paid credits remaining`
-        : "⚠️ No credits remaining — purchase a plan"}
-    </span>
-    {!creditInfo.hasPaidPlan && creditInfo.freeRemaining === 0 && (
-      <Link to="/employer/plans" className="text-xs font-semibold px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-        Buy Plan
-      </Link>
-    )}
-  </div>
-)}
 
   useEffect(() => { fetchJobs(); }, []);
 
@@ -118,6 +95,14 @@ const fetchJobs = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      <button
+    type="button"
+    onClick={() => navigate("/employer/dashboard")}
+    className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition mb-5"
+  >
+    <ArrowLeft className="h-4 w-4" />
+    Back to Home
+  </button>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Manage Jobs</h1>

@@ -3,6 +3,7 @@ import {
   CheckCircle, Loader2, ChevronLeft, ChevronRight,
   Building2
 } from 'lucide-react';
+import { INDUSTRIES } from "../utils/industries";
 import { useState, useEffect } from 'react';
 import browse from '../assets/browse.png';
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ interface PublicJob {
   title: string;
   location: string;
   experience?: string;
+  industryCategory?: string;
   experienceRequired?: string;
   company?: string;
   salary?: string;
@@ -46,6 +48,7 @@ export default function Jobs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [industryFilter, setIndustryFilter] = useState('');
   const [selectedJob, setSelectedJob] = useState<PublicJob | null>(null);
   const [jobs, setJobs] = useState<PublicJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +59,29 @@ export default function Jobs() {
   const [currentPage, setCurrentPage] = useState(1);
 
   // ── Fetch Phase 1 + Phase 2 jobs ─────────────────────────────
+// const fetchJobs = async () => {
+//   setLoading(true);
+//   try {
+//     const res = await fetch(`${API_URL}/api/jobs/public`);
+//     if (!res.ok) throw new Error("Failed to fetch jobs");
+//     const data = await res.json();
+
+//     // Mark source based on postedBy so Apply logic still works correctly
+//     const jobs = (data.jobs || []).map((j: any) => ({
+//       ...j,
+//       source: j.postedBy === "employer" ? "phase2" : "phase1",
+//     }));
+
+//     setJobs(jobs);
+//   } catch (error) {
+//     console.error("Fetch error:", error);
+//     toast.error("Failed to load jobs");
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+
   const fetchJobs = async () => {
     setLoading(true);
     try {
@@ -100,9 +126,8 @@ export default function Jobs() {
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, locationFilter, typeFilter]);
-
+  setCurrentPage(1);
+}, [searchTerm, locationFilter, typeFilter, industryFilter]);
   // ── Helpers ───────────────────────────────────────────────────
   const getCompanyName = (job: PublicJob) =>
     job.employer?.companyName || job.company || 'Company';
@@ -149,10 +174,14 @@ export default function Jobs() {
       (job.location || '').toLowerCase().includes(locationFilter.toLowerCase());
 
     const matchType =
-      !typeFilter ||
-      getJobType(job).toLowerCase().includes(typeFilter.toLowerCase());
+  !typeFilter ||
+  getJobType(job).toLowerCase().includes(typeFilter.toLowerCase());
 
-    return matchSearch && matchLocation && matchType;
+const matchIndustry =
+  !industryFilter ||
+  (job.industryCategory || "") === industryFilter;
+
+return matchSearch && matchLocation && matchType && matchIndustry;
   });
 
   const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
@@ -408,16 +437,35 @@ export default function Jobs() {
               <option value="Internship">Internship</option>
             </select>
 
-            {/* Clear */}
-            {(locationFilter || typeFilter || searchTerm) && (
-              <button
-                onClick={() => { setLocationFilter(''); setTypeFilter(''); setSearchTerm(''); }}
-                className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1.5 rounded-lg hover:bg-red-50 transition"
-              >
-                ✕ Clear all
-              </button>
-            )}
+            {/* Industry */}
+<select
+  value={industryFilter}
+  onChange={(e) => setIndustryFilter(e.target.value)}
+  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs"
+>
+  <option value="">All Industries</option>
 
+  {INDUSTRIES.map((industry) => (
+    <option key={industry} value={industry}>
+      {industry}
+    </option>
+  ))}
+</select>
+
+            {/* Clear */}
+           {(locationFilter || typeFilter || searchTerm || industryFilter) && (
+  <button
+    onClick={() => {
+      setLocationFilter('');
+      setTypeFilter('');
+      setSearchTerm('');
+      setIndustryFilter('');
+    }}
+    className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1.5 rounded-lg hover:bg-red-50 transition"
+  >
+    ✕ Clear all
+  </button>
+)}
             <span className="ml-auto text-sm text-gray-500">
               <span className="font-semibold text-gray-800">{filteredJobs.length}</span> jobs found
             </span>
@@ -456,11 +504,16 @@ export default function Jobs() {
                 <p className="text-gray-500 text-lg font-medium">No jobs match your search</p>
                 <p className="text-gray-400 text-sm mt-2">Try different keywords or clear your filters</p>
                 <button
-                  onClick={() => { setSearchTerm(''); setLocationFilter(''); setTypeFilter(''); }}
-                  className="mt-5 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-                >
-                  Clear Filters
-                </button>
+  onClick={() => {
+    setSearchTerm('');
+    setLocationFilter('');
+    setTypeFilter('');
+    setIndustryFilter('');
+  }}
+  className="mt-5 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+>
+  Clear Filters
+</button>
               </div>
             ) : (
               <>
@@ -516,6 +569,16 @@ export default function Jobs() {
                             </span>
                           )}
                         </div>
+
+                         {/* Industry */}
+  {job.industryCategory && (
+    <div className="flex items-center gap-2">
+      <span className="text-gray-400 flex-shrink-0">🏭</span>
+      <span>{job.industryCategory}</span>
+    </div>
+  )}
+
+
                         {getExperience(job) && (
                           <div className="flex items-center gap-2">
                             <Briefcase className="h-4 w-4 text-gray-400 flex-shrink-0" />
