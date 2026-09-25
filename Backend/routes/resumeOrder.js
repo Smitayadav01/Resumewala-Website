@@ -5,6 +5,7 @@ import Razorpay from "razorpay";
 import ResumeOrder from "../models/ResumeOrder.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import cloudinary from "../config/cloudinary.js";   // ✅ reuse existing config
+import axios from "axios";
 
 const router = express.Router();
 
@@ -28,8 +29,8 @@ const upload = multer({
   },
 });
 
-const RESUME_PRICE_PAISE = 100; // ₹1 in paise
-const RESUME_PRICE_INR = 1;
+const RESUME_PRICE_PAISE = 9900; // ₹99 in paise
+const RESUME_PRICE_INR = 99;
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -358,6 +359,46 @@ router.patch("/orders/:id", async (req, res) => {
     res.json({ message: "Order updated.", order });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+// ────────────────────────────────────────────────────────────────
+// GET /api/resume/orders/:id/view-resume — Admin only
+// Streams the resume file through OUR backend using authenticated
+// Cloudinary access, bypassing any public delivery restrictions.
+// ────────────────────────────────────────────────────────────────
+router.get("/orders/:id/view-resume", async (req, res) => {
+  try {
+    const order = await ResumeOrder.findById(req.params.id);
+    if (!order || !order.resumePublicId) {
+      return res.status(404).json({ message: "Resume not found." });
+    }
+
+    // Generate a signed, time-limited URL using our Cloudinary credentials
+    const signedUrl = cloudinary.url(order.resumePublicId, {
+      resource_type: "raw",
+      type: "upload",
+      sign_url: true,
+      secure: true,
+    });
+
+    // Fetch the file server-side (authenticated request, not public delivery)
+    const response = await axios.get(signedUrl, {
+      responseType: "arraybuffer",
+    });
+
+    const safeFileName = encodeURIComponent(order.resumeFileName || "resume.pdf");
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${safeFileName}`);
+    res.send(Buffer.from(response.data));
+  } catch (err) {
+    console.error("Resume order view error:", err.message);
+    if (err.response?.status === 401) {
+      return res.status(401).json({ message: "Cloudinary access denied. Check API credentials." });
+    }
+    res.status(500).json({ message: "Failed to load resume." });
   }
 });
 

@@ -360,10 +360,13 @@ function JobApprovalCard({
 }
 
 function ResumeOrderCard({
-  order, onUpdateStatus,
+  order,
+  onUpdateStatus,
+  onViewResume,
 }: {
   order: any;
   onUpdateStatus: (id: string, status: string, notes?: string) => void;
+  onViewResume: (orderId: string) => void;
 }) {
   const [notes, setNotes] = useState(order.adminNotes || '');
   const [showNotes, setShowNotes] = useState(false);
@@ -410,15 +413,14 @@ function ResumeOrderCard({
             </p>
           )}
 
-          {order.resumeUrl ? (
-  <a
-    href={order.resumeUrl}
-    target="_blank"
-    rel="noopener noreferrer"
+         {order.resumePublicId || order.resumeUrl ? (
+  <button
+    onClick={() => onViewResume(order._id)}
     className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:underline mb-2"
   >
-    <FileText className="h-3.5 w-3.5" /> View uploaded resume
-  </a>
+    <FileText className="h-3.5 w-3.5" />
+    View uploaded resume
+  </button>
 ) : order.resumeFile ? (
   <a
     href={`${import.meta.env.VITE_API_URL}/uploads/${order.resumeFile}`}
@@ -426,10 +428,13 @@ function ResumeOrderCard({
     rel="noopener noreferrer"
     className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:underline mb-2"
   >
-    <FileText className="h-3.5 w-3.5" /> View uploaded resume 
+    <FileText className="h-3.5 w-3.5" />
+    View uploaded resume (legacy)
   </a>
 ) : (
-  <p className="text-xs text-gray-400 mb-2">No resume uploaded</p>
+  <p className="text-xs text-gray-400 mb-2">
+    No resume uploaded
+  </p>
 )}
 
           {showNotes && (
@@ -523,6 +528,7 @@ export default function Admin() {
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [deleteCandidateId, setDeleteCandidateId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [resumeOrderPreviewUrl, setResumeOrderPreviewUrl] = useState<string | null>(null);
   const [candidateSearch, setCandidateSearch] = useState('');
   const [candidateSkillFilter, setCandidateSkillFilter] = useState('all');
   const [candidateCompletenessFilter, setCandidateCompletenessFilter] =
@@ -798,6 +804,27 @@ export default function Admin() {
       setPreviewUrl(URL.createObjectURL(blob));
     } catch (err: any) { toast.error(err.message); }
   };
+
+  const handleViewOrderResume = async (orderId: string) => {
+  try {
+    const res = await authFetch(`/api/resume/orders/${orderId}/view-resume`);
+
+    if (!res.ok) {
+      throw new Error('Failed to load resume');
+    }
+
+    const blob = await res.blob();
+
+    // Clean up previous preview URL if one exists
+    if (resumeOrderPreviewUrl) {
+      URL.revokeObjectURL(resumeOrderPreviewUrl);
+    }
+
+    setResumeOrderPreviewUrl(URL.createObjectURL(blob));
+  } catch (err: any) {
+    toast.error(err.message || 'Failed to load resume');
+  }
+};
 
   const deleteCandidate = async (id: string) => {
     try {
@@ -1438,12 +1465,13 @@ export default function Admin() {
               ) : (
                 <div className="space-y-4">
                   {resumeOrders.map((order: any) => (
-                    <ResumeOrderCard
-                      key={order._id}
-                      order={order}
-                      onUpdateStatus={updateResumeOrderStatus}
-                    />
-                  ))}
+  <ResumeOrderCard
+    key={order._id}
+    order={order}
+    onUpdateStatus={updateResumeOrderStatus}
+    onViewResume={handleViewOrderResume}
+  />
+))}
                 </div>
               )}
             </div>
@@ -1672,6 +1700,28 @@ export default function Admin() {
           </div>
         </div>
       )}
+
+      {resumeOrderPreviewUrl && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-xl w-full max-w-4xl h-[90vh] relative">
+      <button
+        onClick={() => {
+          URL.revokeObjectURL(resumeOrderPreviewUrl);
+          setResumeOrderPreviewUrl(null);
+        }}
+        className="absolute top-3 right-3 text-slate-500 hover:text-black z-10 bg-white rounded-full p-1 shadow"
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+      <iframe
+        src={resumeOrderPreviewUrl}
+        className="w-full h-full rounded-xl"
+        title="Resume Preview"
+      />
+    </div>
+  </div>
+)}
 
       {/* ── Set Plan Modal ── */}
       {planModal && (
